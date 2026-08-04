@@ -27,7 +27,7 @@ export const Route = createFileRoute("/recurring/$recurringId/")({
 });
 
 function RecurringDetailsPage() {
-  const { recurringId } = useParams({ from: "/recurring/$recurringId" });
+  const { recurringId } = useParams({ from: "/recurring/$recurringId/" });
   const navigate = useNavigate();
   const { getRecurring, pauseRecurring, reactivateRecurring, cancelRecurring, startOneTimeUpdate } = useStore();
   const [cancelling, setCancelling] = useState(false);
