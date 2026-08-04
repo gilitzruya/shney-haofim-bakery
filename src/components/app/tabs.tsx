@@ -54,7 +54,7 @@ export function Tabs<T extends string>({
       <button
         type="button"
         aria-label="גלול קטגוריות שמאלה"
-        onClick={() => scrollBy(1)}
+        onClick={() => scrollBy(-1)}
         disabled={!canScrollLeft}
         className={cn(
           "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity disabled:cursor-default",
@@ -92,7 +92,7 @@ export function Tabs<T extends string>({
       <button
         type="button"
         aria-label="גלול קטגוריות ימינה"
-        onClick={() => scrollBy(-1)}
+        onClick={() => scrollBy(1)}
         disabled={!canScrollRight}
         className={cn(
           "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity disabled:cursor-default",
@@ -104,6 +104,7 @@ export function Tabs<T extends string>({
     </div>
   );
 }
+
 
 
 
