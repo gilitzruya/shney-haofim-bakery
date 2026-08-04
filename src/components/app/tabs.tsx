@@ -27,12 +27,18 @@ export function Tabs<T extends string>({
   };
 
   useEffect(() => {
-    updateScrollState();
     const el = scrollRef.current;
     if (!el) return;
-    el.addEventListener("scroll", updateScrollState, { passive: true });
-    window.addEventListener("resize", updateScrollState);
+
+    // Measure after the first paint so scrollWidth/clientWidth are correct.
+    const handle = requestAnimationFrame(() => {
+      updateScrollState();
+      el.addEventListener("scroll", updateScrollState, { passive: true });
+      window.addEventListener("resize", updateScrollState);
+    });
+
     return () => {
+      cancelAnimationFrame(handle);
       el.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("resize", updateScrollState);
     };
