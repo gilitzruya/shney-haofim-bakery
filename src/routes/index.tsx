@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarDays, ClipboardList, Repeat, ShoppingBasket } from "lucide-react";
+import { CalendarDays, CalendarPlus, ClipboardList, Repeat } from "lucide-react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { orders, recurring, business } = useStore();
+  const { orders, recurring } = useStore();
   const upcoming = orders
     .filter((o) => !o.closed && o.status !== "cancelled")
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -36,20 +36,21 @@ function HomePage() {
     <AppShell>
       <AppHeader />
       <Section className="pb-10">
-        <div className="rounded-[18px] bg-primary p-4 text-primary-foreground">
-          <div className="text-[11px] opacity-80">ברוכים הבאים</div>
-          <div className="mt-0.5 text-[19px] font-bold">{business.name}</div>
-          <p className="mt-1 text-[12px] leading-relaxed opacity-90">
-            כאן אפשר להזמין מוצרים טריים, לעקוב אחרי ההזמנות הקרובות ולנהל הזמנות קבועות.
-          </p>
-          <Link
-            to="/new-order"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-canvas px-4 py-2 text-[13px] font-bold text-primary no-underline"
-          >
-            <ShoppingBasket className="size-4" />
-            הזמנה חדשה
-          </Link>
-        </div>
+        <Link
+          to="/new-order"
+          className="flex items-center justify-between gap-3 rounded-[18px] border border-border bg-primary-soft p-4 no-underline"
+        >
+          <div className="min-w-0">
+            <div className="text-[16px] font-bold text-foreground">יצירת הזמנה חדשה</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+              בחרו מועד אספקה והתחילו להזמין
+            </p>
+          </div>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-[12px] bg-primary text-primary-foreground">
+            <CalendarPlus className="size-[22px]" />
+          </span>
+        </Link>
+
 
         <div className="mt-3.5 grid grid-cols-3 gap-2.5">
           <QuickAction to="/orders" icon={<ClipboardList className="size-[18px]" />} label="ההזמנות שלי" />
