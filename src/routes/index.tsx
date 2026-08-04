@@ -1,24 +1,147 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { CalendarDays, ClipboardList, Repeat, ShoppingBasket } from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { AppHeader } from "@/components/app/app-header";
+import { AppShell, Section } from "@/components/app/app-shell";
+import { Card } from "@/components/app/card";
+import { StatusChip } from "@/components/app/status-chip";
+import { roundLabel } from "@/data/catalog";
+import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence, weekdaysLabel } from "@/lib/format";
+import { useStore } from "@/store/app-store";
+
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "דף הבית — מאפיית שני האופים" },
+      {
+        name: "description",
+        content: "מרכז ההזמנות הסיטונאיות שלכם: הזמנה חדשה, הזמנות קרובות והזמנות קבועות.",
+      },
+      { property: "og:title", content: "דף הבית — מאפיית שני האופים" },
+      { property: "og:description", content: "מרכז ההזמנות הסיטונאיות של מאפיית שני האופים." },
+    ],
+  }),
+  component: HomePage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function HomePage() {
+  const { orders, recurring, business } = useStore();
+  const upcoming = orders
+    .filter((o) => !o.closed && o.status !== "cancelled")
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 3);
+  const activeRecurring = recurring.filter((r) => r.status === "active");
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
+    <AppShell>
+      <AppHeader />
+      <Section className="pb-10">
+        <div className="rounded-[18px] bg-primary p-4 text-primary-foreground">
+          <div className="text-[11px] opacity-80">ברוכים הבאים</div>
+          <div className="mt-0.5 text-[19px] font-bold">{business.name}</div>
+          <p className="mt-1 text-[12px] leading-relaxed opacity-90">
+            כאן אפשר להזמין מוצרים טריים, לעקוב אחרי ההזמנות הקרובות ולנהל הזמנות קבועות.
+          </p>
+          <Link
+            to="/new-order"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-canvas px-4 py-2 text-[13px] font-bold text-primary no-underline"
+          >
+            <ShoppingBasket className="size-4" />
+            הזמנה חדשה
+          </Link>
+        </div>
+
+        <div className="mt-3.5 grid grid-cols-3 gap-2.5">
+          <QuickAction to="/orders" icon={<ClipboardList className="size-[18px]" />} label="ההזמנות שלי" />
+          <QuickAction to="/recurring" icon={<Repeat className="size-[18px]" />} label="הזמנות קבועות" />
+          <QuickAction to="/business" icon={<CalendarDays className="size-[18px]" />} label="פרטי העסק" />
+        </div>
+
+        <SectionTitle title="הזמנות קרובות" linkTo="/orders" linkLabel="לכל ההזמנות" />
+        <div className="flex flex-col gap-2.5">
+          {upcoming.length === 0 ? (
+            <Card variant="muted">
+              <div className="text-center text-[12.5px] text-muted-foreground">אין הזמנות קרובות כרגע.</div>
+            </Card>
+          ) : (
+            upcoming.map((order) => (
+              <Link
+                key={order.id}
+                to="/orders/$orderId"
+                params={{ orderId: order.id }}
+                className="no-underline"
+              >
+                <Card>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[13.5px] font-semibold text-foreground">
+                      {formatDate(order.date)} · {roundLabel(order.round)}
+                    </div>
+                    <StatusChip status={order.status} />
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between text-[12px] text-muted-foreground">
+                    <span>{linesCount(order.lines)} מוצרים</span>
+                    <span className="font-semibold text-foreground">{formatPrice(linesTotal(order.lines))}</span>
+                  </div>
+                </Card>
+              </Link>
+            ))
+          )}
+        </div>
+
+        <SectionTitle title="הזמנות קבועות" linkTo="/recurring" linkLabel="ניהול" />
+        <div className="flex flex-col gap-2.5">
+          {activeRecurring.length === 0 ? (
+            <Card variant="muted">
+              <div className="text-center text-[12.5px] text-muted-foreground">אין הזמנות קבועות פעילות.</div>
+            </Card>
+          ) : (
+            activeRecurring.slice(0, 2).map((rec) => {
+              const next = nextOccurrence(rec.weekdays);
+              return (
+                <Link
+                  key={rec.id}
+                  to="/recurring/$recurringId"
+                  params={{ recurringId: rec.id }}
+                  className="no-underline"
+                >
+                  <Card variant={rec.needsAttention ? "attention" : "active"}>
+                    <div className="text-[13.5px] font-semibold text-foreground">{rec.name}</div>
+                    <div className="mt-1 text-[12px] text-muted-foreground">
+                      {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)}
+                    </div>
+                    {next ? (
+                      <div className="mt-1 text-[11.5px] text-primary">האספקה הבאה: {formatDate(next)}</div>
+                    ) : null}
+                  </Card>
+                </Link>
+              );
+            })
+          )}
+        </div>
+      </Section>
+    </AppShell>
+  );
+}
+
+function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex flex-col items-center gap-1.5 rounded-[14px] border border-border bg-card px-2 py-3 text-center no-underline"
     >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+      <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">{icon}</span>
+      <span className="text-[11.5px] font-semibold text-foreground">{label}</span>
+    </Link>
+  );
+}
+
+function SectionTitle({ title, linkTo, linkLabel }: { title: string; linkTo: string; linkLabel: string }) {
+  return (
+    <div className="mt-5 mb-2.5 flex items-center justify-between">
+      <h2 className="text-[15px] font-bold text-foreground">{title}</h2>
+      <Link to={linkTo} className="text-[12px] font-semibold text-primary no-underline">
+        {linkLabel}
+      </Link>
     </div>
   );
 }

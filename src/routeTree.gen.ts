@@ -10,33 +10,195 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BusinessRouteImport } from './routes/business'
+import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as NewOrderRouteImport } from './routes/new-order'
+import { Route as SummaryRouteImport } from './routes/summary'
+import { Route as OrdersIndexRouteImport } from './routes/orders.index'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
+import { Route as RecurringIndexRouteImport } from './routes/recurring.index'
+import { Route as RecurringNewRouteImport } from './routes/recurring.new'
+import { Route as RecurringRecurringIdIndexRouteImport } from './routes/recurring.$recurringId.index'
+import { Route as RecurringRecurringIdEditRouteImport } from './routes/recurring.$recurringId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BusinessRoute = BusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogRoute = CatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewOrderRoute = NewOrderRouteImport.update({
+  id: '/new-order',
+  path: '/new-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SummaryRoute = SummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecurringIndexRoute = RecurringIndexRouteImport.update({
+  id: '/recurring/',
+  path: '/recurring/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecurringNewRoute = RecurringNewRouteImport.update({
+  id: '/recurring/new',
+  path: '/recurring/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecurringRecurringIdIndexRoute =
+  RecurringRecurringIdIndexRouteImport.update({
+    id: '/recurring/$recurringId/',
+    path: '/recurring/$recurringId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const RecurringRecurringIdEditRoute =
+  RecurringRecurringIdEditRouteImport.update({
+    id: '/recurring/$recurringId/edit',
+    path: '/recurring/$recurringId/edit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/catalog': typeof CatalogRoute
+  '/contact': typeof ContactRoute
+  '/design-system': typeof DesignSystemRoute
+  '/new-order': typeof NewOrderRoute
+  '/summary': typeof SummaryRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/recurring/new': typeof RecurringNewRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/recurring/': typeof RecurringIndexRoute
+  '/recurring/$recurringId/edit': typeof RecurringRecurringIdEditRoute
+  '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/catalog': typeof CatalogRoute
+  '/contact': typeof ContactRoute
+  '/design-system': typeof DesignSystemRoute
+  '/new-order': typeof NewOrderRoute
+  '/summary': typeof SummaryRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/recurring/new': typeof RecurringNewRoute
+  '/orders': typeof OrdersIndexRoute
+  '/recurring': typeof RecurringIndexRoute
+  '/recurring/$recurringId/edit': typeof RecurringRecurringIdEditRoute
+  '/recurring/$recurringId': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/catalog': typeof CatalogRoute
+  '/contact': typeof ContactRoute
+  '/design-system': typeof DesignSystemRoute
+  '/new-order': typeof NewOrderRoute
+  '/summary': typeof SummaryRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/recurring/new': typeof RecurringNewRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/recurring/': typeof RecurringIndexRoute
+  '/recurring/$recurringId/edit': typeof RecurringRecurringIdEditRoute
+  '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/business'
+    | '/catalog'
+    | '/contact'
+    | '/design-system'
+    | '/new-order'
+    | '/summary'
+    | '/orders/$orderId'
+    | '/recurring/new'
+    | '/orders/'
+    | '/recurring/'
+    | '/recurring/$recurringId/edit'
+    | '/recurring/$recurringId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/business'
+    | '/catalog'
+    | '/contact'
+    | '/design-system'
+    | '/new-order'
+    | '/summary'
+    | '/orders/$orderId'
+    | '/recurring/new'
+    | '/orders'
+    | '/recurring'
+    | '/recurring/$recurringId/edit'
+    | '/recurring/$recurringId'
+  id:
+    | '__root__'
+    | '/'
+    | '/business'
+    | '/catalog'
+    | '/contact'
+    | '/design-system'
+    | '/new-order'
+    | '/summary'
+    | '/orders/$orderId'
+    | '/recurring/new'
+    | '/orders/'
+    | '/recurring/'
+    | '/recurring/$recurringId/edit'
+    | '/recurring/$recurringId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BusinessRoute: typeof BusinessRoute
+  CatalogRoute: typeof CatalogRoute
+  ContactRoute: typeof ContactRoute
+  DesignSystemRoute: typeof DesignSystemRoute
+  NewOrderRoute: typeof NewOrderRoute
+  SummaryRoute: typeof SummaryRoute
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  RecurringNewRoute: typeof RecurringNewRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+  RecurringIndexRoute: typeof RecurringIndexRoute
+  RecurringRecurringIdEditRoute: typeof RecurringRecurringIdEditRoute
+  RecurringRecurringIdIndexRoute: typeof RecurringRecurringIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +210,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/business': {
+      id: '/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof BusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalog': {
+      id: '/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/new-order': {
+      id: '/new-order'
+      path: '/new-order'
+      fullPath: '/new-order'
+      preLoaderRoute: typeof NewOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/summary': {
+      id: '/summary'
+      path: '/summary'
+      fullPath: '/summary'
+      preLoaderRoute: typeof SummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recurring/': {
+      id: '/recurring/'
+      path: '/recurring'
+      fullPath: '/recurring/'
+      preLoaderRoute: typeof RecurringIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recurring/new': {
+      id: '/recurring/new'
+      path: '/recurring/new'
+      fullPath: '/recurring/new'
+      preLoaderRoute: typeof RecurringNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recurring/$recurringId/': {
+      id: '/recurring/$recurringId/'
+      path: '/recurring/$recurringId'
+      fullPath: '/recurring/$recurringId/'
+      preLoaderRoute: typeof RecurringRecurringIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recurring/$recurringId/edit': {
+      id: '/recurring/$recurringId/edit'
+      path: '/recurring/$recurringId/edit'
+      fullPath: '/recurring/$recurringId/edit'
+      preLoaderRoute: typeof RecurringRecurringIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BusinessRoute: BusinessRoute,
+  CatalogRoute: CatalogRoute,
+  ContactRoute: ContactRoute,
+  DesignSystemRoute: DesignSystemRoute,
+  NewOrderRoute: NewOrderRoute,
+  SummaryRoute: SummaryRoute,
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
+  RecurringNewRoute: RecurringNewRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+  RecurringIndexRoute: RecurringIndexRoute,
+  RecurringRecurringIdEditRoute: RecurringRecurringIdEditRoute,
+  RecurringRecurringIdIndexRoute: RecurringRecurringIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
