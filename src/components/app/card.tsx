@@ -10,7 +10,7 @@ export function Card({
   children,
 }: {
   variant?: CardVariant;
-  className?: string;
+  className?: string | undefined;
   children: ReactNode;
 }) {
   return (
@@ -45,9 +45,9 @@ export function EmptyState({
   action,
 }: {
   title: string;
-  description?: string;
-  icon?: ReactNode;
-  action?: ReactNode;
+  description?: string | undefined;
+  icon?: ReactNode | undefined;
+  action?: ReactNode | undefined;
 }) {
   return (
     <div className="flex flex-col items-center gap-1.5 rounded-[14px] border border-dashed border-border bg-card px-4 py-5 text-center">
@@ -59,7 +59,7 @@ export function EmptyState({
   );
 }
 
-export function ErrorState({ title, description, onRetry }: { title: string; description?: string; onRetry?: () => void }) {
+export function ErrorState({ title, description, onRetry }: { title: string; description?: string | undefined; onRetry?: (() => void) | undefined }) {
   return (
     <div className="flex flex-col items-center gap-1.5 rounded-[14px] border border-border bg-destructive-bg px-4 py-5 text-center">
       <div className="text-[13.5px] font-bold text-destructive">{title}</div>

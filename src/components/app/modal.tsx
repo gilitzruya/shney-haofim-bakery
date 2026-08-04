@@ -16,11 +16,11 @@ export function Modal({
 }: {
   open: boolean;
   title: string;
-  description?: string;
-  children?: ReactNode;
-  confirmLabel?: string;
+  description?: string | undefined;
+  children?: ReactNode | undefined;
+  confirmLabel?: string | undefined;
   cancelLabel?: string;
-  onConfirm?: () => void;
+  onConfirm?: (() => void) | undefined;
   onClose: () => void;
   destructive?: boolean;
   loading?: boolean;

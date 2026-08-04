@@ -16,7 +16,7 @@ const NAV = [
   { to: "/design-system", label: "מערכת העיצוב" },
 ] as const;
 
-export function AppHeader({ children }: { children?: React.ReactNode }) {
+export function AppHeader({ children }: { children?: React.ReactNode | undefined }) {
   const [open, setOpen] = useState(false);
   const { business } = useStore();
 

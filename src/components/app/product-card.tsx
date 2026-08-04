@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
 import { formatQty, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
 
-export function ProductPlaceholder({ className }: { className?: string }) {
+export function ProductPlaceholder({ className }: { className?: string | undefined }) {
   return (
     <div
       className={cn(
@@ -31,8 +31,8 @@ export function QuantityStepper({
   product: Product;
   qty: number;
   onChange: (delta: number) => void;
-  disabled?: boolean;
-  compact?: boolean;
+  disabled?: boolean | undefined;
+  compact?: boolean | undefined;
 }) {
   const step = stepFor(product.unit);
   const quick = quickStepFor(product.unit);

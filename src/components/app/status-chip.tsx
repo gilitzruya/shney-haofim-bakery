@@ -21,7 +21,7 @@ const STATUS_CLASS: Record<OrderStatus, string> = {
   cancelled: "bg-secondary text-muted-foreground",
 };
 
-export function StatusChip({ status, className }: { status: OrderStatus; className?: string }) {
+export function StatusChip({ status, className }: { status: OrderStatus; className?: string | undefined }) {
   return (
     <span
       className={cn(
@@ -42,7 +42,7 @@ export function Chip({
 }: {
   children: ReactNode;
   tone?: "neutral" | "accent" | "muted" | "error";
-  className?: string;
+  className?: string | undefined;
 }) {
   const tones = {
     neutral: "bg-accent text-accent-foreground",

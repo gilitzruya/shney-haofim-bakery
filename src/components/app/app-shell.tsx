@@ -5,7 +5,7 @@ import { useRouter } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 /** The mobile-first app canvas used by every screen in the handoff. */
-export function AppShell({ children, className }: { children: ReactNode; className?: string }) {
+export function AppShell({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
     <div dir="rtl" lang="he" className={cn("min-h-screen bg-background", className)}>
       <div className="mx-auto min-h-screen w-full max-w-[430px] bg-canvas md:max-w-[834px] lg:max-w-[1120px]">
@@ -32,6 +32,6 @@ export function PageTitleBar({ title, backTo }: { title: string; backTo?: string
   );
 }
 
-export function Section({ children, className }: { children: ReactNode; className?: string }) {
+export function Section({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return <div className={cn("mx-auto w-full max-w-5xl px-3.5 md:px-5", className)}>{children}</div>;
 }

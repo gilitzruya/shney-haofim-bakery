@@ -21,11 +21,11 @@ const sizes: Record<Size, string> = {
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
-  pill?: boolean;
-  loading?: boolean;
-  children?: ReactNode;
+  variant?: Variant | undefined;
+  size?: Size | undefined;
+  pill?: boolean | undefined;
+  loading?: boolean | undefined;
+  children?: ReactNode | undefined;
 }
 
 export function Button({
@@ -57,7 +57,7 @@ export function Button({
   );
 }
 
-export function Spinner({ className }: { className?: string }) {
+export function Spinner({ className }: { className?: string | undefined }) {
   return (
     <span
       aria-hidden
