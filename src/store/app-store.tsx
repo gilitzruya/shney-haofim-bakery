@@ -353,15 +353,16 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
       bumpQty: (productId, delta) =>
         update((s) => {
-          if (!s.draft) return s;
+          const draft = s.draft ?? emptyDraft("order");
           const product = findProduct(productId);
-          const current = s.draft.quantities[productId] ?? 0;
+          const current = draft.quantities[productId] ?? 0;
           const next = roundQty(current + delta, product?.unit ?? "unit");
-          const quantities = { ...s.draft.quantities };
+          const quantities = { ...draft.quantities };
           if (next <= 0) delete quantities[productId];
           else quantities[productId] = next;
-          return { ...s, draft: { ...s.draft, quantities } };
+          return { ...s, draft: { ...draft, quantities } };
         }),
+
 
       clearCart: () =>
         update((s) => (s.draft ? { ...s, draft: { ...s.draft, quantities: {} } } : s)),

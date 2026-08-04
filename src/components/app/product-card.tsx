@@ -44,6 +44,7 @@ export function QuantityStepper({
     <div className="flex shrink-0 items-center gap-1.5">
       <button
         type="button"
+        dir="ltr"
         disabled={disabled}
         onClick={() => onChange(quick)}
         className={cn(
@@ -55,6 +56,7 @@ export function QuantityStepper({
       </button>
       <button
         type="button"
+        dir="ltr"
         aria-label="הוספה"
         disabled={disabled}
         onClick={() => onChange(step)}
@@ -78,6 +80,7 @@ export function QuantityStepper({
       </div>
       <button
         type="button"
+        dir="ltr"
         aria-label="הפחתה"
         disabled={disabled || qty <= 0}
         onClick={() => onChange(-step)}
