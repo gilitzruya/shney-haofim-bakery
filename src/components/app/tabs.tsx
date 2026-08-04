@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import { cn } from "@/lib/utils";
 
 export function Tabs<T extends string>({
@@ -9,12 +11,21 @@ export function Tabs<T extends string>({
   value: T;
   onChange: (id: T) => void;
 }) {
+  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    refs.current[value]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [value]);
+
   return (
     <div className="flex gap-2 overflow-x-auto no-scrollbar">
       {tabs.map((t) => (
         <button
           key={t.id}
           type="button"
+          ref={(el) => {
+            refs.current[t.id] = el;
+          }}
           onClick={() => onChange(t.id)}
           className={cn(
             "shrink-0 rounded-full border px-3.5 py-[7px] text-[13.5px] font-semibold whitespace-nowrap",
@@ -29,6 +40,7 @@ export function Tabs<T extends string>({
     </div>
   );
 }
+
 
 export function FilterChips<T extends string>({
   chips,
