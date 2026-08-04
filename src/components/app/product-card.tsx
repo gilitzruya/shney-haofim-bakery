@@ -105,11 +105,12 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "mb-2 flex items-center gap-2.5 rounded-[14px] border-[1.5px] p-2.5",
-        selected && !unavailable ? "border-primary bg-primary-soft" : "border-border bg-card",
+        "mb-2.5 flex items-center gap-2.5 rounded-[16px] border-[1.5px] p-2.5",
+        selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
     >
+
       <ProductPlaceholder />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
