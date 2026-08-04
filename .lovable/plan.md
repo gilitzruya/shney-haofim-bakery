@@ -93,7 +93,9 @@ All values from the showcase go into `src/styles.css` as semantic tokens (oklch 
 ## 7. Technical notes
 
 - TanStack Start routes as listed; catalog/summary mode read from search params.
-- State: React context for cart, orders, and recurring orders, seeded from `src/data/*.ts` mock modules. No persistence beyond session memory unless you ask for localStorage.
+- State: React context for cart, orders, and recurring orders, seeded from `src/data/*.ts` mock modules.
+- **Persistence: localStorage, no backend.** On first load the app hydrates from a versioned key (e.g. `bakery-demo-state:v1`); if nothing is stored, it seeds from the mock data and writes it. Every mutation — create/edit/confirm/cancel an order, create/edit/pause/reactivate/cancel/one-time-update a recurring order, and cart changes — writes the updated state back. Reopening the app restores the saved state instead of resetting. Hydration happens after mount (SSR-safe), a `resetDemoData` action restores the original mocks, and a bumped version key discards incompatible saved state.
 - No Supabase, no Cloud, no auth. The greeting "שלום, מלון יהודה" is a mock constant.
 - Product images stay as the CSS diagonal-stripe placeholder with the "תמונת מוצר" label, exactly as designed.
 - Logo uploaded as a Lovable asset pointer rather than a repo binary.
+
