@@ -21,8 +21,9 @@ export function Tabs<T extends string>({
     const el = scrollRef.current;
     if (!el) return;
     const maxScroll = el.scrollWidth - el.clientWidth;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft < maxScroll - 4);
+    // RTL: scrollLeft is 0 at the start (right side) and becomes negative toward the end (left side).
+    setCanScrollLeft(el.scrollLeft > -maxScroll + 4);
+    setCanScrollRight(el.scrollLeft < -4);
   };
 
   useEffect(() => {
@@ -53,10 +54,11 @@ export function Tabs<T extends string>({
       <button
         type="button"
         aria-label="גלול קטגוריות שמאלה"
-        onClick={() => scrollBy(-1)}
+        onClick={() => scrollBy(1)}
+        disabled={!canScrollLeft}
         className={cn(
-          "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity",
-          !canScrollLeft && "pointer-events-none opacity-40",
+          "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity disabled:cursor-default",
+          canScrollLeft ? "opacity-100" : "opacity-30",
         )}
       >
         <ChevronLeft className="size-4" />
@@ -64,7 +66,7 @@ export function Tabs<T extends string>({
 
       <div
         ref={scrollRef}
-        className="flex gap-2 overflow-x-auto no-scrollbar"
+        className="flex flex-1 gap-2 overflow-x-auto no-scrollbar min-w-0"
         style={{ scrollbarWidth: "none" }}
       >
         {tabs.map((t) => (
@@ -90,10 +92,11 @@ export function Tabs<T extends string>({
       <button
         type="button"
         aria-label="גלול קטגוריות ימינה"
-        onClick={() => scrollBy(1)}
+        onClick={() => scrollBy(-1)}
+        disabled={!canScrollRight}
         className={cn(
-          "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity",
-          !canScrollRight && "pointer-events-none opacity-40",
+          "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity disabled:cursor-default",
+          canScrollRight ? "opacity-100" : "opacity-30",
         )}
       >
         <ChevronRight className="size-4" />
@@ -101,6 +104,7 @@ export function Tabs<T extends string>({
     </div>
   );
 }
+
 
 
 
