@@ -14,6 +14,7 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as NewOrderRouteImport } from './routes/new-order'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,12 +41,18 @@ const OrdersIndexRoute = OrdersIndexRouteImport.update({
   path: '/orders/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/': typeof OrdersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/catalog': typeof CatalogRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders': typeof OrdersIndexRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,34 @@ export interface FileRoutesById {
   '/catalog': typeof CatalogRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/': typeof OrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/catalog' | '/new-order' | '/summary' | '/orders/'
+  fullPaths:
+    | '/'
+    | '/catalog'
+    | '/new-order'
+    | '/summary'
+    | '/orders/$orderId'
+    | '/orders/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/catalog' | '/new-order' | '/summary' | '/orders'
-  id: '__root__' | '/' | '/catalog' | '/new-order' | '/summary' | '/orders/'
+  to:
+    | '/'
+    | '/catalog'
+    | '/new-order'
+    | '/summary'
+    | '/orders/$orderId'
+    | '/orders'
+  id:
+    | '__root__'
+    | '/'
+    | '/catalog'
+    | '/new-order'
+    | '/summary'
+    | '/orders/$orderId'
+    | '/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +104,7 @@ export interface RootRouteChildren {
   CatalogRoute: typeof CatalogRoute
   NewOrderRoute: typeof NewOrderRoute
   SummaryRoute: typeof SummaryRoute
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
 }
 
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -124,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogRoute: CatalogRoute,
   NewOrderRoute: NewOrderRoute,
   SummaryRoute: SummaryRoute,
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
 }
 export const routeTree = rootRouteImport
