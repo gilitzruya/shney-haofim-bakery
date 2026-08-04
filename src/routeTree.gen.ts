@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BusinessRouteImport } from './routes/business'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as NewOrderRouteImport } from './routes/new-order'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
@@ -40,6 +41,11 @@ const CatalogRoute = CatalogRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewOrderRoute = NewOrderRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/business': typeof BusinessRoute
   '/catalog': typeof CatalogRoute
   '/contact': typeof ContactRoute
+  '/design-system': typeof DesignSystemRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/business': typeof BusinessRoute
   '/catalog': typeof CatalogRoute
   '/contact': typeof ContactRoute
+  '/design-system': typeof DesignSystemRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/business': typeof BusinessRoute
   '/catalog': typeof CatalogRoute
   '/contact': typeof ContactRoute
+  '/design-system': typeof DesignSystemRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/business'
     | '/catalog'
     | '/contact'
+    | '/design-system'
     | '/new-order'
     | '/summary'
     | '/orders/$orderId'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/business'
     | '/catalog'
     | '/contact'
+    | '/design-system'
     | '/new-order'
     | '/summary'
     | '/orders/$orderId'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/business'
     | '/catalog'
     | '/contact'
+    | '/design-system'
     | '/new-order'
     | '/summary'
     | '/orders/$orderId'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   BusinessRoute: typeof BusinessRoute
   CatalogRoute: typeof CatalogRoute
   ContactRoute: typeof ContactRoute
+  DesignSystemRoute: typeof DesignSystemRoute
   NewOrderRoute: typeof NewOrderRoute
   SummaryRoute: typeof SummaryRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
@@ -216,6 +229,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/new-order': {
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessRoute: BusinessRoute,
   CatalogRoute: CatalogRoute,
   ContactRoute: ContactRoute,
+  DesignSystemRoute: DesignSystemRoute,
   NewOrderRoute: NewOrderRoute,
   SummaryRoute: SummaryRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
