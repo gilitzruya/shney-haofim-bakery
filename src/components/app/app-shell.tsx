@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export function AppShell({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
     <div dir="rtl" lang="he" className={cn("min-h-screen bg-background", className)}>
-      <div className="mx-auto min-h-screen w-full max-w-[430px] bg-canvas md:max-w-[834px] lg:max-w-[1120px]">
+      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-canvas md:max-w-[834px] lg:max-w-[1120px]">
         {children}
       </div>
     </div>
@@ -33,5 +33,5 @@ export function PageTitleBar({ title, backTo }: { title: string; backTo?: string
 }
 
 export function Section({ children, className }: { children: ReactNode; className?: string | undefined }) {
-  return <div className={cn("mx-auto w-full max-w-5xl px-3.5 md:px-5", className)}>{children}</div>;
+  return <div className={cn("mx-auto w-full max-w-5xl flex-1 px-3.5 md:px-5", className)}>{children}</div>;
 }
