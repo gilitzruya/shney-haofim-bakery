@@ -19,7 +19,7 @@ export function Card({
         "rounded-[14px] p-3.5",
         variant === "active" && "border border-border bg-card",
         variant === "muted" && "border border-dashed border-border bg-card-muted",
-        variant === "attention" && "border border-border border-e-[3px] border-e-primary bg-card",
+        variant === "attention" && "border border-border border-s-[3px] border-s-primary bg-card",
         className,
       )}
     >
