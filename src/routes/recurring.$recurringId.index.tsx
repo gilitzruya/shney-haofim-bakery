@@ -14,7 +14,7 @@ import { formatDate, formatPrice, formatQty, linesTotal, nextOccurrence, weekday
 import { useStore } from "@/store/app-store";
 import { RECURRING_STATUS_LABEL } from "./recurring.index";
 
-export const Route = createFileRoute("/recurring/$recurringId")({
+export const Route = createFileRoute("/recurring/$recurringId/")({
   head: () => ({
     meta: [
       { title: "פרטי הזמנה קבועה — מאפיית שני האופים" },

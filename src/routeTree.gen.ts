@@ -16,6 +16,7 @@ import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as RecurringIndexRouteImport } from './routes/recurring.index'
+import { Route as RecurringRecurringIdIndexRouteImport } from './routes/recurring.$recurringId.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,12 @@ const RecurringIndexRoute = RecurringIndexRouteImport.update({
   path: '/recurring/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecurringRecurringIdIndexRoute =
+  RecurringRecurringIdIndexRouteImport.update({
+    id: '/recurring/$recurringId/',
+    path: '/recurring/$recurringId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/recurring/': typeof RecurringIndexRoute
+  '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByTo {
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders': typeof OrdersIndexRoute
   '/recurring': typeof RecurringIndexRoute
+  '/recurring/$recurringId': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +89,7 @@ export interface FileRoutesById {
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/recurring/': typeof RecurringIndexRoute
+  '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/orders/$orderId'
     | '/orders/'
     | '/recurring/'
+    | '/recurring/$recurringId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/orders/$orderId'
     | '/orders'
     | '/recurring'
+    | '/recurring/$recurringId'
   id:
     | '__root__'
     | '/'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/orders/$orderId'
     | '/orders/'
     | '/recurring/'
+    | '/recurring/$recurringId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +132,7 @@ export interface RootRouteChildren {
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   RecurringIndexRoute: typeof RecurringIndexRoute
+  RecurringRecurringIdIndexRoute: typeof RecurringRecurringIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecurringIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recurring/$recurringId/': {
+      id: '/recurring/$recurringId/'
+      path: '/recurring/$recurringId'
+      fullPath: '/recurring/$recurringId/'
+      preLoaderRoute: typeof RecurringRecurringIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +204,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersOrderIdRoute: OrdersOrderIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   RecurringIndexRoute: RecurringIndexRoute,
+  RecurringRecurringIdIndexRoute: RecurringRecurringIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
