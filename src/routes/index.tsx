@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { orders, recurring, business } = useStore();
+  const { orders, recurring } = useStore();
   const upcoming = orders
     .filter((o) => !o.closed && o.status !== "cancelled")
     .sort((a, b) => a.date.localeCompare(b.date))
