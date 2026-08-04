@@ -1,5 +1,3 @@
-import { Minus, Plus } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
 import { formatQty, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
@@ -36,26 +34,40 @@ export function QuantityStepper({
 }) {
   const step = stepFor(product.unit);
   const quick = quickStepFor(product.unit);
-  const btn =
-    "flex items-center justify-center rounded-[10px] border border-border bg-card text-[13px] font-bold text-foreground disabled:opacity-50";
-  const size = compact ? "size-[28px]" : "size-[30px]";
+  const size = compact ? "h-[28px] min-w-[28px]" : "h-[30px] min-w-[30px]";
+  const btn = cn(
+    "flex items-center justify-center rounded-[9px] border border-border bg-card px-1.5 text-[12px] font-bold text-foreground disabled:opacity-40",
+    size,
+  );
 
   return (
     <div className="flex shrink-0 items-center gap-1.5">
       <button
         type="button"
-        aria-label="הפחתה"
-        disabled={disabled || qty <= 0}
-        onClick={() => onChange(-step)}
-        className={cn(btn, size)}
+        disabled={disabled}
+        onClick={() => onChange(quick)}
+        className={cn(
+          "flex items-center justify-center rounded-[9px] bg-accent px-2.5 text-[12px] font-bold text-accent-foreground disabled:opacity-40",
+          size,
+        )}
       >
-        <Minus className="size-3.5" />
+        +{product.unit === "kg" ? quick.toFixed(1) : quick}
+      </button>
+      <button
+        type="button"
+        aria-label="הוספה"
+        disabled={disabled}
+        onClick={() => onChange(step)}
+        className={btn}
+      >
+        +{product.unit === "kg" ? step.toFixed(1) : step}
       </button>
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "flex min-w-[30px] items-center justify-center rounded-[10px] px-1.5 py-1 text-[13px] font-bold",
-            qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground",
+            "flex items-center justify-center rounded-[9px] px-1.5 text-[13px] font-bold",
+            size,
+            qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground",
           )}
         >
           {formatQty(qty, product.unit)}
@@ -66,27 +78,17 @@ export function QuantityStepper({
       </div>
       <button
         type="button"
-        aria-label="הוספה"
-        disabled={disabled}
-        onClick={() => onChange(step)}
-        className={cn(btn, size)}
+        aria-label="הפחתה"
+        disabled={disabled || qty <= 0}
+        onClick={() => onChange(-step)}
+        className={btn}
       >
-        <Plus className="size-3.5" />
-      </button>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => onChange(quick)}
-        className={cn(
-          "flex h-[30px] items-center justify-center rounded-full bg-accent px-2.5 text-[12px] font-bold text-accent-foreground disabled:opacity-50",
-          compact && "h-[28px]",
-        )}
-      >
-        +{product.unit === "kg" ? quick.toFixed(1) : quick}
+        -{product.unit === "kg" ? step.toFixed(1) : step}
       </button>
     </div>
   );
 }
+
 
 export function ProductCard({
   product,
