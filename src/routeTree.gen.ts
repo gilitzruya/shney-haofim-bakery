@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BusinessRouteImport } from './routes/business'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as NewOrderRouteImport } from './routes/new-order'
 import { Route as SummaryRouteImport } from './routes/summary'
@@ -23,6 +24,11 @@ import { Route as RecurringRecurringIdEditRouteImport } from './routes/recurring
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessRoute = BusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogRoute = CatalogRouteImport.update({
@@ -75,6 +81,7 @@ const RecurringRecurringIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
   '/catalog': typeof CatalogRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
   '/catalog': typeof CatalogRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
@@ -100,6 +108,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
   '/catalog': typeof CatalogRoute
   '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/business'
     | '/catalog'
     | '/new-order'
     | '/summary'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/business'
     | '/catalog'
     | '/new-order'
     | '/summary'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/business'
     | '/catalog'
     | '/new-order'
     | '/summary'
@@ -151,6 +163,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BusinessRoute: typeof BusinessRoute
   CatalogRoute: typeof CatalogRoute
   NewOrderRoute: typeof NewOrderRoute
   SummaryRoute: typeof SummaryRoute
@@ -169,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business': {
+      id: '/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof BusinessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalog': {
@@ -239,6 +259,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BusinessRoute: BusinessRoute,
   CatalogRoute: CatalogRoute,
   NewOrderRoute: NewOrderRoute,
   SummaryRoute: SummaryRoute,
