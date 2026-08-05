@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
