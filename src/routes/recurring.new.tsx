@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
+import { formatCutoff, upcomingStartOptions } from "@/lib/cutoff";
+import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/recurring/new")({
@@ -26,8 +29,18 @@ function NewRecurringPage() {
   const [name, setName] = useState("");
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
+  const [startDate, setStartDate] = useState<string | null>(null);
 
-  const valid = name.trim().length > 1 && weekdays.length > 0;
+  const options = useMemo(() => upcomingStartOptions(weekdays, 4), [weekdays]);
+  const firstAvailable = options.find((o) => !o.blocked) ?? null;
+  const nearestBlocked = options[0]?.blocked ? options[0] : null;
+
+  useEffect(() => {
+    setStartDate(firstAvailable?.iso ?? null);
+  }, [firstAvailable?.iso]);
+
+  const valid = name.trim().length > 1 && weekdays.length > 0 && !!startDate;
+
 
   return (
     <AppShell>
