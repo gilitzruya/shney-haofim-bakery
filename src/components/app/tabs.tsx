@@ -67,7 +67,7 @@ export function Tabs<T extends string>({
           canScrollLeft ? "opacity-100" : "opacity-30",
         )}
       >
-        <ChevronLeft className="size-4" />
+        <ChevronRight className="size-4" />
       </button>
 
       <div
