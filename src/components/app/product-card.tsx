@@ -41,16 +41,28 @@ export function QuantityStepper({
   );
 
   return (
-    <div className="flex shrink-0 items-end gap-1.5">
+    <div className="flex shrink-0 items-start gap-1.5">
       <button
         type="button"
         dir="ltr"
-        aria-label="הפחתה"
-        disabled={disabled || qty <= 0}
-        onClick={() => onChange(-step)}
+        disabled={disabled}
+        onClick={() => onChange(quick)}
+        className={cn(
+          "flex items-center justify-center rounded-[9px] bg-accent px-2.5 text-[12px] font-bold text-accent-foreground disabled:opacity-40",
+          size,
+        )}
+      >
+        +{product.unit === "kg" ? quick.toFixed(1) : quick}
+      </button>
+      <button
+        type="button"
+        dir="ltr"
+        aria-label="הוספה"
+        disabled={disabled}
+        onClick={() => onChange(step)}
         className={btn}
       >
-        -{product.unit === "kg" ? step.toFixed(1) : step}
+        +{product.unit === "kg" ? step.toFixed(1) : step}
       </button>
       <div className="flex flex-col items-center">
         <div
@@ -69,24 +81,12 @@ export function QuantityStepper({
       <button
         type="button"
         dir="ltr"
-        aria-label="הוספה"
-        disabled={disabled}
-        onClick={() => onChange(step)}
+        aria-label="הפחתה"
+        disabled={disabled || qty <= 0}
+        onClick={() => onChange(-step)}
         className={btn}
       >
-        +{product.unit === "kg" ? step.toFixed(1) : step}
-      </button>
-      <button
-        type="button"
-        dir="ltr"
-        disabled={disabled}
-        onClick={() => onChange(quick)}
-        className={cn(
-          "flex items-center justify-center rounded-[9px] bg-accent px-2.5 text-[12px] font-bold text-accent-foreground disabled:opacity-40",
-          size,
-        )}
-      >
-        +{product.unit === "kg" ? quick.toFixed(1) : quick}
+        -{product.unit === "kg" ? step.toFixed(1) : step}
       </button>
     </div>
   );
