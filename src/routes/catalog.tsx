@@ -27,7 +27,7 @@ export const Route = createFileRoute("/catalog")({
 
 function CatalogPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty } = useStore();
+  const { draft, bumpQty, setQty } = useStore();
   const [category, setCategory] = useState(CATEGORIES[0]!.id);
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
