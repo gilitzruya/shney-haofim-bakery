@@ -45,3 +45,28 @@ export function israelNow(): Date {
   d.setHours(get("hour") % 24, get("minute"), get("second"), 0);
   return d;
 }
+
+export interface StartOption {
+  iso: string;
+  /** מועד הסגירה לאספקה זו כבר חלף */
+  blocked: boolean;
+}
+
+/**
+ * מועדי האספקה הקרובים לימים שנבחרו, עם סימון האם מועד הסגירה כבר חלף.
+ */
+export function upcomingStartOptions(weekdays: number[], count = 4): StartOption[] {
+  if (!weekdays.length) return [];
+  const now = israelNow();
+  const out: StartOption[] = [];
+  for (let i = 1; i <= 21 && out.length < count; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    if (!weekdays.includes(d.getDay())) continue;
+    const m = `${d.getMonth() + 1}`.padStart(2, "0");
+    const day = `${d.getDate()}`.padStart(2, "0");
+    const iso = `${d.getFullYear()}-${m}-${day}`;
+    out.push({ iso, blocked: isCutoffPassed(iso, now) });
+  }
+  return out;
+}

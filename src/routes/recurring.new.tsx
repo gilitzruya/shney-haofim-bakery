@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
+import { formatCutoff, upcomingStartOptions } from "@/lib/cutoff";
+import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/recurring/new")({
@@ -26,8 +29,18 @@ function NewRecurringPage() {
   const [name, setName] = useState("");
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
+  const [startDate, setStartDate] = useState<string | null>(null);
 
-  const valid = name.trim().length > 1 && weekdays.length > 0;
+  const options = useMemo(() => upcomingStartOptions(weekdays, 4), [weekdays]);
+  const firstAvailable = options.find((o) => !o.blocked) ?? null;
+  const nearestBlocked = options[0]?.blocked ? options[0] : null;
+
+  useEffect(() => {
+    setStartDate(firstAvailable?.iso ?? null);
+  }, [firstAvailable?.iso]);
+
+  const valid = name.trim().length > 1 && weekdays.length > 0 && !!startDate;
+
 
   return (
     <AppShell>
@@ -50,8 +63,51 @@ function NewRecurringPage() {
             <RoundSelector value={round} onChange={setRound} />
           </div>
 
+
+          <div>
+            <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ממתי להתחיל</div>
+            {weekdays.length === 0 ? (
+              <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
+                יש לבחור קודם ימי אספקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {nearestBlocked ? (
+                  <div className="flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
+                    <AlertTriangle className="mt-px size-3.5 shrink-0" />
+                    <span>
+                      לא ניתן להתחיל ב־{formatLongDate(nearestBlocked.iso)} — מועד הסגירה ({formatCutoff(nearestBlocked.iso)}) כבר חלף.
+                      ההתחלה תהיה במועד האספקה הבא.
+                    </span>
+                  </div>
+                ) : null}
+                {options.map((opt) => (
+                  <button
+                    key={opt.iso}
+                    type="button"
+                    disabled={opt.blocked}
+                    onClick={() => setStartDate(opt.iso)}
+                    className={`flex items-center justify-between rounded-xl border px-3.5 py-3 text-right text-[13px] transition ${
+                      opt.blocked
+                        ? "cursor-not-allowed border-border bg-card-muted text-muted-foreground opacity-60"
+                        : startDate === opt.iso
+                          ? "border-primary/35 bg-primary-soft font-semibold text-foreground"
+                          : "border-border bg-card text-foreground"
+                    }`}
+                  >
+                    <span>{formatLongDate(opt.iso)}</span>
+                    <span className="text-[11.5px] text-muted-foreground">
+                      {opt.blocked ? "מועד הסגירה חלף" : `סגירה: ${formatCutoff(opt.iso)}`}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
-            אחרי בחירת המוצרים ההזמנה תישלח אוטומטית למאפייה בכל אחד מימי האספקה שנבחרו.
+            אחרי בחירת המוצרים ההזמנה תישלח אוטומטית למאפייה בכל אחד מימי האספקה שנבחרו, החל מ־
+            {startDate ? formatLongDate(startDate) : "מועד ההתחלה שייבחר"}.
           </div>
         </div>
       </Section>
@@ -63,10 +119,11 @@ function NewRecurringPage() {
             className="w-full"
             disabled={!valid}
             onClick={() => {
-              startRecurringCreate(name.trim(), weekdays, round);
+              startRecurringCreate(name.trim(), weekdays, round, startDate ?? undefined);
               navigate({ to: "/catalog" });
             }}
           >
+
             המשך לבחירת מוצרים
           </Button>
         </div>

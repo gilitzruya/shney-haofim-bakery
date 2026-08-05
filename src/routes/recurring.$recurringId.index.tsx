@@ -10,7 +10,8 @@ import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
 import { findProduct, roundLabel } from "@/data/catalog";
-import { formatDate, formatPrice, formatQty, linesTotal, nextOccurrence, weekdaysLabel } from "@/lib/format";
+import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
+import { nextRecurringDelivery } from "@/lib/recurring";
 import { useStore } from "@/store/app-store";
 import { RECURRING_STATUS_LABEL } from "./recurring.index";
 
@@ -49,7 +50,7 @@ function RecurringDetailsPage() {
     );
   }
 
-  const next = rec.status === "active" ? nextOccurrence(rec.weekdays) : null;
+  const next = rec.status === "active" ? nextRecurringDelivery(rec) : null;
 
   return (
     <AppShell>
@@ -65,6 +66,9 @@ function RecurringDetailsPage() {
           <div className="mt-1 text-[12.5px] text-muted-foreground">
             {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)}
           </div>
+          {rec.startDate ? (
+            <div className="mt-1 text-[12px] text-muted-foreground">מתחילה מ־{formatDate(rec.startDate)}</div>
+          ) : null}
           {next ? <div className="mt-1 text-[12px] text-primary">האספקה הבאה: {formatDate(next)}</div> : null}
           {rec.needsAttention && rec.attentionText ? (
             <div className="mt-2.5 flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
