@@ -10,7 +10,7 @@ import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
 
 import { CATEGORIES, roundLabel } from "@/data/catalog";
-import { formatDate, formatPrice, linesTotal } from "@/lib/format";
+import { formatDate, formatPrice, formatWeekday, linesTotal } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/catalog")({
@@ -79,7 +79,7 @@ function CatalogPage() {
     draft?.mode === "recurring_create" || draft?.mode === "recurring_edit"
       ? draft.name || "הזמנה קבועה"
       : draft?.date
-        ? `${formatDate(draft.date)} · ${roundLabel(draft.round)}`
+        ? `${formatWeekday(draft.date)}, ${formatDate(draft.date)} · ${roundLabel(draft.round)}`
         : "בחירת מוצרים";
 
   return (
