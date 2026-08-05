@@ -81,6 +81,19 @@ function NewRecurringPage() {
             <RoundSelector value={round} onChange={setRound} />
           </div>
 
+          {conflicts.length > 0 ? (
+            <div className="flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2.5 text-[12px] font-semibold text-destructive">
+              <AlertTriangle className="mt-px size-3.5 shrink-0" />
+              <span>
+                כבר קיימת הזמנה קבועה ({conflicts.map((c) => c.name).join(", ")}) לימים{" "}
+                {conflictDays.map((d) => WEEKDAY_LABELS[d]).join(", ")} באותו סבב. לא ניתן ליצור הזמנה קבועה נוספת
+                לאותו יום ואותו סבב — יש לבחור ימים או סבב אחרים, או לערוך את ההזמנה הקבועה הקיימת.
+              </span>
+            </div>
+          ) : null}
+
+
+
 
           <div>
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ממתי להתחיל</div>
