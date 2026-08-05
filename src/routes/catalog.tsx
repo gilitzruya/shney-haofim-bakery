@@ -77,11 +77,13 @@ function CatalogPage() {
   };
 
   const heading =
-    draft?.mode === "recurring_create" || draft?.mode === "recurring_edit"
-      ? draft.name || "הזמנה קבועה"
-      : draft?.date
-        ? `${formatWeekday(draft.date)}, ${formatDate(draft.date)} · ${roundLabel(draft.round)}`
-        : "בחירת מוצרים";
+    draft?.mode === "recurring_create"
+      ? `${draft.weekdays?.length ? weekdaysLabel(draft.weekdays) : "ללא ימי אספקה"} · ${roundLabel(draft.round)}`
+      : draft?.mode === "recurring_edit" || draft?.mode === "recurring_create"
+        ? draft.name || "הזמנה קבועה"
+        : draft?.date
+          ? `${formatWeekday(draft.date)}, ${formatDate(draft.date)} · ${roundLabel(draft.round)}`
+          : "בחירת מוצרים";
 
   return (
     <AppShell>
