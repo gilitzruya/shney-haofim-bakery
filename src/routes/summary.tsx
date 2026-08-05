@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
+import { FlowBanner } from "@/components/app/flow-banner";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { QuantityStepper } from "@/components/app/product-card";
@@ -74,7 +75,8 @@ function SummaryPage() {
         <PageTitleBar title="סיכום ההזמנה" />
       </AppHeader>
       <Section className="pb-28">
-        <Card className="mt-1">
+        <FlowBanner draft={draft} className="mt-1" />
+        <Card className="mt-2.5">
           <div className="text-[13.5px] font-semibold text-foreground">
             {isRecurring
               ? draft.name || "הזמנה קבועה"
