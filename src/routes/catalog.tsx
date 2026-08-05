@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
+import { FlowBanner } from "@/components/app/flow-banner";
 import { EmptyState } from "@/components/app/card";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
