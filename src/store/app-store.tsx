@@ -426,6 +426,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       clearCart: () =>
         update((s) => (s.draft ? syncDraftOrder(s, { ...s.draft, quantities: {} }) : s)),
 
+      discardDraft: () =>
+        update((s) => {
+          const id = s.draft?.orderId;
+          const orders = id ? s.orders.filter((o) => !(o.id === id && o.status === "draft")) : s.orders;
+          return { ...s, orders, draft: null };
+        }),
+
 
       saveBusiness: (patch) => update((s) => ({ ...s, business: { ...s.business, ...patch } })),
 
