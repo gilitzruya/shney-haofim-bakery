@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
-import { RoundSelector, ProgressSteps } from "@/components/app/form-controls";
+import { RoundSelector } from "@/components/app/form-controls";
 import { ROUNDS, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatLongDate, toIso } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,7 @@ function NewOrderPage() {
         <PageTitleBar title="הזמנה חדשה" backTo="/" />
       </AppHeader>
       <Section className="pb-28">
-        <ProgressSteps total={3} current={1} />
+        
         <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">בחירת מועד אספקה</h2>
         <div className="grid grid-cols-4 gap-2">
           {days.map((d) => (
