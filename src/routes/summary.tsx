@@ -74,7 +74,8 @@ function SummaryPage() {
         <PageTitleBar title="סיכום ההזמנה" />
       </AppHeader>
       <Section className="pb-28">
-        <Card className="mt-1">
+        <FlowBanner draft={draft} className="mt-1" />
+        <Card className="mt-2.5">
           <div className="text-[13.5px] font-semibold text-foreground">
             {isRecurring
               ? draft.name || "הזמנה קבועה"
