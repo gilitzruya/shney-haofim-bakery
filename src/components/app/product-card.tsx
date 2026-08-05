@@ -173,10 +173,12 @@ export function ProductCard({
   product,
   qty,
   onChange,
+  onSetQty,
 }: {
   product: Product;
   qty: number;
   onChange: (delta: number) => void;
+  onSetQty?: (qty: number) => void | undefined;
 }) {
   const selected = qty > 0;
   const unavailable = !product.available;
@@ -202,7 +204,7 @@ export function ProductCard({
           </div>
         ) : null}
       </div>
-      <QuantityStepper product={product} qty={qty} onChange={onChange} disabled={unavailable} />
+      <QuantityStepper product={product} qty={qty} onChange={onChange} onSetQty={onSetQty} disabled={unavailable} />
     </div>
   );
 }
