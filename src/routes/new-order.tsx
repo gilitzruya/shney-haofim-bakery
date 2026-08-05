@@ -60,10 +60,12 @@ function buildMonth(year: number, month: number) {
 
 function NewOrderPage() {
   const navigate = useNavigate();
-  const { startOrderDraft, orders, recurring } = useStore();
+  const { startOrderDraft, editOrder, startOneTimeUpdate, startRecurringEdit, orders, recurring } = useStore();
   const [month, setMonth] = useState({ year: TODAY.getFullYear(), month: TODAY.getMonth() });
   const [date, setDate] = useState<string | null>(null);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
+  const [blockedOrder, setBlockedOrder] = useState<string | null>(null);
+  const [blockedRecurring, setBlockedRecurring] = useState<string | null>(null);
 
   const cells = buildMonth(month.year, month.month);
 
