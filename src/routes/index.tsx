@@ -4,7 +4,7 @@ import { CalendarDays, CalendarPlus, ClipboardList, Repeat } from "lucide-react"
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
-import { StatusChip } from "@/components/app/status-chip";
+import { Chip, StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
 import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence, weekdaysLabel } from "@/lib/format";
 import { useStore } from "@/store/app-store";
