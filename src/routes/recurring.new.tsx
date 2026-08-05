@@ -5,9 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
+import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
-import { formatCutoff, upcomingStartOptions } from "@/lib/cutoff";
+import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -68,6 +69,39 @@ function NewRecurringPage() {
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ממתי להתחיל</div>
             {weekdays.length === 0 ? (
               <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
+                יש לבחור קודם ימי אספקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {nearestBlocked ? (
+                  <div className="flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
+                    <AlertTriangle className="mt-px size-3.5 shrink-0" />
+                    <span>
+                      לא ניתן להתחיל ב־{formatLongDate(nearestBlocked.iso)} — מועד הסגירה ({formatCutoff(nearestBlocked.iso)}) כבר חלף.
+                    </span>
+                  </div>
+                ) : null}
+                <DateCalendar
+                  value={startDate}
+                  onSelect={setStartDate}
+                  isEnabled={(iso, d) =>
+                    iso > TODAY_ISO && weekdays.includes(d.getDay()) && !isCutoffPassed(iso)
+                  }
+                />
+                <div className="text-[11.5px] text-muted-foreground">
+                  ניתן לבחור רק את ימי האספקה שנבחרו ושמועד הסגירה שלהם טרם חלף.
+                </div>
+                {startDate ? (
+                  <div className="rounded-[10px] bg-card-muted px-3 py-2 text-[12px] text-muted-foreground">
+                    התחלה: <span className="font-semibold text-foreground">{formatLongDate(startDate)}</span> · סגירה:{" "}
+                    {formatCutoff(startDate)}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
                 יש לבחור קודם ימי אספקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
               </div>
             ) : (
