@@ -84,11 +84,33 @@ function NewOrderPage() {
     setMonth({ year: d.getFullYear(), month: d.getMonth() });
   };
 
+  /** התנגשות: הזמנה מאושרת או הזמנה קבועה קיימת לאותו יום ואותו סבב */
+  const conflictOrder =
+    date
+      ? orders.find(
+          (o) =>
+            o.date === date &&
+            o.round === round &&
+            (o.status === "approved" || o.status === "completed" || o.status === "needs_update" || o.status === "reopened"),
+        )
+      : undefined;
+  const conflictRecurring =
+    date && !conflictOrder
+      ? recurring.find(
+          (r) => r.status === "active" && r.round === round && r.weekdays.includes(parseDate(date).getDay()),
+        )
+      : undefined;
+
+  const goCatalog = () => navigate({ to: "/catalog" });
+
   const proceed = () => {
     if (!date) return;
+    if (conflictOrder) return setBlockedOrder(conflictOrder.id);
+    if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
     startOrderDraft(date, round);
-    navigate({ to: "/catalog" });
+    goCatalog();
   };
+
 
 
   return (
