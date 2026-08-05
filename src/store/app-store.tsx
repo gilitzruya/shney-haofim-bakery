@@ -157,6 +157,8 @@ interface StoreValue extends PersistedState {
   setQty: (productId: string, qty: number) => void;
   bumpQty: (productId: string, delta: number) => void;
   clearCart: () => void;
+  /** discard the in-progress draft, deleting its auto-saved draft order */
+  discardDraft: () => void;
   /* business */
   saveBusiness: (patch: Partial<Business>) => void;
   resetDemoData: () => void;
