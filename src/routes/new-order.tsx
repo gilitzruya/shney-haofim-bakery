@@ -65,6 +65,7 @@ function NewOrderPage() {
   const [date, setDate] = useState<string | null>(null);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
   const [blockedOrder, setBlockedOrder] = useState<string | null>(null);
+  const [blockedCutoff, setBlockedCutoff] = useState(false);
   const [blockedRecurring, setBlockedRecurring] = useState<string | null>(null);
 
   const cells = buildMonth(month.year, month.month);
@@ -108,6 +109,7 @@ function NewOrderPage() {
 
   const proceed = () => {
     if (!date) return;
+    if (isCutoffPassed(date)) return setBlockedCutoff(true);
     if (conflictOrder) return setBlockedOrder(conflictOrder.id);
     if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
     startOrderDraft(date, round);
@@ -223,6 +225,10 @@ function NewOrderPage() {
           <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
             קיימת הזמנה קבועה ({conflictRecurring.name}) ל{formatLongDate(date)} ב{roundLabel(round)}.
           </div>
+        ) : date && isCutoffPassed(date) ? (
+          <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
+            מועד ההזמנות ל{formatLongDate(date)} נסגר ב{formatCutoff(date)}. לא ניתן לפתוח הזמנה חדשה למועד זה — לאישור חריג יש ליצור קשר עם בעל המאפייה.
+          </div>
         ) : date ? (
           <div className="mt-4 rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
             האספקה תתבצע ביום {formatLongDate(date)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 14:00.
@@ -270,6 +276,32 @@ function NewOrderPage() {
             </a>
           </div>
         )}
+      </Modal>
+
+      {/* מועד ההזמנות נסגר */}
+      <Modal
+        open={blockedCutoff}
+        title="מועד ההזמנה נסגר"
+        description={
+          date
+            ? `ההזמנות ל${formatLongDate(date)} נסגרו ב${formatCutoff(date)}. לא ניתן לפתוח הזמנה למועד זה במערכת.`
+            : undefined
+        }
+        onClose={() => setBlockedCutoff(false)}
+      >
+        <div className="rounded-xl bg-card-muted p-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          לאישור חריג יש ליצור קשר עם בעל המאפייה:
+          <div className="mt-1.5 font-semibold text-foreground">{BAKERY_CONTACT.name}</div>
+          <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
+            {BAKERY_CONTACT.phone}
+          </a>
+          <a
+            href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/\D/g, "").slice(1)}`}
+            className="mt-0.5 block font-semibold text-primary"
+          >
+            וואטסאפ {BAKERY_CONTACT.whatsapp}
+          </a>
+        </div>
       </Modal>
 
       {/* התנגשות עם הזמנה קבועה */}
