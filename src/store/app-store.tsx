@@ -86,6 +86,53 @@ export function quantitiesFromLines(lines: OrderLine[]): Record<string, number> 
   return out;
 }
 
+/**
+ * Auto-persist an in-progress one-off order as a draft order, so leaving the
+ * flow mid-way never loses the selected products.
+ */
+function syncDraftOrder(s: PersistedState, draft: CartDraft): PersistedState {
+  if (draft.mode !== "order") return { ...s, draft };
+
+  const lines = linesFromQuantities(draft.quantities);
+  const linked = draft.orderId ? s.orders.find((o) => o.id === draft.orderId) : undefined;
+
+  // Editing an existing non-draft order: don't touch it until confirmation.
+  if (linked && linked.status !== "draft") return { ...s, draft };
+
+  if (lines.length === 0) {
+    if (linked) {
+      return {
+        ...s,
+        orders: s.orders.filter((o) => o.id !== linked.id),
+        draft: { ...draft, orderId: undefined },
+      };
+    }
+    return { ...s, draft };
+  }
+
+  if (linked) {
+    return {
+      ...s,
+      orders: s.orders.map((o) =>
+        o.id === linked.id ? { ...o, lines, round: draft.round, date: draft.date ?? o.date } : o,
+      ),
+      draft,
+    };
+  }
+
+  const order: Order = {
+    id: `o-${Date.now()}`,
+    date: draft.date ?? "",
+    round: draft.round,
+    status: "draft",
+    lines,
+    createdFrom: "manual",
+    cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 14:00",
+  };
+  return { ...s, orders: [order, ...s.orders], draft: { ...draft, orderId: order.id } };
+}
+
+
 interface StoreValue extends PersistedState {
   hydrated: boolean;
   /* orders */
@@ -110,6 +157,8 @@ interface StoreValue extends PersistedState {
   setQty: (productId: string, qty: number) => void;
   bumpQty: (productId: string, delta: number) => void;
   clearCart: () => void;
+  /** discard the in-progress draft, deleting its auto-saved draft order */
+  discardDraft: () => void;
   /* business */
   saveBusiness: (patch: Partial<Business>) => void;
   resetDemoData: () => void;
@@ -150,15 +199,25 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       getRecurring,
 
       startOrderDraft: (date, round, from) =>
-        update((s) => ({
-          ...s,
-          draft: {
+        update((s) => {
+          const existingDraft = s.orders.find(
+            (o) => o.status === "draft" && o.date === date && o.round === round,
+          );
+          const quantities = from
+            ? quantitiesFromLines(from)
+            : existingDraft
+              ? quantitiesFromLines(existingDraft.lines)
+              : {};
+          const draft: CartDraft = {
             ...emptyDraft("order"),
             date,
             round,
-            quantities: from ? quantitiesFromLines(from) : {},
-          },
-        })),
+            orderId: existingDraft?.id,
+            quantities,
+          };
+          return syncDraftOrder(s, draft);
+        }),
+
 
       editOrder: (id) =>
         update((s) => {
@@ -348,7 +407,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const quantities = { ...s.draft.quantities };
           if (next <= 0) delete quantities[productId];
           else quantities[productId] = next;
-          return { ...s, draft: { ...s.draft, quantities } };
+          return syncDraftOrder(s, { ...s.draft, quantities });
         }),
 
       bumpQty: (productId, delta) =>
@@ -360,12 +419,20 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const quantities = { ...draft.quantities };
           if (next <= 0) delete quantities[productId];
           else quantities[productId] = next;
-          return { ...s, draft: { ...draft, quantities } };
+          return syncDraftOrder(s, { ...draft, quantities });
         }),
 
 
       clearCart: () =>
-        update((s) => (s.draft ? { ...s, draft: { ...s.draft, quantities: {} } } : s)),
+        update((s) => (s.draft ? syncDraftOrder(s, { ...s.draft, quantities: {} }) : s)),
+
+      discardDraft: () =>
+        update((s) => {
+          const id = s.draft?.orderId;
+          const orders = id ? s.orders.filter((o) => !(o.id === id && o.status === "draft")) : s.orders;
+          return { ...s, orders, draft: null };
+        }),
+
 
       saveBusiness: (patch) => update((s) => ({ ...s, business: { ...s.business, ...patch } })),
 
