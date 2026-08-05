@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -23,27 +24,56 @@ export const Route = createFileRoute("/new-order")({
 });
 
 const TODAY = new Date(2026, 7, 3);
+const HE_MONTHS = [
+  "ינואר",
+  "פברואר",
+  "מרץ",
+  "אפריל",
+  "מאי",
+  "יוני",
+  "יולי",
+  "אוגוסט",
+  "ספטמבר",
+  "אוקטובר",
+  "נובמבר",
+  "דצמבר",
+];
 
-function buildDays() {
-  return Array.from({ length: 14 }).map((_, i) => {
-    const d = new Date(TODAY);
-    d.setDate(TODAY.getDate() + i + 1);
-    return { iso: toIso(d), date: d, disabled: d.getDay() === 6 };
-  });
+/** Full month grid (7 columns), padded with blanks before the 1st. */
+function buildMonth(year: number, month: number) {
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: ({ iso: string; date: Date; disabled: boolean } | null)[] = [];
+  for (let i = 0; i < first.getDay(); i++) cells.push(null);
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    const isPast = d.getTime() <= TODAY.getTime();
+    cells.push({ iso: toIso(d), date: d, disabled: isPast || d.getDay() === 6 });
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
 }
 
 function NewOrderPage() {
   const navigate = useNavigate();
   const { startOrderDraft } = useStore();
-  const days = buildDays();
+  const [month, setMonth] = useState({ year: TODAY.getFullYear(), month: TODAY.getMonth() });
   const [date, setDate] = useState<string | null>(null);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
+
+  const cells = buildMonth(month.year, month.month);
+  const canGoBack = new Date(month.year, month.month, 1) > new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  const shiftMonth = (delta: number) => {
+    const d = new Date(month.year, month.month + delta, 1);
+    setMonth({ year: d.getFullYear(), month: d.getMonth() });
+  };
 
   const proceed = () => {
     if (!date) return;
     startOrderDraft(date, round);
     navigate({ to: "/catalog" });
   };
+
 
   return (
     <AppShell>
