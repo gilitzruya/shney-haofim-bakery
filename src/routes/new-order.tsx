@@ -8,6 +8,7 @@ import { Button } from "@/components/app/button";
 import { RoundSelector } from "@/components/app/form-controls";
 import { ROUNDS, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatLongDate, toIso } from "@/lib/format";
+import { israelNow } from "@/lib/cutoff";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
 
@@ -23,7 +24,9 @@ export const Route = createFileRoute("/new-order")({
   component: NewOrderPage,
 });
 
-const TODAY = new Date(2026, 7, 3);
+const now = israelNow();
+const TODAY = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const TODAY_ISO = toIso(TODAY);
 const HE_MONTHS = [
   "ינואר",
   "פברואר",
@@ -132,9 +135,16 @@ function NewOrderPage() {
                       ? "border-[1.5px] border-primary bg-primary-soft text-foreground"
                       : "border-border bg-card text-foreground",
                     cell.disabled && "cursor-not-allowed border-transparent bg-card-muted text-muted-foreground opacity-40",
+                    cell.iso === TODAY_ISO &&
+                      "relative border-[1.5px] border-dashed !border-primary !opacity-100 !text-primary",
                   )}
                 >
-                  {cell.date.getDate()}
+                  <span className="flex flex-col items-center leading-none">
+                    {cell.date.getDate()}
+                    {cell.iso === TODAY_ISO ? (
+                      <span className="mt-0.5 text-[8px] font-semibold text-primary">היום</span>
+                    ) : null}
+                  </span>
                 </button>
               ),
             )}
