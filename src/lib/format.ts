@@ -72,12 +72,27 @@ export function linesCount(lines: OrderLine[]): number {
   return lines.filter((l) => l.qty > 0).length;
 }
 
-export function stepFor(unit: "unit" | "kg"): number {
-  return unit === "kg" ? 0.1 : 1;
+export function stepFor(product: { unit: "unit" | "kg"; step?: number }): number {
+  return product.step ?? (product.unit === "kg" ? 0.5 : 1);
 }
 
-export function quickStepFor(unit: "unit" | "kg"): number {
-  return unit === "kg" ? 0.5 : 5;
+export function quickStepFor(product: { unit: "unit" | "kg"; quickAdd?: number }): number {
+  return product.quickAdd ?? (product.unit === "kg" ? 1 : 5);
+}
+
+export function minQtyFor(product: { unit: "unit" | "kg"; minQty?: number }): number {
+  return product.minQty ?? (product.unit === "kg" ? 0.5 : 1);
+}
+
+/** Clamp a typed/derived quantity: below the minimum collapses to 0. */
+export function clampQty(
+  product: { unit: "unit" | "kg"; minQty?: number },
+  qty: number,
+): number {
+  const min = minQtyFor(product);
+  const rounded = roundQty(qty, product.unit);
+  if (rounded <= 0) return 0;
+  return rounded < min ? min : rounded;
 }
 
 export function roundQty(qty: number, unit: "unit" | "kg"): number {
