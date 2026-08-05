@@ -16,9 +16,8 @@ export interface Category {
 }
 
 export const ROUNDS = [
-  { id: "morning", label: "סבב בוקר", time: "06:00 – 09:00" },
-  { id: "noon", label: "סבב צהריים", time: "11:00 – 14:00" },
-  { id: "evening", label: "סבב ערב", time: "16:00 – 19:00" },
+  { id: "morning", label: "סבב ראשון", time: "04:00 – 06:00" },
+  { id: "noon", label: "סבב שני", time: "10:00 – 12:00" },
 ] as const;
 
 export type RoundId = (typeof ROUNDS)[number]["id"];

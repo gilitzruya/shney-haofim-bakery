@@ -59,7 +59,7 @@ export const SEED_ORDERS: Order[] = [
   {
     id: "o-1002",
     date: "2026-08-10",
-    round: "evening",
+    round: "noon",
     status: "draft",
     lines: lines([
       ["p1_3", 4],
@@ -107,7 +107,7 @@ export const SEED_ORDERS: Order[] = [
   {
     id: "o-0905",
     date: "2026-07-14",
-    round: "evening",
+    round: "noon",
     status: "cancelled",
     lines: lines([
       ["p1_4", 5],
@@ -162,7 +162,7 @@ export const SEED_RECURRING: RecurringOrder[] = [
     id: "r-04",
     name: "אירועים – סוף שבוע",
     weekdays: [3, 4],
-    round: "evening",
+    round: "noon",
     status: "cancelled",
     lines: lines([
       ["p4_2", 12],
