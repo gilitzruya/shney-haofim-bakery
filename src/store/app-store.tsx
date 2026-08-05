@@ -146,7 +146,7 @@ interface StoreValue extends PersistedState {
   getRecurring: (id: string) => RecurringOrder | undefined;
   startRecurringCreate: (name: string, weekdays: number[], round: RoundId) => void;
   startRecurringEdit: (id: string) => void;
-  startOneTimeUpdate: (recurringId: string) => void;
+  startOneTimeUpdate: (recurringId: string, date?: string) => void;
   saveRecurringDetails: (id: string, patch: Partial<RecurringOrder>) => void;
   pauseRecurring: (id: string) => void;
   reactivateRecurring: (id: string) => void;
@@ -258,11 +258,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
         }),
 
-      startOneTimeUpdate: (recurringId) =>
+      startOneTimeUpdate: (recurringId, forDate) =>
         update((s) => {
           const rec = s.recurring.find((r) => r.id === recurringId);
           if (!rec) return s;
-          const date = nextOccurrence(rec.weekdays) ?? undefined;
+          const date = forDate ?? nextOccurrence(rec.weekdays) ?? undefined;
           return {
             ...s,
             draft: {
