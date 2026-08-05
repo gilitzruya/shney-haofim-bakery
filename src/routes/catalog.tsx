@@ -95,11 +95,13 @@ function CatalogPage() {
             />
           </div>
         )}
+        <div className="mx-auto w-full max-w-5xl px-3.5 md:px-5">
+          <div className="rounded-xl border border-border bg-card-muted px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground shadow-sm">
+            {heading}
+          </div>
+        </div>
       </AppHeader>
       <Section className="pb-28">
-        <div className="sticky top-[150px] z-10 mt-3 rounded-xl border border-border bg-card-muted px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground shadow-sm">
-          {heading}
-        </div>
 
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
