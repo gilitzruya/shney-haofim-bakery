@@ -25,15 +25,21 @@ export function QuantityStepper({
   product,
   qty,
   onChange,
+  onSetQty,
   disabled = false,
   compact = false,
 }: {
   product: Product;
   qty: number;
   onChange: (delta: number) => void;
+  onSetQty?: (qty: number) => void | undefined;
   disabled?: boolean | undefined;
   compact?: boolean | undefined;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const step = stepFor(product.unit);
   const quick = quickStepFor(product.unit);
   const size = compact ? "h-[28px] min-w-[28px]" : "h-[30px] min-w-[30px]";
@@ -41,6 +47,51 @@ export function QuantityStepper({
     "flex items-center justify-center rounded-[9px] border border-border bg-card px-1.5 text-[12px] font-bold text-foreground disabled:opacity-40",
     size,
   );
+  const editable = !!onSetQty && !disabled;
+
+  const startEdit = () => {
+    if (!editable) return;
+    setInputValue(formatQty(qty, product.unit));
+    setEditing(true);
+  };
+
+  const commit = () => {
+    const raw = inputValue.trim();
+    if (raw === "" || raw === ".") {
+      onSetQty?.(0);
+    } else {
+      const parsed = product.unit === "kg" ? parseFloat(raw) : parseInt(raw, 10);
+      if (!Number.isNaN(parsed)) {
+        onSetQty?.(Math.max(0, parsed));
+      }
+    }
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit();
+    } else if (e.key === "Escape") {
+      setEditing(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (product.unit === "kg") {
+      if (/^\d*\.?\d{0,1}$/.test(value)) setInputValue(value);
+    } else {
+      if (/^\d*$/.test(value)) setInputValue(value);
+    }
+  };
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
 
   return (
     <div className="flex shrink-0 items-start gap-1.5">
@@ -67,15 +118,38 @@ export function QuantityStepper({
         +{product.unit === "kg" ? step.toFixed(1) : step}
       </button>
       <div className="flex flex-col items-center">
-        <div
-          className={cn(
-            "flex items-center justify-center rounded-[9px] px-1.5 text-[13px] font-bold",
-            size,
-            qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground",
-          )}
-        >
-          {formatQty(qty, product.unit)}
-        </div>
+        {editing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode={product.unit === "kg" ? "decimal" : "numeric"}
+            dir="ltr"
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={commit}
+            onKeyDown={handleKeyDown}
+            className={cn(
+              "flex items-center justify-center rounded-[9px] px-1.5 text-center text-[13px] font-bold outline-none",
+              size,
+              qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground",
+            )}
+          />
+        ) : (
+          <button
+            type="button"
+            dir="ltr"
+            disabled={!editable}
+            onClick={startEdit}
+            className={cn(
+              "flex items-center justify-center rounded-[9px] px-1.5 text-[13px] font-bold",
+              editable && "cursor-text",
+              size,
+              qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground",
+            )}
+          >
+            {formatQty(qty, product.unit)}
+          </button>
+        )}
         {!compact ? (
           <span className="mt-0.5 text-[9px] text-muted-foreground">{unitLabel(product.unit)}</span>
         ) : null}
