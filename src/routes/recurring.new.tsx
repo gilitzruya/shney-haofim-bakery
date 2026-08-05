@@ -7,7 +7,7 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
-import { ROUNDS, type RoundId } from "@/data/catalog";
+import { ROUNDS, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/recurring/new")({
 
 function NewRecurringPage() {
   const navigate = useNavigate();
-  const { startRecurringCreate } = useStore();
+  const { startRecurringCreate, recurring } = useStore();
   const [name, setName] = useState("");
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
@@ -36,11 +36,28 @@ function NewRecurringPage() {
   const firstAvailable = options.find((o) => !o.blocked) ?? null;
   const nearestBlocked = options[0]?.blocked ? options[0] : null;
 
+  const conflicts = useMemo(() => {
+    const out: { name: string; days: number[] }[] = [];
+    recurring.forEach((r) => {
+      if (r.status === "cancelled") return;
+      if (r.round !== round) return;
+      const days = r.weekdays.filter((d) => weekdays.includes(d));
+      if (days.length > 0) out.push({ name: r.name, days });
+    });
+    return out;
+  }, [recurring, round, weekdays]);
+
+  const conflictDays = useMemo(
+    () => Array.from(new Set(conflicts.flatMap((c) => c.days))).sort(),
+    [conflicts],
+  );
+
   useEffect(() => {
     setStartDate(firstAvailable?.iso ?? null);
   }, [firstAvailable?.iso]);
 
-  const valid = name.trim().length > 1 && weekdays.length > 0 && !!startDate;
+  const valid = name.trim().length > 1 && weekdays.length > 0 && !!startDate && conflicts.length === 0;
+
 
 
   return (
@@ -63,6 +80,19 @@ function NewRecurringPage() {
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">סבב חלוקה</div>
             <RoundSelector value={round} onChange={setRound} />
           </div>
+
+          {conflicts.length > 0 ? (
+            <div className="flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2.5 text-[12px] font-semibold text-destructive">
+              <AlertTriangle className="mt-px size-3.5 shrink-0" />
+              <span>
+                כבר קיימת הזמנה קבועה ({conflicts.map((c) => c.name).join(", ")}) לימים{" "}
+                {conflictDays.map((d) => WEEKDAY_LABELS[d]).join(", ")} באותו סבב. לא ניתן ליצור הזמנה קבועה נוספת
+                לאותו יום ואותו סבב — יש לבחור ימים או סבב אחרים, או לערוך את ההזמנה הקבועה הקיימת.
+              </span>
+            </div>
+          ) : null}
+
+
 
 
           <div>
