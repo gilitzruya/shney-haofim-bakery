@@ -29,7 +29,7 @@ export const Route = createFileRoute("/summary")({
 
 function SummaryPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty, setQty, confirmDraft, setDraft } = useStore();
+  const { draft, bumpQty, setQty, confirmDraft, setDraft, discardDraft } = useStore();
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -145,7 +145,7 @@ function SummaryPage() {
         <button
           type="button"
           onClick={() => {
-            setDraft(null);
+            discardDraft();
             navigate({ to: "/" });
           }}
           className="mt-3 w-full rounded-xl border border-border bg-transparent py-2.5 text-[12.5px] font-semibold text-muted-foreground"
