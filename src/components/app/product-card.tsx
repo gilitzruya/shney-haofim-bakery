@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
-import { formatQty, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
+import { clampQty, formatQty, minQtyFor, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 
 
@@ -40,8 +40,20 @@ export function QuantityStepper({
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const step = stepFor(product.unit);
-  const quick = quickStepFor(product.unit);
+  const step = stepFor(product);
+  const quick = quickStepFor(product);
+  const min = minQtyFor(product);
+
+  const applyQty = (next: number) => {
+    const clamped = clampQty(product, next);
+    if (clamped === qty) return;
+    if (onSetQty) onSetQty(clamped);
+    else onChange(clamped - qty);
+  };
+  const bump = (delta: number) => {
+    if (delta > 0) applyQty(qty <= 0 ? Math.max(min, delta) : qty + delta);
+    else applyQty(qty + delta < min ? 0 : qty + delta);
+  };
   const size = compact ? "h-[28px] min-w-[28px]" : "h-[30px] min-w-[30px]";
   const btn = cn(
     "flex items-center justify-center rounded-[9px] border border-border bg-card px-1.5 text-[12px] font-bold text-foreground disabled:opacity-40",
@@ -62,7 +74,7 @@ export function QuantityStepper({
     } else {
       const parsed = product.unit === "kg" ? parseFloat(raw) : parseInt(raw, 10);
       if (!Number.isNaN(parsed)) {
-        onSetQty?.(Math.max(0, parsed));
+        onSetQty?.(clampQty(product, parsed));
       }
     }
     setEditing(false);
@@ -99,7 +111,7 @@ export function QuantityStepper({
         type="button"
         dir="ltr"
         disabled={disabled}
-        onClick={() => onChange(quick)}
+        onClick={() => bump(quick)}
         className={cn(
           "flex items-center justify-center rounded-[9px] bg-accent px-2.5 text-[12px] font-bold text-accent-foreground disabled:opacity-40",
           size,
@@ -112,7 +124,7 @@ export function QuantityStepper({
         dir="ltr"
         aria-label="הוספה"
         disabled={disabled}
-        onClick={() => onChange(step)}
+        onClick={() => bump(step)}
         className={btn}
       >
         +{product.unit === "kg" ? step.toFixed(1) : step}
@@ -159,7 +171,7 @@ export function QuantityStepper({
         dir="ltr"
         aria-label="הפחתה"
         disabled={disabled || qty <= 0}
-        onClick={() => onChange(-step)}
+        onClick={() => bump(-step)}
         className={btn}
       >
         -{product.unit === "kg" ? step.toFixed(1) : step}
@@ -198,6 +210,11 @@ export function ProductCard({
         <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
           {priceLabel(product.price, product.unit)}
         </div>
+        {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
+          <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+            מינימום {formatQty(minQtyFor(product), product.unit)} {unitLabel(product.unit)}
+          </div>
+        ) : null}
         {unavailable ? (
           <div className="mt-1 inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
             {product.unavailableReason ?? "לא זמין למועד שנבחר"}
