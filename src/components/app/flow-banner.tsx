@@ -17,7 +17,7 @@ export function useFlowInfo(draft: CartDraft | null): FlowInfo | null {
 
   if (draft.mode === "recurring_create") {
     return {
-      label: "הזמנה קבועה חדשה",
+      label: `הזמנה קבועה חדשה${draft.name ? ` ״${draft.name}״` : ""}`,
       description: "בחירת המוצרים שיישלחו בכל אחד מימי האספקה הקבועים",
       icon: Repeat,
     };
