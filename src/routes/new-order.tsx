@@ -215,7 +215,15 @@ function NewOrderPage() {
         <h2 className="mt-5 mb-2 text-[15px] font-bold text-foreground">בחירת סבב חלוקה</h2>
         <RoundSelector value={round} onChange={setRound} />
 
-        {date ? (
+        {date && conflictOrder ? (
+          <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
+            כבר קיימת הזמנה {conflictOrder.status === "completed" ? "שסופקה" : "מאושרת"} ל{formatLongDate(date)} ב{roundLabel(round)}.
+          </div>
+        ) : date && conflictRecurring ? (
+          <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
+            קיימת הזמנה קבועה ({conflictRecurring.name}) ל{formatLongDate(date)} ב{roundLabel(round)}.
+          </div>
+        ) : date ? (
           <div className="mt-4 rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
             האספקה תתבצע ביום {formatLongDate(date)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 14:00.
           </div>
@@ -229,6 +237,87 @@ function NewOrderPage() {
           </Button>
         </div>
       </div>
+
+      {/* התנגשות עם הזמנה קיימת */}
+      <Modal
+        open={Boolean(blockedOrder && conflictOrder && date)}
+        title="כבר קיימת הזמנה למועד זה"
+        description={
+          date
+            ? `יש כבר הזמנה מאושרת ל${formatLongDate(date)} ב${roundLabel(round)}. לא ניתן ליצור הזמנה נוספת לאותו יום ולאותו סבב.`
+            : undefined
+        }
+        onClose={() => setBlockedOrder(null)}
+      >
+        {date && !isCutoffPassed(date) ? (
+          <Button
+            className="w-full"
+            onClick={() => {
+              if (conflictOrder) {
+                editOrder(conflictOrder.id);
+                goCatalog();
+              }
+            }}
+          >
+            עדכון ההזמנה הקיימת
+          </Button>
+        ) : (
+          <div className="rounded-xl bg-card-muted p-3 text-[12.5px] leading-relaxed text-muted-foreground">
+            {date ? `מועד העדכון להזמנה זו נסגר ב${formatCutoff(date)}. ` : ""}לאישור חריג יש לפנות למנהל המאפייה:
+            <div className="mt-1.5 font-semibold text-foreground">{BAKERY_CONTACT.name}</div>
+            <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
+              {BAKERY_CONTACT.phone}
+            </a>
+          </div>
+        )}
+      </Modal>
+
+      {/* התנגשות עם הזמנה קבועה */}
+      <Modal
+        open={Boolean(blockedRecurring && conflictRecurring && date)}
+        title="קיימת הזמנה קבועה למועד זה"
+        description={
+          date && conflictRecurring
+            ? `ההזמנה הקבועה "${conflictRecurring.name}" כבר מסופקת ב${formatLongDate(date)} ב${roundLabel(round)}. מה תרצו לעשות?`
+            : undefined
+        }
+        onClose={() => setBlockedRecurring(null)}
+      >
+        <div className="flex flex-col gap-2">
+          <Button
+            className="w-full"
+            disabled={Boolean(date && isCutoffPassed(date))}
+            onClick={() => {
+              if (conflictRecurring && date) {
+                startOneTimeUpdate(conflictRecurring.id, date);
+                goCatalog();
+              }
+            }}
+          >
+            עדכון חד־פעמי לתאריך זה
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full font-semibold"
+            onClick={() => {
+              if (conflictRecurring) {
+                startRecurringEdit(conflictRecurring.id);
+                goCatalog();
+              }
+            }}
+          >
+            שינוי ההזמנה הקבועה באופן קבוע
+          </Button>
+          {date && isCutoffPassed(date) ? (
+            <div className="rounded-xl bg-card-muted p-3 text-[12px] leading-relaxed text-muted-foreground">
+              מועד העדכון לתאריך זה נסגר ב{formatCutoff(date)} — לאישור חריג פנו ל{BAKERY_CONTACT.name},{" "}
+              <a href={`tel:${BAKERY_CONTACT.phone}`} className="font-semibold text-primary">
+                {BAKERY_CONTACT.phone}
+              </a>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
     </AppShell>
   );
 }
