@@ -66,6 +66,9 @@ function RecurringDetailsPage() {
           <div className="mt-1 text-[12.5px] text-muted-foreground">
             {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)}
           </div>
+          {rec.startDate ? (
+            <div className="mt-1 text-[12px] text-muted-foreground">מתחילה מ־{formatDate(rec.startDate)}</div>
+          ) : null}
           {next ? <div className="mt-1 text-[12px] text-primary">האספקה הבאה: {formatDate(next)}</div> : null}
           {rec.needsAttention && rec.attentionText ? (
             <div className="mt-2.5 flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
