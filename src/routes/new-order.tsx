@@ -6,9 +6,10 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { RoundSelector } from "@/components/app/form-controls";
-import { ROUNDS, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
-import { formatLongDate, toIso } from "@/lib/format";
-import { israelNow } from "@/lib/cutoff";
+import { Modal } from "@/components/app/modal";
+import { BAKERY_CONTACT, ROUNDS, WEEKDAY_LABELS, roundLabel, type RoundId } from "@/data/catalog";
+import { formatLongDate, parseDate, toIso } from "@/lib/format";
+import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
 
