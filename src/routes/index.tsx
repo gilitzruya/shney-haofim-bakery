@@ -106,7 +106,10 @@ function HomePage() {
                   className="no-underline"
                 >
                   <Card variant={rec.needsAttention ? "attention" : "active"}>
-                    <div className="text-[13.5px] font-semibold text-foreground">{rec.name}</div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[13.5px] font-semibold text-foreground">{rec.name}</div>
+                      <Chip tone="accent">קבועה</Chip>
+                    </div>
                     <div className="mt-1 text-[12px] text-muted-foreground">
                       {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)}
                     </div>
