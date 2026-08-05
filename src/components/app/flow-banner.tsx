@@ -31,8 +31,8 @@ export function useFlowInfo(draft: CartDraft | null): FlowInfo | null {
   }
   if (draft.mode === "onetime") {
     return {
-      label: "עדכון חד־פעמי",
-      description: `שינוי לאספקה הקרובה בלבד${draft.name ? ` מתוך ״${draft.name}״` : ""} — ההזמנה הקבועה לא תשתנה`,
+      label: "עדכון חד־פעמי להזמנה קבועה",
+      description: `עדכון חד־פעמי להזמנה קבועה${draft.name ? ` ״${draft.name}״` : ""} — לאספקה הקרובה בלבד. ההזמנה הקבועה לא תשתנה`,
       icon: RotateCcw,
     };
   }
