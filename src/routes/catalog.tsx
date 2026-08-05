@@ -11,7 +11,7 @@ import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
 
 import { CATEGORIES, roundLabel } from "@/data/catalog";
-import { formatDate, formatPrice, formatWeekday, linesTotal } from "@/lib/format";
+import { formatDate, formatPrice, formatWeekday, linesTotal, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/catalog")({
