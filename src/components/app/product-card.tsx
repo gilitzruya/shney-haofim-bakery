@@ -32,7 +32,7 @@ export function QuantityStepper({
   product: Product;
   qty: number;
   onChange: (delta: number) => void;
-  onSetQty?: (qty: number) => void | undefined;
+  onSetQty?: (qty: number) => void;
   disabled?: boolean | undefined;
   compact?: boolean | undefined;
 }) {
