@@ -56,6 +56,11 @@ function SummaryPage() {
   const isRecurring = draft.mode === "recurring_create" || draft.mode === "recurring_edit";
 
   const confirm = () => {
+    if (!isRecurring && draft.date && isCutoffPassed(draft.date)) {
+      setConfirming(false);
+      setBlocked(true);
+      return;
+    }
     const result = confirmDraft();
     setConfirming(false);
     if (isRecurring) {
@@ -159,7 +164,13 @@ function SummaryPage() {
           <Button variant="secondary" size="lg" className="font-semibold" onClick={() => navigate({ to: "/catalog" })}>
             עריכת מוצרים
           </Button>
-          <Button size="lg" className="flex-1" disabled={lines.length === 0} onClick={() => setConfirming(true)}>
+          <Button size="lg" className="flex-1" disabled={lines.length === 0} onClick={() => {
+              if (!isRecurring && draft.date && isCutoffPassed(draft.date)) {
+                setBlocked(true);
+                return;
+              }
+              setConfirming(true);
+            }}>
             {isRecurring ? "שמירת ההזמנה הקבועה" : "אישור ההזמנה"}
           </Button>
         </div>
