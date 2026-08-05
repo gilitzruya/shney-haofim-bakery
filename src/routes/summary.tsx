@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
+import { FlowBanner } from "@/components/app/flow-banner";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { QuantityStepper } from "@/components/app/product-card";
