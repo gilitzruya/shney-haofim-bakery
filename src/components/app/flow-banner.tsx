@@ -1,7 +1,6 @@
 import { CalendarPlus, FilePen, PencilLine, Repeat, RotateCcw } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Chip } from "@/components/app/status-chip";
 import { cn } from "@/lib/utils";
 import { useStore, type CartDraft } from "@/store/app-store";
 
@@ -86,7 +85,6 @@ export function FlowBanner({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-[12.5px] font-bold text-foreground">{info.label}</span>
-          <Chip tone="accent">בתהליך</Chip>
         </div>
         {compact ? null : (
           <p className="mt-0.5 text-[11.5px] leading-snug text-muted-foreground">{info.description}</p>
