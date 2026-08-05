@@ -27,7 +27,7 @@ export const Route = createFileRoute("/summary")({
 
 function SummaryPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty, confirmDraft, setDraft } = useStore();
+  const { draft, bumpQty, setQty, confirmDraft, setDraft } = useStore();
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
 
@@ -114,6 +114,7 @@ function SummaryPage() {
                     qty={line.qty}
                     compact
                     onChange={(delta) => bumpQty(product.id, delta)}
+                    onSetQty={(qty) => setQty(product.id, qty)}
                   />
                 </Card>
               );

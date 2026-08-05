@@ -27,7 +27,7 @@ export const Route = createFileRoute("/catalog")({
 
 function CatalogPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty } = useStore();
+  const { draft, bumpQty, setQty } = useStore();
   const [category, setCategory] = useState(CATEGORIES[0]!.id);
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -124,6 +124,7 @@ function CatalogPage() {
                   product={p}
                   qty={quantities[p.id] ?? 0}
                   onChange={(delta) => bumpQty(p.id, delta)}
+                  onSetQty={(qty) => setQty(p.id, qty)}
                 />
               ))
             )
@@ -143,6 +144,7 @@ function CatalogPage() {
                     product={p}
                     qty={quantities[p.id] ?? 0}
                     onChange={(delta) => bumpQty(p.id, delta)}
+                    onSetQty={(qty) => setQty(p.id, qty)}
                   />
                 ))}
               </section>
