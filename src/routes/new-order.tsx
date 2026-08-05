@@ -179,6 +179,11 @@ function NewOrderPage() {
               ),
             )}
           </div>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 border-t border-border pt-2 text-[10.5px] text-muted-foreground">
+            <span>מ׳ — הזמנה מאושרת</span>
+            <span>ט׳ — טיוטה</span>
+            <span>ק׳ — הזמנה קבועה</span>
+          </div>
         </div>
 
 
