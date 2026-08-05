@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { FormField, ProgressSteps, TextArea } from "@/components/app/form-controls";
+import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { QuantityStepper } from "@/components/app/product-card";
 import { findProduct, roundLabel } from "@/data/catalog";
@@ -74,9 +74,7 @@ function SummaryPage() {
         <PageTitleBar title="סיכום ההזמנה" />
       </AppHeader>
       <Section className="pb-28">
-        <ProgressSteps total={3} current={3} />
-
-        <Card className="mt-3">
+        <Card className="mt-1">
           <div className="text-[13.5px] font-semibold text-foreground">
             {isRecurring
               ? draft.name || "הזמנה קבועה"
