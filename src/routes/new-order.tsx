@@ -67,6 +67,7 @@ function NewOrderPage() {
   const [blockedOrder, setBlockedOrder] = useState<string | null>(null);
   const [blockedCutoff, setBlockedCutoff] = useState(false);
   const [blockedRecurring, setBlockedRecurring] = useState<string | null>(null);
+  const [step, setStep] = useState<"setup" | "start" | "pick">("setup");
 
   const cells = buildMonth(month.year, month.month);
 
