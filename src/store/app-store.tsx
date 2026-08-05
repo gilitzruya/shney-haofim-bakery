@@ -86,6 +86,53 @@ export function quantitiesFromLines(lines: OrderLine[]): Record<string, number> 
   return out;
 }
 
+/**
+ * Auto-persist an in-progress one-off order as a draft order, so leaving the
+ * flow mid-way never loses the selected products.
+ */
+function syncDraftOrder(s: PersistedState, draft: CartDraft): PersistedState {
+  if (draft.mode !== "order") return { ...s, draft };
+
+  const lines = linesFromQuantities(draft.quantities);
+  const linked = draft.orderId ? s.orders.find((o) => o.id === draft.orderId) : undefined;
+
+  // Editing an existing non-draft order: don't touch it until confirmation.
+  if (linked && linked.status !== "draft") return { ...s, draft };
+
+  if (lines.length === 0) {
+    if (linked) {
+      return {
+        ...s,
+        orders: s.orders.filter((o) => o.id !== linked.id),
+        draft: { ...draft, orderId: undefined },
+      };
+    }
+    return { ...s, draft };
+  }
+
+  if (linked) {
+    return {
+      ...s,
+      orders: s.orders.map((o) =>
+        o.id === linked.id ? { ...o, lines, round: draft.round, date: draft.date ?? o.date } : o,
+      ),
+      draft,
+    };
+  }
+
+  const order: Order = {
+    id: `o-${Date.now()}`,
+    date: draft.date ?? "",
+    round: draft.round,
+    status: "draft",
+    lines,
+    createdFrom: "manual",
+    cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 14:00",
+  };
+  return { ...s, orders: [order, ...s.orders], draft: { ...draft, orderId: order.id } };
+}
+
+
 interface StoreValue extends PersistedState {
   hydrated: boolean;
   /* orders */
