@@ -50,9 +50,10 @@ export function Tabs<T extends string>({
     if (!container || !tab) return;
     // Scroll only the tab strip horizontally. scrollIntoView would also scroll
     // the window and fight with the page-level smooth scroll to the section.
-    const target =
-      tab.offsetLeft - container.clientWidth / 2 + tab.clientWidth / 2 - container.scrollLeft;
-    container.scrollBy({ left: target - container.offsetLeft, behavior: "smooth" });
+    const tabRect = tab.getBoundingClientRect();
+    const boxRect = container.getBoundingClientRect();
+    const delta = tabRect.left + tabRect.width / 2 - (boxRect.left + boxRect.width / 2);
+    if (Math.abs(delta) > 2) container.scrollBy({ left: delta, behavior: "smooth" });
   }, [value]);
 
   const scrollBy = (direction: 1 | -1) => {
