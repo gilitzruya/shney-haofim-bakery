@@ -8,7 +8,7 @@ import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
-import { ProgressSteps } from "@/components/app/form-controls";
+
 import { CATEGORIES, roundLabel } from "@/data/catalog";
 import { formatDate, formatPrice, linesTotal } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
@@ -97,7 +97,7 @@ function CatalogPage() {
         )}
       </AppHeader>
       <Section className="pb-28">
-        <ProgressSteps total={3} current={2} />
+        
         <div className="mt-3 rounded-xl border border-border bg-card-muted px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground">
           {heading}
         </div>
