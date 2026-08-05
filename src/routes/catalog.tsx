@@ -124,6 +124,7 @@ function CatalogPage() {
                   product={p}
                   qty={quantities[p.id] ?? 0}
                   onChange={(delta) => bumpQty(p.id, delta)}
+                  onSetQty={(qty) => setQty(p.id, qty)}
                 />
               ))
             )
@@ -143,6 +144,7 @@ function CatalogPage() {
                     product={p}
                     qty={quantities[p.id] ?? 0}
                     onChange={(delta) => bumpQty(p.id, delta)}
+                    onSetQty={(qty) => setQty(p.id, qty)}
                   />
                 ))}
               </section>
