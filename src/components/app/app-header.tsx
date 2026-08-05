@@ -37,7 +37,7 @@ export function AppHeader({ children }: { children?: React.ReactNode | undefined
             <div className="text-xs font-semibold text-foreground md:text-[13px]">{business.name}</div>
           </div>
         </div>
-        <div className="flex min-w-0 items-center gap-2">
+        <Link to="/" className="flex min-w-0 items-center gap-2 no-underline">
           <div className="flex flex-col items-center text-xs leading-[1.25] font-bold whitespace-nowrap text-heading md:text-[13px]">
             <div>מאפיית</div>
             <div>שני האופים</div>
@@ -47,7 +47,7 @@ export function AppHeader({ children }: { children?: React.ReactNode | undefined
             alt="לוגו מאפיית שני האופים"
             className="size-[34px] shrink-0 object-contain md:size-[38px]"
           />
-        </div>
+        </Link>
       </div>
       {children}
       {open ? <SideMenu onClose={() => setOpen(false)} /> : null}
