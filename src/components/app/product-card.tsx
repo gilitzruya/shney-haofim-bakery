@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
 import { formatQty, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
+import { useEffect, useRef, useState } from "react";
+
 
 export function ProductPlaceholder({ className }: { className?: string | undefined }) {
   return (
