@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarDays, CalendarPlus, ClipboardList, Repeat } from "lucide-react";
+import { CalendarPlus, ClipboardList, Repeat } from "lucide-react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
