@@ -45,7 +45,15 @@ export function Tabs<T extends string>({
   }, []);
 
   useEffect(() => {
-    refs.current[value]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    const container = scrollRef.current;
+    const tab = refs.current[value];
+    if (!container || !tab) return;
+    // Scroll only the tab strip horizontally. scrollIntoView would also scroll
+    // the window and fight with the page-level smooth scroll to the section.
+    const tabRect = tab.getBoundingClientRect();
+    const boxRect = container.getBoundingClientRect();
+    const delta = tabRect.left + tabRect.width / 2 - (boxRect.left + boxRect.width / 2);
+    if (Math.abs(delta) > 2) container.scrollBy({ left: delta, behavior: "smooth" });
   }, [value]);
 
   const scrollBy = (direction: 1 | -1) => {
