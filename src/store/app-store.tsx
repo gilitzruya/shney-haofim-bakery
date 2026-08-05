@@ -395,7 +395,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const quantities = { ...s.draft.quantities };
           if (next <= 0) delete quantities[productId];
           else quantities[productId] = next;
-          return { ...s, draft: { ...s.draft, quantities } };
+          return syncDraftOrder(s, { ...s.draft, quantities });
         }),
 
       bumpQty: (productId, delta) =>
@@ -407,12 +407,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           const quantities = { ...draft.quantities };
           if (next <= 0) delete quantities[productId];
           else quantities[productId] = next;
-          return { ...s, draft: { ...draft, quantities } };
+          return syncDraftOrder(s, { ...draft, quantities });
         }),
 
 
       clearCart: () =>
-        update((s) => (s.draft ? { ...s, draft: { ...s.draft, quantities: {} } } : s)),
+        update((s) => (s.draft ? syncDraftOrder(s, { ...s.draft, quantities: {} }) : s)),
+
 
       saveBusiness: (patch) => update((s) => ({ ...s, business: { ...s.business, ...patch } })),
 
