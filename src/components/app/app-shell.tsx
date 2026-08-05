@@ -15,14 +15,22 @@ export function AppShell({ children, className }: { children: ReactNode; classNa
   );
 }
 
-export function PageTitleBar({ title, backTo }: { title: string; backTo?: string }) {
+export function PageTitleBar({
+  title,
+  backTo,
+  onBack,
+}: {
+  title: string;
+  backTo?: string;
+  onBack?: (() => void) | undefined;
+}) {
   const router = useRouter();
   return (
     <div className="mx-auto flex w-full max-w-5xl items-center gap-2.5 px-3.5 pt-0.5 pb-3 md:px-5">
       <button
         type="button"
         aria-label="חזרה"
-        onClick={() => (backTo ? router.navigate({ to: backTo }) : router.history.back())}
+        onClick={() => (onBack ? onBack() : backTo ? router.navigate({ to: backTo }) : router.history.back())}
         className="flex size-[30px] shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
       >
         <ChevronLeft className="size-4 rotate-180" />
