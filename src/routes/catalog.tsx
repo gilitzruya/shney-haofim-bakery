@@ -97,7 +97,7 @@ function CatalogPage() {
         )}
       </AppHeader>
       <Section className="pb-28">
-        <div className="sticky top-[142px] z-10 mt-3 rounded-xl border border-border bg-card-muted px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground shadow-sm">
+        <div className="sticky top-[150px] z-10 mt-3 rounded-xl border border-border bg-card-muted px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground shadow-sm">
           {heading}
         </div>
 
