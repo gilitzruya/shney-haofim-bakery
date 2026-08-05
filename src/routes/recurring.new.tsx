@@ -5,9 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
+import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
-import { formatCutoff, upcomingStartOptions } from "@/lib/cutoff";
+import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -77,33 +78,29 @@ function NewRecurringPage() {
                     <AlertTriangle className="mt-px size-3.5 shrink-0" />
                     <span>
                       לא ניתן להתחיל ב־{formatLongDate(nearestBlocked.iso)} — מועד הסגירה ({formatCutoff(nearestBlocked.iso)}) כבר חלף.
-                      ההתחלה תהיה במועד האספקה הבא.
                     </span>
                   </div>
                 ) : null}
-                {options.map((opt) => (
-                  <button
-                    key={opt.iso}
-                    type="button"
-                    disabled={opt.blocked}
-                    onClick={() => setStartDate(opt.iso)}
-                    className={`flex items-center justify-between rounded-xl border px-3.5 py-3 text-right text-[13px] transition ${
-                      opt.blocked
-                        ? "cursor-not-allowed border-border bg-card-muted text-muted-foreground opacity-60"
-                        : startDate === opt.iso
-                          ? "border-primary/35 bg-primary-soft font-semibold text-foreground"
-                          : "border-border bg-card text-foreground"
-                    }`}
-                  >
-                    <span>{formatLongDate(opt.iso)}</span>
-                    <span className="text-[11.5px] text-muted-foreground">
-                      {opt.blocked ? "מועד הסגירה חלף" : `סגירה: ${formatCutoff(opt.iso)}`}
-                    </span>
-                  </button>
-                ))}
+                <DateCalendar
+                  value={startDate}
+                  onSelect={setStartDate}
+                  isEnabled={(iso, d) =>
+                    iso > TODAY_ISO && weekdays.includes(d.getDay()) && !isCutoffPassed(iso)
+                  }
+                />
+                <div className="text-[11.5px] text-muted-foreground">
+                  ניתן לבחור רק את ימי האספקה שנבחרו ושמועד הסגירה שלהם טרם חלף.
+                </div>
+                {startDate ? (
+                  <div className="rounded-[10px] bg-card-muted px-3 py-2 text-[12px] text-muted-foreground">
+                    התחלה: <span className="font-semibold text-foreground">{formatLongDate(startDate)}</span> · סגירה:{" "}
+                    {formatCutoff(startDate)}
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
+
 
           <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
             אחרי בחירת המוצרים ההזמנה תישלח אוטומטית למאפייה בכל אחד מימי האספקה שנבחרו, החל מ־
