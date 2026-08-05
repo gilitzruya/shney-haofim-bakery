@@ -17,7 +17,7 @@ export function cutoffFor(deliveryIso: string): Date {
   return cutoff;
 }
 
-export function isCutoffPassed(deliveryIso: string, now = new Date()): boolean {
+export function isCutoffPassed(deliveryIso: string, now = israelNow()): boolean {
   return now.getTime() > cutoffFor(deliveryIso).getTime();
 }
 
