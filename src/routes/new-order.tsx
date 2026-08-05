@@ -148,6 +148,99 @@ function NewOrderPage() {
   };
 
 
+  if (step !== "setup" && date) {
+    return (
+      <AppShell>
+        <AppHeader>
+          <PageTitleBar title="הזמנה חדשה" onBack={() => setStep(step === "pick" ? "start" : "setup")} />
+        </AppHeader>
+        <Section className="pb-28">
+          <div className="mt-4 rounded-xl border border-border bg-card-muted p-3 text-[12.5px] text-muted-foreground">
+            {formatLongDate(date)} • {roundLabel(round)}
+          </div>
+
+          {step === "start" ? (
+            <>
+              <h2 className="mt-5 text-[15px] font-bold text-foreground">איך תרצו להתחיל?</h2>
+              <p className="mb-3 text-[12.5px] text-muted-foreground">
+                תוכלו להתחיל הזמנה חדשה או להשתמש בהזמנה קודמת כבסיס
+              </p>
+
+              <div className="rounded-2xl border border-border bg-card p-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-bold text-foreground">התחלה מהקטלוג</div>
+                    <div className="mt-0.5 text-[12px] text-muted-foreground">
+                      התחילו הזמנה ריקה ובחרו מוצרים וכמויות
+                    </div>
+                  </div>
+                  <span className="flex size-[38px] shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                    <ShoppingCart className="size-[18px]" />
+                  </span>
+                </div>
+                <Button className="mt-3 w-full" pill onClick={startFromScratch}>
+                  מעבר לקטלוג
+                </Button>
+              </div>
+
+              <div className="mt-3 rounded-2xl border border-border bg-card p-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-bold text-foreground">העתקת מוצרים מהזמנה קודמת</div>
+                    <div className="mt-0.5 text-[12px] text-muted-foreground">
+                      המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
+                    </div>
+                  </div>
+                  <span className="flex size-[38px] shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                    <Copy className="size-[18px]" />
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  pill
+                  className="mt-3 w-full"
+                  disabled={pastOrders.length === 0}
+                  onClick={() => setStep("pick")}
+                >
+                  {pastOrders.length === 0 ? "אין הזמנות קודמות" : "בחירת הזמנה קודמת"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="mt-5 text-[15px] font-bold text-foreground">בחירת הזמנה קודמת</h2>
+              <p className="mb-3 text-[12.5px] text-muted-foreground">
+                בחרו הזמנה שתשמש כבסיס להזמנה החדשה
+              </p>
+              <div className="flex flex-col gap-2.5">
+                {pastOrders.map(({ order, badge }, i) => (
+                  <button
+                    key={order.id}
+                    type="button"
+                    onClick={() => startFromOrder(order.id)}
+                    className="rounded-[14px] border border-border bg-card p-3.5 text-start"
+                  >
+                    {badge || i === 0 ? (
+                      <span className="inline-block rounded-full bg-primary-soft px-2.5 py-1 text-[10.5px] font-bold text-primary">
+                        {badge ?? "ההזמנה האחרונה שלך"}
+                      </span>
+                    ) : null}
+                    <div className="mt-1.5 text-[13.5px] font-bold text-foreground">
+                      {formatLongDate(order.date)}
+                    </div>
+                    <div className="mt-0.5 text-[12px] text-muted-foreground">
+                      {roundLabel(order.round)} • {linesCount(order.lines)} מוצרים •{" "}
+                      {formatPrice(linesTotal(order.lines))}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </Section>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
