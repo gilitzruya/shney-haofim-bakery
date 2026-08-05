@@ -17,7 +17,7 @@ export function cutoffFor(deliveryIso: string): Date {
   return cutoff;
 }
 
-export function isCutoffPassed(deliveryIso: string, now = new Date()): boolean {
+export function isCutoffPassed(deliveryIso: string, now = israelNow()): boolean {
   return now.getTime() > cutoffFor(deliveryIso).getTime();
 }
 
@@ -25,4 +25,23 @@ export function isCutoffPassed(deliveryIso: string, now = new Date()): boolean {
 export function formatCutoff(deliveryIso: string): string {
   const c = cutoffFor(deliveryIso);
   return `יום ${HE_DAYS[c.getDay()]}, ${c.getDate()}.${c.getMonth() + 1} בשעה ${CUTOFF_HOUR}:00`;
+}
+
+/** השעה הנוכחית לפי שעון ישראל (כאובייקט Date בשעון מקומי-וירטואלי) */
+export function israelNow(): Date {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jerusalem",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const d = new Date(2000, 0, 1);
+  d.setFullYear(get("year"), get("month") - 1, get("day"));
+  d.setHours(get("hour") % 24, get("minute"), get("second"), 0);
+  return d;
 }

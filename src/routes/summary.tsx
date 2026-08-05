@@ -10,7 +10,8 @@ import { FlowBanner } from "@/components/app/flow-banner";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { QuantityStepper } from "@/components/app/product-card";
-import { findProduct, roundLabel } from "@/data/catalog";
+import { BAKERY_CONTACT, findProduct, roundLabel } from "@/data/catalog";
+import { formatCutoff, isCutoffPassed } from "@/lib/cutoff";
 import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
@@ -31,6 +32,7 @@ function SummaryPage() {
   const { draft, bumpQty, setQty, confirmDraft, setDraft } = useStore();
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   if (!draft) {
     return (
@@ -175,6 +177,28 @@ function SummaryPage() {
         onConfirm={confirm}
         onClose={() => setConfirming(false)}
       />
+
+      <Modal
+        open={blocked}
+        title="מועד ההזמנה נסגר"
+        description={
+          draft.date
+            ? `ההזמנות ל${formatDate(draft.date)} נסגרו ב${formatCutoff(draft.date)}. לא ניתן לאשר את ההזמנה במערכת.`
+            : "לא ניתן לאשר את ההזמנה — מועד סגירת ההזמנות חלף."
+        }
+        onClose={() => setBlocked(false)}
+      >
+        <div className="rounded-xl bg-card-muted p-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          לאישור חריג יש לפנות למנהל המאפייה:
+          <div className="mt-1.5 font-semibold text-foreground">{BAKERY_CONTACT.name}</div>
+          <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
+            {BAKERY_CONTACT.phone}
+          </a>
+          <a href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/\D/g, "").slice(1)}`} className="mt-0.5 block font-semibold text-primary">
+            וואטסאפ {BAKERY_CONTACT.whatsapp}
+          </a>
+        </div>
+      </Modal>
     </AppShell>
   );
 }
