@@ -114,6 +114,7 @@ function SummaryPage() {
                     qty={line.qty}
                     compact
                     onChange={(delta) => bumpQty(product.id, delta)}
+                    onSetQty={(qty) => setQty(product.id, qty)}
                   />
                 </Card>
               );
