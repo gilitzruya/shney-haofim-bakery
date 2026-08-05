@@ -22,6 +22,8 @@ export interface CartDraft {
   /** recurring create/edit form values */
   name?: string | undefined;
   weekdays?: number[] | undefined;
+  /** first delivery date for a new recurring order */
+  startDate?: string | undefined;
   quantities: Record<string, number>;
 }
 
@@ -144,7 +146,7 @@ interface StoreValue extends PersistedState {
   copyOrderAsNew: (id: string) => void;
   /* recurring */
   getRecurring: (id: string) => RecurringOrder | undefined;
-  startRecurringCreate: (name: string, weekdays: number[], round: RoundId) => void;
+  startRecurringCreate: (name: string, weekdays: number[], round: RoundId, startDate?: string) => void;
   startRecurringEdit: (id: string) => void;
   startOneTimeUpdate: (recurringId: string, date?: string) => void;
   saveRecurringDetails: (id: string, patch: Partial<RecurringOrder>) => void;
@@ -235,10 +237,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           };
         }),
 
-      startRecurringCreate: (name, weekdays, round) =>
+      startRecurringCreate: (name, weekdays, round, startDate) =>
         update((s) => ({
           ...s,
-          draft: { ...emptyDraft("recurring_create"), name, weekdays, round, quantities: {} },
+          draft: { ...emptyDraft("recurring_create"), name, weekdays, round, startDate, quantities: {} },
         })),
 
       startRecurringEdit: (id) =>
@@ -291,6 +293,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
               round: d.round,
               status: "active",
               lines,
+              startDate: d.startDate,
             };
             result = rec;
             return { ...s, recurring: [rec, ...s.recurring], draft: null };

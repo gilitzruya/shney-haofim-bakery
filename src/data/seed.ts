@@ -32,6 +32,8 @@ export interface RecurringOrder {
   round: RoundId;
   status: RecurringStatus;
   lines: OrderLine[];
+  /** ISO date of the first delivery of this recurring order */
+  startDate?: string | undefined;
   note?: string | undefined;
   needsAttention?: boolean | undefined;
   attentionText?: string | undefined;
