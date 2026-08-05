@@ -26,6 +26,12 @@ export const Route = createFileRoute("/catalog")({
   component: CatalogPage,
 });
 
+function headerOffset() {
+  if (typeof document === "undefined") return 150;
+  const header = document.querySelector("header");
+  return header ? Math.round(header.getBoundingClientRect().height) : 150;
+}
+
 function CatalogPage() {
   const navigate = useNavigate();
   const { draft, bumpQty, setQty } = useStore();
@@ -50,7 +56,7 @@ function CatalogPage() {
     if (searching) return;
     const onScroll = () => {
       if (lockRef.current) return;
-      const anchor = 180;
+      const anchor = headerOffset() + 12;
       let current = CATEGORIES[0]!.id;
       for (const c of CATEGORIES) {
         const el = sectionRefs.current[c.id];
@@ -69,11 +75,19 @@ function CatalogPage() {
     const el = sectionRefs.current[id];
     if (!el) return;
     lockRef.current = true;
-    const top = el.getBoundingClientRect().top + window.scrollY - 150;
-    window.scrollTo({ top, behavior: "smooth" });
+    const scrollToSection = () => {
+      const node = sectionRefs.current[id];
+      if (!node) return;
+      const top = node.getBoundingClientRect().top + window.scrollY - headerOffset() - 6;
+      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+    };
+    // Run after the tab strip finishes its own (horizontal) adjustment so the
+    // measured header height and section position are final.
+    requestAnimationFrame(scrollToSection);
+    window.setTimeout(scrollToSection, 120);
     window.setTimeout(() => {
       lockRef.current = false;
-    }, 700);
+    }, 900);
   };
 
   const heading =
@@ -139,7 +153,7 @@ function CatalogPage() {
                 ref={(el) => {
                   sectionRefs.current[c.id] = el;
                 }}
-                className="scroll-mt-[150px] pt-1"
+                className="pt-1"
               >
                 <h2 className="mb-2 mt-2 text-[14px] font-bold text-foreground">{c.name}</h2>
                 {c.products.map((p) => (
