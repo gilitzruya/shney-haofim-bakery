@@ -112,7 +112,37 @@ function NewOrderPage() {
     if (isCutoffPassed(date)) return setBlockedCutoff(true);
     if (conflictOrder) return setBlockedOrder(conflictOrder.id);
     if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
+    setStep("start");
+  };
+
+  /** הזמנות קודמות עם מוצרים, מדורגות לפי התאמה ליום ולסבב שנבחרו */
+  const pastOrders = (() => {
+    if (!date) return [] as { order: (typeof orders)[number]; badge?: string; score: number }[];
+    const weekday = parseDate(date).getDay();
+    return orders
+      .filter((o) => o.lines.length > 0 && o.date < date)
+      .map((o) => {
+        const sameWeekday = parseDate(o.date).getDay() === weekday;
+        const sameRound = o.round === round;
+        const score = sameWeekday && sameRound ? 3 : sameWeekday ? 2 : sameRound ? 1 : 0;
+        const badge = sameWeekday && sameRound ? "אותו יום ואותו סבב" : sameWeekday ? "אותו יום בשבוע" : sameRound ? "אותו סבב" : undefined;
+        return { order: o, badge, score };
+      })
+      .sort((a, b) => b.score - a.score || (a.order.date < b.order.date ? 1 : -1))
+      .slice(0, 6);
+  })();
+
+  const startFromScratch = () => {
+    if (!date) return;
     startOrderDraft(date, round);
+    goCatalog();
+  };
+
+  const startFromOrder = (id: string) => {
+    if (!date) return;
+    const source = orders.find((o) => o.id === id);
+    if (!source) return;
+    startOrderDraft(date, round, source.lines);
     goCatalog();
   };
 
