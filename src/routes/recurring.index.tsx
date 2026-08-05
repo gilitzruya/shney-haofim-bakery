@@ -9,7 +9,8 @@ import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { FilterChips } from "@/components/app/tabs";
 import { roundLabel } from "@/data/catalog";
-import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence, weekdaysLabel } from "@/lib/format";
+import { formatDate, formatPrice, linesCount, linesTotal, weekdaysLabel } from "@/lib/format";
+import { nextRecurringDelivery } from "@/lib/recurring";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/recurring/")({
@@ -59,7 +60,7 @@ function RecurringListPage() {
             <EmptyState title="אין הזמנות קבועות" description="אפשר ליצור הזמנה קבועה שתישלח אוטומטית בכל שבוע." />
           ) : (
             list.map((rec) => {
-              const next = rec.status === "active" ? nextOccurrence(rec.weekdays) : null;
+              const next = rec.status === "active" ? nextRecurringDelivery(rec) : null;
               return (
                 <Link
                   key={rec.id}
