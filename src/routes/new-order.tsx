@@ -59,12 +59,25 @@ function buildMonth(year: number, month: number) {
 
 function NewOrderPage() {
   const navigate = useNavigate();
-  const { startOrderDraft } = useStore();
+  const { startOrderDraft, orders, recurring } = useStore();
   const [month, setMonth] = useState({ year: TODAY.getFullYear(), month: TODAY.getMonth() });
   const [date, setDate] = useState<string | null>(null);
   const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
 
   const cells = buildMonth(month.year, month.month);
+
+  /** סימונים לכל תאריך: מ׳ מאושרת, ט׳ טיוטה, ק׳ קבועה */
+  const markersFor = (iso: string, weekday: number) => {
+    const marks: { key: string; label: string; title: string }[] = [];
+    const dayOrders = orders.filter((o) => o.date === iso);
+    if (dayOrders.some((o) => o.status === "approved" || o.status === "completed"))
+      marks.push({ key: "m", label: "מ׳", title: "הזמנה מאושרת" });
+    if (dayOrders.some((o) => o.status === "draft" || o.status === "needs_update" || o.status === "reopened"))
+      marks.push({ key: "t", label: "ט׳", title: "טיוטה" });
+    if (recurring.some((r) => r.status === "active" && r.weekdays.includes(weekday)))
+      marks.push({ key: "k", label: "ק׳", title: "הזמנה קבועה" });
+    return marks;
+  };
   const canGoBack = new Date(month.year, month.month, 1) > new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
   const shiftMonth = (delta: number) => {
     const d = new Date(month.year, month.month + delta, 1);
@@ -130,7 +143,7 @@ function NewOrderPage() {
                   disabled={cell.disabled}
                   onClick={() => setDate(cell.iso)}
                   className={cn(
-                    "flex h-[38px] items-center justify-center rounded-lg border text-[13.5px] font-bold",
+                    "flex h-[44px] items-center justify-center rounded-lg border text-[13.5px] font-bold",
                     date === cell.iso
                       ? "border-[1.5px] border-primary bg-primary-soft text-foreground"
                       : "border-border bg-card text-foreground",
@@ -144,6 +157,23 @@ function NewOrderPage() {
                     {cell.iso === TODAY_ISO ? (
                       <span className="mt-0.5 text-[8px] font-semibold text-primary">היום</span>
                     ) : null}
+                    {(() => {
+                      const marks = markersFor(cell.iso, cell.date.getDay());
+                      if (marks.length === 0) return null;
+                      return (
+                        <span className="mt-0.5 flex gap-[2px]">
+                          {marks.map((m) => (
+                            <span
+                              key={m.key}
+                              title={m.title}
+                              className="text-[8px] font-bold leading-none text-muted-foreground"
+                            >
+                              {m.label}
+                            </span>
+                          ))}
+                        </span>
+                      );
+                    })()}
                   </span>
                 </button>
               ),
