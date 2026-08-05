@@ -95,7 +95,8 @@ function CatalogPage() {
             />
           </div>
         )}
-        <div className="mx-auto w-full max-w-5xl px-3.5 md:px-5">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 px-3.5 pb-1 md:px-5">
+          <FlowBanner draft={draft} compact />
           <div className="rounded-xl border border-border bg-card-muted px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground shadow-sm">
             {heading}
           </div>
