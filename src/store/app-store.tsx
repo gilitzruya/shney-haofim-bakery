@@ -197,15 +197,25 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       getRecurring,
 
       startOrderDraft: (date, round, from) =>
-        update((s) => ({
-          ...s,
-          draft: {
+        update((s) => {
+          const existingDraft = s.orders.find(
+            (o) => o.status === "draft" && o.date === date && o.round === round,
+          );
+          const quantities = from
+            ? quantitiesFromLines(from)
+            : existingDraft
+              ? quantitiesFromLines(existingDraft.lines)
+              : {};
+          const draft: CartDraft = {
             ...emptyDraft("order"),
             date,
             round,
-            quantities: from ? quantitiesFromLines(from) : {},
-          },
-        })),
+            orderId: existingDraft?.id,
+            quantities,
+          };
+          return syncDraftOrder(s, draft);
+        }),
+
 
       editOrder: (id) =>
         update((s) => {
