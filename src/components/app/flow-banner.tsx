@@ -1,7 +1,6 @@
 import { CalendarPlus, FilePen, PencilLine, Repeat, RotateCcw } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Chip } from "@/components/app/status-chip";
 import { cn } from "@/lib/utils";
 import { useStore, type CartDraft } from "@/store/app-store";
 
