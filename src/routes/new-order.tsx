@@ -8,7 +8,7 @@ import { Button } from "@/components/app/button";
 import { RoundSelector } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { BAKERY_CONTACT, ROUNDS, WEEKDAY_LABELS, roundLabel, type RoundId } from "@/data/catalog";
-import { formatLongDate, parseDate, toIso } from "@/lib/format";
+import { formatLongDate, formatPrice, linesCount, linesTotal, parseDate, toIso } from "@/lib/format";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
