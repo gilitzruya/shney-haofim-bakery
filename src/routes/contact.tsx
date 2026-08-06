@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
-import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
-import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
 import { BAKERY_CONTACT } from "@/data/catalog";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
