@@ -217,9 +217,9 @@ function SummaryPage() {
           <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
             {BAKERY_CONTACT.phone}
           </a>
-          <a href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/\D/g, "").slice(1)}`} className="mt-0.5 block font-semibold text-primary">
-            וואטסאפ {BAKERY_CONTACT.whatsapp}
-          </a>
+          <div className="mt-2">
+            <WhatsAppContactLink label="שלחו וואטסאפ" />
+          </div>
         </div>
       </Modal>
     </AppShell>
