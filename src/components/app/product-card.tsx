@@ -199,11 +199,12 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "mb-2.5 flex items-center gap-2.5 rounded-[16px] border-[1.5px] p-1.5 ps-2.5",
+        "mb-2.5 flex h-[103px] items-center gap-2.5 overflow-hidden rounded-[16px] border-[1.5px] p-1.5 ps-2.5",
         selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
     >
+
 
       {productImage(product.id) ? (
         <img
