@@ -95,18 +95,20 @@ function ContactPage() {
 
 function ContactRow({
   icon,
+  iconClassName,
   label,
   value,
   href,
 }: {
   icon: React.ReactNode;
+  iconClassName?: string;
   label: string;
   value: string;
   href?: string;
 }) {
   const content = (
     <Card className="flex items-center gap-2.5">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary", iconClassName)}>
         {icon}
       </span>
       <div className="min-w-0">
