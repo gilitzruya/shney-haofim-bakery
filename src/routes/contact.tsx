@@ -53,6 +53,41 @@ function ContactPage() {
           </div>
         </Card>
 
+        <Card className="mt-5 overflow-hidden p-0">
+          <div className="relative aspect-[16/10] w-full">
+            <iframe
+              title="מיקום מאפיית שני האופים"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3385.585885374813!2d35.218306!3d31.854111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1siw!2sil!4v1"
+              className="absolute inset-0 h-full w-full border-0"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          <div className="flex flex-col gap-3 p-4">
+            <div className="flex items-start gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+                <MapPin className="size-4" />
+              </span>
+              <div>
+                <div className="text-[11px] text-muted-foreground">המיקום שלנו</div>
+                <div className="text-[13.5px] font-semibold text-foreground">{BAKERY_CONTACT.address}</div>
+              </div>
+            </div>
+            <a
+              href="https://waze.com/ul?ll=31.854111,35.218306&navigate=yes"
+              target="_blank"
+              rel="noreferrer"
+              className="no-underline"
+            >
+              <Button size="lg" variant="outline" className="w-full gap-2">
+                <Navigation className="size-4" />
+                ניווט לעסק ב-Waze
+              </Button>
+            </a>
+          </div>
+        </Card>
+
       </Section>
     </AppShell>
   );
