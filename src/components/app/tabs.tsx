@@ -107,10 +107,10 @@ export function Tabs<T extends string>({
         type="button"
         aria-label="גלול קטגוריות ימינה"
         onClick={() => scrollBy(-1)}
-        disabled={!canScrollRight}
+        disabled={!canScrollLeft}
         className={cn(
           "shrink-0 rounded-full border border-border bg-card p-1.5 text-foreground transition-opacity disabled:cursor-default",
-          canScrollRight ? "opacity-100" : "opacity-30",
+          canScrollLeft ? "opacity-100" : "opacity-30",
         )}
       >
         <ChevronLeft className="size-4" />
