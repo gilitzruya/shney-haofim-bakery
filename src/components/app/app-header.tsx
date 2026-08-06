@@ -13,7 +13,6 @@ const NAV = [
   { to: "/recurring", label: "הזמנות קבועות" },
   { to: "/business", label: "פרטי העסק" },
   { to: "/contact", label: "יצירת קשר" },
-  { to: "/design-system", label: "מערכת העיצוב" },
 ] as const;
 
 export function AppHeader({ children }: { children?: React.ReactNode | undefined }) {
