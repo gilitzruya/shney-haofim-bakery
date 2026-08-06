@@ -57,11 +57,9 @@ function ContactPage() {
           <div className="relative aspect-[16/10] w-full">
             <iframe
               title="מיקום מאפיית שני האופים"
-              src="https://maps.google.com/maps?q=31.854111,35.218306&hl=iw&z=16&output=embed"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=35.208%2C31.848%2C35.228%2C31.860&layer=mapnik&marker=31.854111%2C35.218306"
               className="absolute inset-0 h-full w-full border-0"
               loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
           <div className="flex flex-col gap-3 p-4">
