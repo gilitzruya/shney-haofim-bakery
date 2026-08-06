@@ -10,8 +10,8 @@ import { FlowBanner } from "@/components/app/flow-banner";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
-import { WhatsAppContactLink } from "@/components/app/whatsapp-contact-link";
-import { BAKERY_CONTACT, findProduct, roundLabel } from "@/data/catalog";
+
+import { findProduct, roundLabel } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { formatCutoff, isCutoffPassed } from "@/lib/cutoff";
 import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
@@ -211,15 +211,17 @@ function SummaryPage() {
         }
         onClose={() => setBlocked(false)}
       >
-        <div className="rounded-xl bg-card-muted p-3 text-[12.5px] leading-relaxed text-muted-foreground">
-          לאישור חריג יש לפנות למנהל המאפייה:
-          <div className="mt-1.5 font-semibold text-foreground">{BAKERY_CONTACT.name}</div>
-          <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
-            {BAKERY_CONTACT.phone}
-          </a>
-          <div className="mt-2">
-            <WhatsAppContactLink label="שלחו וואטסאפ" />
-          </div>
+        <div className="space-y-3">
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            לא ניתן לאשר הזמנה במערכת למועד שעבר את שעת הסגירה. לבירור אפשרויות חריגות, פנו לבעל המאפייה דרך דף יצירת הקשר.
+          </p>
+          <Button
+            variant="primary"
+            className="w-full font-semibold"
+            onClick={() => navigate({ to: "/contact" })}
+          >
+            לדף יצירת הקשר
+          </Button>
         </div>
       </Modal>
     </AppShell>
