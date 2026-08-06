@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
+import { productImage } from "@/data/product-images";
 import { clampQty, formatQty, minQtyFor, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 
@@ -204,7 +205,18 @@ export function ProductCard({
       )}
     >
 
-      <ProductPlaceholder />
+      {productImage(product.id) ? (
+        <img
+          src={productImage(product.id)}
+          alt={product.name}
+          loading="lazy"
+          width={1024}
+          height={1024}
+          className="size-14 shrink-0 rounded-[10px] border border-border bg-white object-contain p-0.5"
+        />
+      ) : (
+        <ProductPlaceholder />
+      )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
         <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
