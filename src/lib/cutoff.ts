@@ -1,13 +1,13 @@
 import { parseDate } from "@/lib/format";
 
 /** שעת סגירת ההזמנות */
-export const CUTOFF_HOUR = 14;
+export const CUTOFF_HOUR = 12;
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 /**
  * מועד סגירת ההזמנות עבור תאריך אספקה:
- * יום לפני האספקה בשעה 14:00, ולאספקה ביום ראשון — יום חמישי בשעה 14:00.
+ * יום לפני האספקה בשעה 12:00, ולאספקה ביום ראשון — יום חמישי בשעה 12:00.
  */
 export function cutoffFor(deliveryIso: string): Date {
   const delivery = parseDate(deliveryIso);
@@ -21,7 +21,7 @@ export function isCutoffPassed(deliveryIso: string, now = israelNow()): boolean 
   return now.getTime() > cutoffFor(deliveryIso).getTime();
 }
 
-/** "יום חמישי, 6.8 בשעה 14:00" */
+/** "יום חמישי, 6.8 בשעה 12:00" */
 export function formatCutoff(deliveryIso: string): string {
   const c = cutoffFor(deliveryIso);
   return `יום ${HE_DAYS[c.getDay()]}, ${c.getDate()}.${c.getMonth() + 1} בשעה ${CUTOFF_HOUR}:00`;
