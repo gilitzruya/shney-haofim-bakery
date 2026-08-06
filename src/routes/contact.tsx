@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Mail, MapPin, MessageCircle, Navigation, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Navigation, Phone } from "lucide-react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
+import { WhatsAppIcon } from "@/components/app/whatsapp-icon";
 import { BAKERY_CONTACT } from "@/data/catalog";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -29,7 +31,8 @@ function ContactPage() {
         <div className="flex flex-col gap-2.5">
           <ContactRow icon={<Phone className="size-4" />} label="טלפון" value={BAKERY_CONTACT.phone} href={`tel:${BAKERY_CONTACT.phone}`} />
           <ContactRow
-            icon={<MessageCircle className="size-4" />}
+            icon={<WhatsAppIcon className="size-4 text-white" />}
+            iconClassName="bg-[#25D366]"
             label="וואטסאפ"
             value={BAKERY_CONTACT.whatsapp}
             href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/[^0-9]/g, "").slice(1)}`}
@@ -93,18 +96,20 @@ function ContactPage() {
 
 function ContactRow({
   icon,
+  iconClassName,
   label,
   value,
   href,
 }: {
   icon: React.ReactNode;
+  iconClassName?: string;
   label: string;
   value: string;
   href?: string;
 }) {
   const content = (
     <Card className="flex items-center gap-2.5">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary", iconClassName)}>
         {icon}
       </span>
       <div className="min-w-0">

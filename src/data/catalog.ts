@@ -185,8 +185,8 @@ export const BUSINESS = {
 
 export const BAKERY_CONTACT = {
   name: "מאפיית שני האופים",
-  phone: "052-8880383",
-  whatsapp: "052-8880383",
+  phone: "0528880383",
+  whatsapp: "0528880383",
   email: "avimich@012.net.il",
   address: "המע\"ש, אזור התעשייה עטרות",
   hours: [

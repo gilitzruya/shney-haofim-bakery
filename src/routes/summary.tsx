@@ -10,6 +10,7 @@ import { FlowBanner } from "@/components/app/flow-banner";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
+import { WhatsAppContactLink } from "@/components/app/whatsapp-contact-link";
 import { BAKERY_CONTACT, findProduct, roundLabel } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { formatCutoff, isCutoffPassed } from "@/lib/cutoff";
@@ -216,9 +217,9 @@ function SummaryPage() {
           <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
             {BAKERY_CONTACT.phone}
           </a>
-          <a href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/\D/g, "").slice(1)}`} className="mt-0.5 block font-semibold text-primary">
-            וואטסאפ {BAKERY_CONTACT.whatsapp}
-          </a>
+          <div className="mt-2">
+            <WhatsAppContactLink label="שלחו וואטסאפ" />
+          </div>
         </div>
       </Modal>
     </AppShell>

@@ -7,6 +7,7 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { RoundSelector } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
+import { WhatsAppContactLink } from "@/components/app/whatsapp-contact-link";
 import { BAKERY_CONTACT, WEEKDAY_LABELS, roundLabel, type RoundId } from "@/data/catalog";
 import { formatLongDate, formatPrice, linesCount, linesTotal, parseDate, toIso } from "@/lib/format";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
@@ -429,12 +430,9 @@ function NewOrderPage() {
           <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
             {BAKERY_CONTACT.phone}
           </a>
-          <a
-            href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/\D/g, "").slice(1)}`}
-            className="mt-0.5 block font-semibold text-primary"
-          >
-            וואטסאפ {BAKERY_CONTACT.whatsapp}
-          </a>
+          <div className="mt-2">
+            <WhatsAppContactLink label="שלחו וואטסאפ" />
+          </div>
         </div>
       </Modal>
 
