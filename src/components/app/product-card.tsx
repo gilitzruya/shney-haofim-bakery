@@ -212,7 +212,7 @@ export function ProductCard({
           loading="lazy"
           width={1024}
           height={1024}
-          className="size-14 shrink-0 rounded-[10px] border border-border bg-white object-contain p-0.5"
+          className="aspect-square size-[88px] shrink-0 rounded-[12px] border border-border bg-white object-contain p-1"
         />
       ) : (
         <ProductPlaceholder />
