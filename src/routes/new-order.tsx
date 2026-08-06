@@ -359,7 +359,7 @@ function NewOrderPage() {
           </div>
         ) : date && round ? (
           <div className="mt-4 rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
-            האספקה תתבצע ביום {formatLongDate(date)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 14:00.
+            האספקה תתבצע ביום {formatLongDate(date)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 12:00.
           </div>
         ) : null}
       </Section>
