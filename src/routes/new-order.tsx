@@ -7,6 +7,7 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { RoundSelector } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
+import { WhatsAppContactLink } from "@/components/app/whatsapp-contact-link";
 import { BAKERY_CONTACT, WEEKDAY_LABELS, roundLabel, type RoundId } from "@/data/catalog";
 import { formatLongDate, formatPrice, linesCount, linesTotal, parseDate, toIso } from "@/lib/format";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
