@@ -9,7 +9,7 @@ export function ProductPlaceholder({ className }: { className?: string | undefin
   return (
     <div
       className={cn(
-        "product-placeholder flex size-14 shrink-0 items-center justify-center rounded-[10px]",
+        "product-placeholder flex size-[88px] shrink-0 items-center justify-center rounded-[12px]",
         className,
       )}
     >
