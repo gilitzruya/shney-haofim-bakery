@@ -19,10 +19,6 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const { business } = useStore();
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-
   return (
     <AppShell>
       <AppHeader>
