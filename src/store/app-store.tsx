@@ -129,7 +129,7 @@ function syncDraftOrder(s: PersistedState, draft: CartDraft): PersistedState {
     status: "draft",
     lines,
     createdFrom: "manual",
-    cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 14:00",
+    cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 12:00",
   };
   return { ...s, orders: [order, ...s.orders], draft: { ...draft, orderId: order.id } };
 }
@@ -325,7 +325,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
               status: "approved",
               lines,
               createdFrom: "recurring",
-              cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 14:00",
+              cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 12:00",
             };
             result = order;
             return { ...s, orders: [order, ...s.orders], draft: null };
@@ -347,7 +347,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             status: "approved",
             lines,
             createdFrom: "manual",
-            cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 14:00",
+            cutoffText: "ניתן לעדכן עד יום לפני האספקה בשעה 12:00",
           };
           result = order;
           return { ...s, orders: [order, ...s.orders], draft: null };
