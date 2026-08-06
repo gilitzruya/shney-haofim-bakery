@@ -134,8 +134,8 @@ export const SEED_ORDERS: Order[] = [
 export const SEED_RECURRING: RecurringOrder[] = [
   {
     id: "r-demo-1",
-    name: "אספקת בוקר יומית",
-    weekdays: [0, 1, 2, 3, 4],
+    name: "אספקת בוקר ליום שלישי",
+    weekdays: [2],
     round: "morning",
     status: "active",
     startDate: "2026-08-09",

@@ -7,7 +7,7 @@ import type { Order, OrderLine, RecurringOrder } from "@/data/seed";
 import { nextOccurrence, roundQty } from "@/lib/format";
 import { findProduct } from "@/data/catalog";
 
-const STORAGE_KEY = "bakery-demo-state:v6";
+const STORAGE_KEY = "bakery-demo-state:v7";
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
