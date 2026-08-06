@@ -199,13 +199,11 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "mb-2.5 flex h-[103px] items-center gap-2.5 overflow-hidden rounded-[16px] border-[1.5px] p-1.5 ps-2.5",
+        "mb-2.5 flex h-[112px] items-start gap-2.5 overflow-hidden rounded-[16px] border-[1.5px] p-1.5 ps-2.5",
         selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
     >
-
-
       {productImage(product.id) ? (
         <img
           src={productImage(product.id)}
@@ -218,23 +216,29 @@ export function ProductCard({
       ) : (
         <ProductPlaceholder />
       )}
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
-        <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
-          {priceLabel(product.price, product.unit)}
+      <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch py-1">
+        <div>
+          <div className="line-clamp-2 text-[13.5px] font-semibold leading-snug text-foreground">
+            {product.name}
+          </div>
+          <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
+            {priceLabel(product.price, product.unit)}
+          </div>
+          {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
+            <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+              מינימום {formatQty(minQtyFor(product), product.unit)} {unitLabel(product.unit)}
+            </div>
+          ) : null}
+          {unavailable ? (
+            <div className="mt-1 inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              {product.unavailableReason ?? "לא זמין למועד שנבחר"}
+            </div>
+          ) : null}
         </div>
-        {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
-          <div className="mt-0.5 text-[10.5px] text-muted-foreground">
-            מינימום {formatQty(minQtyFor(product), product.unit)} {unitLabel(product.unit)}
-          </div>
-        ) : null}
-        {unavailable ? (
-          <div className="mt-1 inline-flex rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-            {product.unavailableReason ?? "לא זמין למועד שנבחר"}
-          </div>
-        ) : null}
       </div>
-      <QuantityStepper product={product} qty={qty} onChange={onChange} onSetQty={onSetQty} disabled={unavailable} />
+      <div className="flex shrink-0 items-end self-stretch pb-0.5">
+        <QuantityStepper product={product} qty={qty} onChange={onChange} onSetQty={onSetQty} disabled={unavailable} />
+      </div>
     </div>
   );
 }
