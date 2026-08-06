@@ -199,7 +199,7 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "mb-2.5 flex items-center gap-2.5 rounded-[16px] border-[1.5px] p-2.5",
+        "mb-2.5 flex items-center gap-2.5 rounded-[16px] border-[1.5px] p-1.5 ps-2.5",
         selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
@@ -212,7 +212,7 @@ export function ProductCard({
           loading="lazy"
           width={1024}
           height={1024}
-          className="aspect-square size-[88px] shrink-0 rounded-[12px] border border-border bg-white object-contain p-1"
+          className="aspect-square size-[88px] shrink-0 rounded-[12px] object-contain"
         />
       ) : (
         <ProductPlaceholder />
