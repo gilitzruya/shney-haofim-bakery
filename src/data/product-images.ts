@@ -21,6 +21,8 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   c3_1: toastBagel.url,
   c3_2: americanBagel.url,
   c5_1: challah.url,
+  c4_1: pita.url,
+  c4_2: pitaToast.url,
   c6_1: chocolatePastry.url,
   c6_2: cinnamonPastry.url,
   c7_1: cheeseBurekas.url,
