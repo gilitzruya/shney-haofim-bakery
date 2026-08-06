@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
+import { WhatsAppIcon } from "@/components/app/whatsapp-icon";
 import { BAKERY_CONTACT } from "@/data/catalog";
 
 export const Route = createFileRoute("/contact")({
