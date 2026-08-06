@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
+import { productImage } from "@/data/product-images";
 import { clampQty, formatQty, minQtyFor, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 
