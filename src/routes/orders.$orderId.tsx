@@ -76,8 +76,18 @@ function OrderDetailsPage() {
             const product = findProduct(line.productId);
             if (!product) return null;
             return (
-              <Card key={line.productId} className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
+              <Card key={line.productId} className="flex items-center gap-2.5">
+                {productImage(product.id) ? (
+                  <img
+                    src={productImage(product.id)}
+                    alt={product.name}
+                    loading="lazy"
+                    className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"
+                  />
+                ) : (
+                  <ProductPlaceholder className="size-[56px]" />
+                )}
+                <div className="min-w-0 flex-1">
                   <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
                   <div className="mt-0.5 text-[11.5px] text-muted-foreground">
                     {formatQty(line.qty, product.unit)} × {formatPrice(product.price)}
