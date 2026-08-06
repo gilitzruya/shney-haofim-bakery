@@ -185,10 +185,10 @@ export const BUSINESS = {
 
 export const BAKERY_CONTACT = {
   name: "מאפיית שני האופים",
-  phone: "03-6541234",
-  whatsapp: "054-8123900",
-  email: "service@2bakers.co.il",
-  address: "האומן 14, אזור התעשייה, ראשון לציון",
+  phone: "052-8880383",
+  whatsapp: "052-8880383",
+  email: "avimich@012.net.il",
+  address: "המע\"ש, אזור התעשייה עטרות",
   hours: [
     { day: "ראשון – חמישי", time: "05:00 – 17:00" },
     { day: "שישי וערבי חג", time: "05:00 – 13:00" },
