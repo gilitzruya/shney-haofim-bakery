@@ -106,6 +106,7 @@ function OrderDetailsPage() {
             <span className="text-[13px] text-muted-foreground">סה״כ</span>
             <span className="text-[17px] font-bold text-foreground">{formatPrice(linesTotal(order.lines))}</span>
           </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">המחירים אינם כוללים מע״מ.</div>
         </Card>
 
         <button
