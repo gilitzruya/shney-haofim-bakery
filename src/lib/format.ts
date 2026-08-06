@@ -22,6 +22,13 @@ export function parseDate(iso: string): Date {
   return new Date(y!, (m ?? 1) - 1, d ?? 1);
 }
 
+export function formatPhone(value: string): string {
+  const d = value.replace(/\D/g, "");
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  if (d.length === 9) return `${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`;
+  return value;
+}
+
 export function toIso(date: Date): string {
   const m = `${date.getMonth() + 1}`.padStart(2, "0");
   const d = `${date.getDate()}`.padStart(2, "0");
