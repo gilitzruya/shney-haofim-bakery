@@ -39,7 +39,7 @@ export interface RecurringOrder {
   attentionText?: string | undefined;
 }
 
-const CUTOFF_TEXT = "ניתן לעדכן עד יום לפני האספקה בשעה 14:00";
+const CUTOFF_TEXT = "ניתן לעדכן עד יום לפני האספקה בשעה 12:00";
 
 export const SEED_ORDERS: Order[] = [
   {
