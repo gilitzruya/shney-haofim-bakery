@@ -7,8 +7,10 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Modal } from "@/components/app/modal";
+import { ProductPlaceholder } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct, roundLabel } from "@/data/catalog";
+import { productImage } from "@/data/product-images";
 import { formatLongDate, formatPrice, formatQty, linesTotal } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
