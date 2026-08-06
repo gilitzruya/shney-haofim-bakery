@@ -9,6 +9,8 @@ import chocolatePastry from "@/assets/products/מאפה_שוקולד.webp.asset.
 import cinnamonPastry from "@/assets/products/מאפה_קינמון.webp.asset.json";
 import cheeseBurekas from "@/assets/products/בורקס_גבינה.webp.asset.json";
 import pizzaBurekas from "@/assets/products/בורקס_פיצה.webp.asset.json";
+import pita from "@/assets/products/פיתה.webp.asset.json";
+import pitaToast from "@/assets/products/פיתה_טוסט.webp.asset.json";
 
 /** Product id -> product photo (white background). */
 export const PRODUCT_IMAGES: Record<string, string> = {
