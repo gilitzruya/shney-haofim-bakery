@@ -11,7 +11,7 @@ import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { WhatsAppContactLink } from "@/components/app/whatsapp-contact-link";
-import { BAKERY_CONTACT, findProduct, roundLabel } from "@/data/catalog";
+import { findProduct, roundLabel } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { formatCutoff, isCutoffPassed } from "@/lib/cutoff";
 import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
