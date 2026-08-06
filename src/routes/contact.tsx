@@ -7,6 +7,7 @@ import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
 import { WhatsAppIcon } from "@/components/app/whatsapp-icon";
 import { BAKERY_CONTACT } from "@/data/catalog";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
