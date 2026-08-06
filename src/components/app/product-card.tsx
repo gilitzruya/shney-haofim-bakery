@@ -217,10 +217,8 @@ export function ProductCard({
         <ProductPlaceholder />
       )}
       <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch py-1">
-        <div>
-          <div className="line-clamp-2 text-[13.5px] font-semibold leading-snug text-foreground">
-            {product.name}
-          </div>
+        <div className="w-full">
+          <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
           <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
           </div>
@@ -235,9 +233,9 @@ export function ProductCard({
             </div>
           ) : null}
         </div>
-      </div>
-      <div className="flex shrink-0 items-end self-stretch pb-0.5">
-        <QuantityStepper product={product} qty={qty} onChange={onChange} onSetQty={onSetQty} disabled={unavailable} />
+        <div className="mt-1 flex w-full justify-end">
+          <QuantityStepper product={product} qty={qty} onChange={onChange} onSetQty={onSetQty} disabled={unavailable} />
+        </div>
       </div>
     </div>
   );
