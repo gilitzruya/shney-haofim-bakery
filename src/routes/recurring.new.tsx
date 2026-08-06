@@ -7,7 +7,7 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
-import { ROUNDS, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
+import { WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
