@@ -211,15 +211,17 @@ function SummaryPage() {
         }
         onClose={() => setBlocked(false)}
       >
-        <div className="rounded-xl bg-card-muted p-3 text-[12.5px] leading-relaxed text-muted-foreground">
-          לאישור חריג יש לפנות למנהל המאפייה:
-          <div className="mt-1.5 font-semibold text-foreground">{BAKERY_CONTACT.name}</div>
-          <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
-            {BAKERY_CONTACT.phone}
-          </a>
-          <div className="mt-2">
-            <WhatsAppContactLink label="שלחו וואטסאפ" />
-          </div>
+        <div className="space-y-3">
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            לא ניתן לאשר הזמנה במערכת למועד שעבר את שעת הסגירה. לבירור אפשרויות חריגות, פנו לבעל המאפייה דרך דף יצירת הקשר.
+          </p>
+          <Button
+            variant="primary"
+            className="w-full font-semibold"
+            onClick={() => navigate({ to: "/contact" })}
+          >
+            לדף יצירת הקשר
+          </Button>
         </div>
       </Modal>
     </AppShell>
