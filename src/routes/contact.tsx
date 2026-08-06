@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Navigation, Phone } from "lucide-react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
+import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
 import { BAKERY_CONTACT } from "@/data/catalog";
 
