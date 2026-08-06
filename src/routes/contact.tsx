@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
-import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
-import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
 import { BAKERY_CONTACT } from "@/data/catalog";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -24,10 +19,6 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const { business } = useStore();
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-
   return (
     <AppShell>
       <AppHeader>
@@ -61,26 +52,6 @@ function ContactPage() {
           </div>
         </Card>
 
-        <h2 className="mt-5 mb-2 text-[15px] font-bold text-foreground">שליחת הודעה</h2>
-        <div className="flex flex-col gap-3.5">
-          <FormField label="נושא">
-            <TextInput value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="נושא ההודעה" />
-          </FormField>
-          <FormField label="תוכן ההודעה" hint={`ההודעה תישלח בשם ${business.name}`}>
-            <TextArea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="במה נוכל לעזור?" />
-          </FormField>
-          <Button
-            size="lg"
-            disabled={!subject.trim() || !message.trim()}
-            onClick={() => {
-              setSubject("");
-              setMessage("");
-              toast.success("ההודעה נשלחה למאפייה");
-            }}
-          >
-            שליחה
-          </Button>
-        </div>
       </Section>
     </AppShell>
   );
