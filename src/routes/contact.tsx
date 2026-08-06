@@ -30,7 +30,8 @@ function ContactPage() {
         <div className="flex flex-col gap-2.5">
           <ContactRow icon={<Phone className="size-4" />} label="טלפון" value={BAKERY_CONTACT.phone} href={`tel:${BAKERY_CONTACT.phone}`} />
           <ContactRow
-            icon={<MessageCircle className="size-4" />}
+            icon={<WhatsAppIcon className="size-4 text-white" />}
+            iconClassName="bg-[#25D366]"
             label="וואטסאפ"
             value={BAKERY_CONTACT.whatsapp}
             href={`https://wa.me/972${BAKERY_CONTACT.whatsapp.replace(/[^0-9]/g, "").slice(1)}`}
