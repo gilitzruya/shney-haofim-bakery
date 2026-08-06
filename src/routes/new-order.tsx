@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Copy, ShoppingCart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, Info, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -7,7 +7,7 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { RoundSelector } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
-import { BAKERY_CONTACT, ROUNDS, WEEKDAY_LABELS, roundLabel, type RoundId } from "@/data/catalog";
+import { BAKERY_CONTACT, WEEKDAY_LABELS, roundLabel, type RoundId } from "@/data/catalog";
 import { formatLongDate, formatPrice, linesCount, linesTotal, parseDate, toIso } from "@/lib/format";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
 import { cn } from "@/lib/utils";
@@ -63,11 +63,15 @@ function NewOrderPage() {
   const { startOrderDraft, editOrder, startOneTimeUpdate, startRecurringEdit, orders, recurring } = useStore();
   const [month, setMonth] = useState({ year: TODAY.getFullYear(), month: TODAY.getMonth() });
   const [date, setDate] = useState<string | null>(null);
-  const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
+  const [round, setRound] = useState<RoundId | null>(null);
   const [blockedOrder, setBlockedOrder] = useState<string | null>(null);
   const [blockedCutoff, setBlockedCutoff] = useState(false);
   const [blockedRecurring, setBlockedRecurring] = useState<string | null>(null);
   const [step, setStep] = useState<"setup" | "start" | "pick">("setup");
+
+  const missing: string[] = [];
+  if (!date) missing.push("מועד אספקה");
+  if (!round) missing.push("סבב חלוקה");
 
   const cells = buildMonth(month.year, month.month);
 
@@ -91,7 +95,7 @@ function NewOrderPage() {
 
   /** התנגשות: הזמנה מאושרת או הזמנה קבועה קיימת לאותו יום ואותו סבב */
   const conflictOrder =
-    date
+    date && round
       ? orders.find(
           (o) =>
             o.date === date &&
@@ -100,7 +104,7 @@ function NewOrderPage() {
         )
       : undefined;
   const conflictRecurring =
-    date && !conflictOrder
+    date && round && !conflictOrder
       ? recurring.find(
           (r) => r.status === "active" && r.round === round && r.weekdays.includes(parseDate(date).getDay()),
         )
@@ -109,7 +113,7 @@ function NewOrderPage() {
   const goCatalog = () => navigate({ to: "/catalog" });
 
   const proceed = () => {
-    if (!date) return;
+    if (!date || !round) return;
     if (isCutoffPassed(date)) return setBlockedCutoff(true);
     if (conflictOrder) return setBlockedOrder(conflictOrder.id);
     if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
@@ -134,13 +138,13 @@ function NewOrderPage() {
   })();
 
   const startFromScratch = () => {
-    if (!date) return;
+    if (!date || !round) return;
     startOrderDraft(date, round);
     goCatalog();
   };
 
   const startFromOrder = (id: string) => {
-    if (!date) return;
+    if (!date || !round) return;
     const source = orders.find((o) => o.id === id);
     if (!source) return;
     startOrderDraft(date, round, source.lines);
@@ -148,7 +152,7 @@ function NewOrderPage() {
   };
 
 
-  if (step !== "setup" && date) {
+  if (step !== "setup" && date && round) {
     return (
       <AppShell>
         <AppHeader>
@@ -341,19 +345,19 @@ function NewOrderPage() {
         <h2 className="mt-5 mb-2 text-[15px] font-bold text-foreground">בחירת סבב חלוקה</h2>
         <RoundSelector value={round} onChange={setRound} />
 
-        {date && conflictOrder ? (
+        {date && round && conflictOrder ? (
           <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
             כבר קיימת הזמנה {conflictOrder.status === "completed" ? "שסופקה" : "מאושרת"} ל{formatLongDate(date)} ב{roundLabel(round)}.
           </div>
-        ) : date && conflictRecurring ? (
+        ) : date && round && conflictRecurring ? (
           <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
             קיימת הזמנה קבועה ({conflictRecurring.name}) ל{formatLongDate(date)} ב{roundLabel(round)}.
           </div>
-        ) : date && isCutoffPassed(date) ? (
+        ) : date && round && isCutoffPassed(date) ? (
           <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
             מועד ההזמנות ל{formatLongDate(date)} נסגר ב{formatCutoff(date)}. לא ניתן לפתוח הזמנה חדשה למועד זה — לאישור חריג יש ליצור קשר עם בעל המאפייה.
           </div>
-        ) : date ? (
+        ) : date && round ? (
           <div className="mt-4 rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
             האספקה תתבצע ביום {formatLongDate(date)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 14:00.
           </div>
@@ -362,7 +366,13 @@ function NewOrderPage() {
 
       <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
         <div className="mx-auto max-w-5xl">
-          <Button size="lg" className="w-full" disabled={!date} onClick={proceed}>
+          {missing.length > 0 ? (
+            <div className="mb-2 flex items-start gap-1.5 rounded-[10px] bg-card-muted px-3 py-2 text-[11.5px] font-semibold text-muted-foreground">
+              <Info className="mt-px size-3.5 shrink-0" />
+              <span>כדי להמשיך יש לבחור {missing.join(" ו")}</span>
+            </div>
+          ) : null}
+          <Button size="lg" className="w-full" disabled={missing.length > 0} onClick={proceed}>
             המשך לבחירת מוצרים
           </Button>
         </div>
@@ -373,7 +383,7 @@ function NewOrderPage() {
         open={Boolean(blockedOrder && conflictOrder && date)}
         title="כבר קיימת הזמנה למועד זה"
         description={
-          date
+          date && round
             ? `יש כבר הזמנה מאושרת ל${formatLongDate(date)} ב${roundLabel(round)}. לא ניתן ליצור הזמנה נוספת לאותו יום ולאותו סבב.`
             : undefined
         }
@@ -433,7 +443,7 @@ function NewOrderPage() {
         open={Boolean(blockedRecurring && conflictRecurring && date)}
         title="קיימת הזמנה קבועה למועד זה"
         description={
-          date && conflictRecurring
+          date && round && conflictRecurring
             ? `ההזמנה הקבועה "${conflictRecurring.name}" כבר מסופקת ב${formatLongDate(date)} ב${roundLabel(round)}. מה תרצו לעשות?`
             : undefined
         }

@@ -2,7 +2,7 @@ import { ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 
-export function RoundSelector({ value, onChange }: { value: RoundId; onChange: (id: RoundId) => void }) {
+export function RoundSelector({ value, onChange }: { value: RoundId | null; onChange: (id: RoundId) => void }) {
   return (
     <div className="flex flex-col gap-2">
       {ROUNDS.map((r) => (

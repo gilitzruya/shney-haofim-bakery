@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -7,7 +7,7 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
 import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
-import { ROUNDS, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
+import { WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -29,7 +29,7 @@ function NewRecurringPage() {
   const { startRecurringCreate, recurring } = useStore();
   const [name, setName] = useState("");
   const [weekdays, setWeekdays] = useState<number[]>([]);
-  const [round, setRound] = useState<RoundId>(ROUNDS[0]!.id);
+  const [round, setRound] = useState<RoundId | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
 
   const options = useMemo(() => upcomingStartOptions(weekdays, 4), [weekdays]);
@@ -40,7 +40,7 @@ function NewRecurringPage() {
     const out: { name: string; days: number[] }[] = [];
     recurring.forEach((r) => {
       if (r.status === "cancelled") return;
-      if (r.round !== round) return;
+      if (!round || r.round !== round) return;
       const days = r.weekdays.filter((d) => weekdays.includes(d));
       if (days.length > 0) out.push({ name: r.name, days });
     });
@@ -56,7 +56,13 @@ function NewRecurringPage() {
     setStartDate(firstAvailable?.iso ?? null);
   }, [firstAvailable?.iso]);
 
-  const valid = name.trim().length > 1 && weekdays.length > 0 && !!startDate && conflicts.length === 0;
+  const missing: string[] = [];
+  if (name.trim().length <= 1) missing.push("שם להזמנה הקבועה");
+  if (weekdays.length === 0) missing.push("ימי אספקה");
+  if (!round) missing.push("סבב חלוקה");
+  if (weekdays.length > 0 && round && !startDate) missing.push("תאריך התחלה");
+
+  const valid = missing.length === 0 && conflicts.length === 0;
 
 
 
@@ -97,9 +103,9 @@ function NewRecurringPage() {
 
           <div>
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ממתי להתחיל</div>
-            {weekdays.length === 0 ? (
+            {weekdays.length === 0 || !round ? (
               <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
-                יש לבחור קודם ימי אספקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
+                יש לבחור קודם ימי אספקה וסבב חלוקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
               </div>
             ) : (
               <div className="flex flex-col gap-2">
@@ -141,12 +147,23 @@ function NewRecurringPage() {
 
       <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
         <div className="mx-auto max-w-5xl">
+          {missing.length > 0 ? (
+            <div className="mb-2 flex items-start gap-1.5 rounded-[10px] bg-card-muted px-3 py-2 text-[11.5px] font-semibold text-muted-foreground">
+              <Info className="mt-px size-3.5 shrink-0" />
+              <span>כדי להמשיך יש להשלים: {missing.join(", ")}</span>
+            </div>
+          ) : conflicts.length > 0 ? (
+            <div className="mb-2 flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
+              <AlertTriangle className="mt-px size-3.5 shrink-0" />
+              <span>קיימת כבר הזמנה קבועה לאותם ימים ולאותו סבב — שנו ימים או סבב כדי להמשיך.</span>
+            </div>
+          ) : null}
           <Button
             size="lg"
             className="w-full"
             disabled={!valid}
             onClick={() => {
-              startRecurringCreate(name.trim(), weekdays, round, startDate ?? undefined);
+              startRecurringCreate(name.trim(), weekdays, round!, startDate ?? undefined);
               navigate({ to: "/catalog" });
             }}
           >
