@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "דף הבית" },
-  { to: "/new-order", label: "הזמנה חדשה" },
   { to: "/orders", label: "ההזמנות שלי" },
   { to: "/recurring", label: "הזמנות קבועות" },
   { to: "/business", label: "פרטי העסק" },
