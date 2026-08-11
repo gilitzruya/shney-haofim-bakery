@@ -6,7 +6,7 @@ import { AppShell, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
 import { Chip, StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
-import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence, weekdaysLabel } from "@/lib/format";
+import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/")({
