@@ -192,11 +192,21 @@ export function ProductCard({
 }) {
   const selected = qty > 0;
   const unavailable = !product.available;
+  const [pending, setPending] = useState(qty);
+  useEffect(() => {
+    setPending(qty);
+  }, [qty]);
+
+  const commitToCart = () => {
+    if (onSetQty) onSetQty(pending);
+    else onChange(pending - qty);
+  };
+  const dirty = pending !== qty;
 
   return (
     <div
       className={cn(
-        "mb-2.5 flex h-[112px] items-start gap-2.5 overflow-hidden rounded-[16px] border-[1.5px] p-1.5 ps-2.5",
+        "mb-2.5 flex items-start gap-2.5 overflow-hidden rounded-[16px] border-[1.5px] p-2 ps-2.5",
         selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
@@ -213,15 +223,31 @@ export function ProductCard({
       ) : (
         <ProductPlaceholder />
       )}
-      <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch py-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1 self-stretch py-0.5">
         <div className="w-full">
-          <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
+            <span dir="ltr" className="shrink-0 font-mono text-[10px] text-muted-foreground">
+              {product.sku ?? product.id}
+            </span>
+          </div>
           <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
           </div>
-          {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
-            <div className="mt-0.5 text-[10.5px] text-muted-foreground">
-              מינימום {formatQty(minQtyFor(product), product.unit)} {unitLabel(product.unit)}
+          <div className="text-[10.5px] text-muted-foreground">
+            {formatPrice(priceExVat(product.price))} לפני מע״מ
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10.5px] text-muted-foreground">
+            {product.weightGrams ? <span>משקל: {weightLabel(product.weightGrams)}</span> : null}
+            {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
+              <span>
+                מינימום {formatQty(minQtyFor(product), product.unit)} {unitLabel(product.unit)}
+              </span>
+            ) : null}
+          </div>
+          {product.note ? (
+            <div className="mt-1 rounded-[8px] bg-secondary px-2 py-1 text-[10.5px] leading-tight text-muted-foreground">
+              {product.note}
             </div>
           ) : null}
           {unavailable ? (
@@ -230,8 +256,23 @@ export function ProductCard({
             </div>
           ) : null}
         </div>
-        <div className="mt-1 flex w-full justify-end">
-          <QuantityStepper product={product} qty={qty} onChange={onChange} onSetQty={onSetQty} disabled={unavailable} />
+        <div className="mt-1 flex w-full flex-wrap items-center justify-end gap-2">
+          <QuantityStepper
+            product={product}
+            qty={pending}
+            compact
+            onChange={(delta) => setPending((p) => clampQty(product, p + delta))}
+            onSetQty={(next) => setPending(next)}
+            disabled={unavailable}
+          />
+          <button
+            type="button"
+            disabled={unavailable || (!dirty && pending === 0)}
+            onClick={commitToCart}
+            className="h-[30px] shrink-0 rounded-[9px] bg-primary px-3 text-[11.5px] font-bold text-primary-foreground disabled:opacity-40"
+          >
+            {selected && !dirty ? "בסל" : selected ? "עדכון הסל" : "הוספה לסל"}
+          </button>
         </div>
       </div>
     </div>
