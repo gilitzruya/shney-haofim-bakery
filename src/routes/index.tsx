@@ -45,7 +45,7 @@ function HomePage() {
         className="pointer-events-none fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
       />
-      <div aria-hidden className="pointer-events-none fixed inset-0 bg-canvas/45" />
+      <div aria-hidden className="pointer-events-none fixed inset-0 bg-canvas/15" />
       <div className="relative z-10 flex min-h-screen w-full flex-col">
       <AppHeader />
 
