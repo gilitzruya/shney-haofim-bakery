@@ -68,6 +68,17 @@ export function priceLabel(price: number, unit: "unit" | "kg"): string {
   return `${price.toFixed(2)} ₪ ל${unitLabel(unit)}`;
 }
 
+export const VAT_RATE = 0.18;
+
+/** Price excluding VAT (catalog prices include VAT). */
+export function priceExVat(price: number): number {
+  return price / (1 + VAT_RATE);
+}
+
+export function weightLabel(grams: number): string {
+  return grams >= 1000 ? `${(grams / 1000).toFixed(grams % 1000 === 0 ? 0 : 1)} ק"ג` : `${grams} גרם`;
+}
+
 export function linesTotal(lines: OrderLine[]): number {
   return lines.reduce((sum, l) => {
     const p = findProduct(l.productId);
