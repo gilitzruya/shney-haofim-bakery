@@ -239,10 +239,15 @@ export function ProductCard({
             <span className="text-[12px] font-normal text-muted-foreground"> (לפני מע״מ)</span>
           </div>
           <div className="mt-0.5 text-[10.5px] text-muted-foreground">
-            קוד פריט: <span dir="ltr" className="font-mono">{product.sku ?? product.id}</span>
+            קוד פריט:{" "}
+            <span dir="ltr" className="font-mono font-semibold text-foreground">
+              {product.sku ?? product.id}
+            </span>
           </div>
           {product.weightGrams ? (
-            <div className="text-[10.5px] text-muted-foreground">משקל: {weightLabel(product.weightGrams)}</div>
+            <div className="text-[10.5px] text-muted-foreground">
+              משקל: <span className="font-semibold text-foreground">{weightLabel(product.weightGrams)}</span>
+            </div>
           ) : null}
           <div className="mt-0.5 flex flex-wrap items-center justify-start gap-x-2 gap-y-0.5 text-[10.5px] text-muted-foreground">
             {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
@@ -253,7 +258,7 @@ export function ProductCard({
           </div>
           {product.note ? (
             <div className="mt-1 rounded-[8px] bg-secondary px-2 py-1 text-[10.5px] leading-tight text-muted-foreground">
-              {product.note}
+              הערה: <span className="font-semibold text-foreground">{product.note}</span>
             </div>
           ) : null}
           {unavailable ? (
