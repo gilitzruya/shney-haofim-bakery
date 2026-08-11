@@ -175,7 +175,7 @@ function CatalogPage() {
           </div>
           <Button size="lg" disabled={selectedCount === 0} onClick={() => navigate({ to: "/summary" })}>
             <ShoppingBasket className="size-4" />
-            סיכום ההזמנה
+            מעבר לסל ההזמנה
           </Button>
         </div>
       </div>
