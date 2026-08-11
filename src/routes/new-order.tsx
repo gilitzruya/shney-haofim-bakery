@@ -118,6 +118,7 @@ function NewOrderPage() {
     if (isCutoffPassed(date)) return setBlockedCutoff(true);
     if (conflictOrder) return setBlockedOrder(conflictOrder.id);
     if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
+    if (pastOrders.length === 0) return startFromScratch();
     setStep("start");
   };
 
@@ -126,7 +127,7 @@ function NewOrderPage() {
     if (!date) return [] as { order: (typeof orders)[number]; badge?: string; score: number }[];
     const weekday = parseDate(date).getDay();
     return orders
-      .filter((o) => o.lines.length > 0 && o.date !== date)
+      .filter((o) => o.lines.length > 0 && o.date < date)
       .map((o) => {
         const sameWeekday = parseDate(o.date).getDay() === weekday;
         const score = sameWeekday ? 2 : 0;
@@ -175,17 +176,13 @@ function NewOrderPage() {
                 {formatLongDate(pastOrders[0].order.date)} • {linesCount(pastOrders[0].order.lines)} מוצרים •{" "}
                 {formatPrice(linesTotal(pastOrders[0].order.lines))}
               </p>
-            ) : (
-              <p className="mt-1 text-[12.5px] text-muted-foreground">אין הזמנות קודמות להעתקה</p>
-            )}
-            {pastOrders[0] ? (
-              <p className="mt-1 text-[12px] text-muted-foreground">
-                המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
-              </p>
             ) : null}
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
+            </p>
 
             <div className="mt-4 flex gap-2.5">
-              <Button className="flex-1" pill disabled={!pastOrders[0]} onClick={copyFromLast}>
+              <Button className="flex-1" pill onClick={copyFromLast}>
                 <Check className="size-[16px]" />
                 כן
               </Button>
