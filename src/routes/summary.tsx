@@ -117,7 +117,7 @@ function SummaryPage() {
                     <ProductPlaceholder className="size-[56px]" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
+                    <div className="truncate text-[15px] font-bold text-foreground">{product.name}</div>
                     <div className="mt-0.5 text-[11.5px] text-muted-foreground">
                       קוד פריט: <span className="font-semibold text-foreground">{product.sku ?? product.id}</span>
                     </div>
