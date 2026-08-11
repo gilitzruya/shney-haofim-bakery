@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, CalendarPlus, ChevronLeft, Tag } from "lucide-react";
 
-import heroImage from "@/assets/home-hero.jpg";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
