@@ -206,11 +206,12 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "mb-2.5 flex items-start gap-2.5 overflow-hidden rounded-[16px] border-[1.5px] p-2 ps-2.5",
+        "mb-2.5 flex flex-col items-stretch gap-2 overflow-hidden rounded-[16px] border-[1.5px] p-2 ps-2.5",
         selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
     >
+      <div className="flex justify-center">
       {productImage(product.id) ? (
         <img
           src={productImage(product.id)}
@@ -218,18 +219,17 @@ export function ProductCard({
           loading="lazy"
           width={1024}
           height={1024}
-          className="aspect-square size-[88px] shrink-0 rounded-[12px] object-contain"
+          className="aspect-square size-[120px] shrink-0 rounded-[12px] object-contain"
         />
       ) : (
         <ProductPlaceholder />
       )}
-      <div className="flex min-w-0 flex-1 flex-col gap-1 self-stretch py-0.5">
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-1 py-0.5 text-start">
         <div className="w-full">
-          <div className="flex items-start justify-between gap-2">
-            <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
-            <span dir="ltr" className="shrink-0 font-mono text-[10px] text-muted-foreground">
-              {product.sku ?? product.id}
-            </span>
+          <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
+          <div dir="ltr" className="font-mono text-[10px] text-muted-foreground text-start">
+            {product.sku ?? product.id}
           </div>
           <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
@@ -237,7 +237,7 @@ export function ProductCard({
           <div className="text-[10.5px] text-muted-foreground">
             {formatPrice(priceExVat(product.price))} לפני מע״מ
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10.5px] text-muted-foreground">
+          <div className="mt-0.5 flex flex-wrap items-center justify-start gap-x-2 gap-y-0.5 text-[10.5px] text-muted-foreground">
             {product.weightGrams ? <span>משקל: {weightLabel(product.weightGrams)}</span> : null}
             {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
               <span>
