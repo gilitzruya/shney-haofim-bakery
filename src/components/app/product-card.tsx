@@ -1,7 +1,17 @@
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
-import { clampQty, formatQty, minQtyFor, priceLabel, quickStepFor, stepFor, unitLabel } from "@/lib/format";
+import {
+  clampQty,
+  formatPrice,
+  formatQty,
+  minQtyFor,
+  priceExVat,
+  priceLabel,
+  stepFor,
+  unitLabel,
+  weightLabel,
+} from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 
 
@@ -42,7 +52,6 @@ export function QuantityStepper({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const step = stepFor(product);
-  const quick = quickStepFor(product);
   const min = minQtyFor(product);
 
   const applyQty = (next: number) => {
@@ -111,24 +120,12 @@ export function QuantityStepper({
       <button
         type="button"
         dir="ltr"
-        disabled={disabled}
-        onClick={() => bump(quick)}
-        className={cn(
-          "flex items-center justify-center rounded-[9px] bg-accent px-2.5 text-[12px] font-bold text-accent-foreground disabled:opacity-40",
-          size,
-        )}
-      >
-        +{product.unit === "kg" ? quick.toFixed(1) : quick}
-      </button>
-      <button
-        type="button"
-        dir="ltr"
         aria-label="הוספה"
         disabled={disabled}
         onClick={() => bump(step)}
         className={btn}
       >
-        +{product.unit === "kg" ? step.toFixed(1) : step}
+        +
       </button>
       <div className="flex flex-col items-center">
         {editing ? (
@@ -175,7 +172,7 @@ export function QuantityStepper({
         onClick={() => bump(-step)}
         className={btn}
       >
-        -{product.unit === "kg" ? step.toFixed(1) : step}
+        −
       </button>
     </div>
   );
