@@ -211,23 +211,25 @@ export function ProductCard({
         unavailable && "opacity-60",
       )}
     >
-      <div className="flex justify-center">
-      {productImage(product.id) ? (
-        <img
-          src={productImage(product.id)}
-          alt={product.name}
-          loading="lazy"
-          width={1024}
-          height={1024}
-          className="aspect-square size-[120px] shrink-0 rounded-[12px] object-contain"
-        />
-      ) : (
-        <ProductPlaceholder />
-      )}
+      <div className="flex items-center gap-2.5">
+        {productImage(product.id) ? (
+          <img
+            src={productImage(product.id)}
+            alt={product.name}
+            loading="lazy"
+            width={1024}
+            height={1024}
+            className="aspect-square size-[120px] shrink-0 rounded-[12px] object-contain"
+          />
+        ) : (
+          <ProductPlaceholder />
+        )}
+        <div className="min-w-0 flex-1 text-[14.5px] font-semibold leading-snug text-foreground">
+          {product.name}
+        </div>
       </div>
       <div className="flex min-w-0 flex-1 flex-col items-start gap-1 py-0.5 text-start">
         <div className="w-full">
-          <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
           <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
             <span className="font-normal text-muted-foreground">
