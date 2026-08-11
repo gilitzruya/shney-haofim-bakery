@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Copy, Info, ShoppingCart } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, Info, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -69,7 +69,7 @@ function NewOrderPage() {
   const [blockedOrder, setBlockedOrder] = useState<string | null>(null);
   const [blockedCutoff, setBlockedCutoff] = useState(false);
   const [blockedRecurring, setBlockedRecurring] = useState<string | null>(null);
-  const [step, setStep] = useState<"setup" | "start" | "pick">("setup");
+  const [step, setStep] = useState<"setup" | "start">("setup");
 
   const missing: string[] = [];
   if (!date) missing.push("מועד אספקה");
@@ -118,6 +118,7 @@ function NewOrderPage() {
     if (isCutoffPassed(date)) return setBlockedCutoff(true);
     if (conflictOrder) return setBlockedOrder(conflictOrder.id);
     if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
+    if (pastOrders.length === 0) return startFromScratch();
     setStep("start");
   };
 
@@ -143,12 +144,12 @@ function NewOrderPage() {
     goCatalog();
   };
 
-  const startFromOrder = (id: string) => {
+  const copyFromLast = () => {
     if (!date) return;
-    const source = orders.find((o) => o.id === id);
-    if (!source) return;
+    const source = pastOrders[0]?.order;
+    if (!source) return startFromScratch();
     startOrderDraft(date, round, source.lines);
-    goCatalog();
+    navigate({ to: "/summary" });
   };
 
 
@@ -156,90 +157,41 @@ function NewOrderPage() {
     return (
       <AppShell>
         <AppHeader>
-          <PageTitleBar title="הזמנה חדשה" onBack={() => setStep(step === "pick" ? "start" : "setup")} />
+          <PageTitleBar title="הזמנה חדשה" onBack={() => setStep("setup")} />
         </AppHeader>
         <Section className="pb-28">
           <div className="mt-4 rounded-xl border border-border bg-card-muted p-3 text-[12.5px] text-muted-foreground">
             {formatLongDate(date)}
           </div>
 
-          {step === "start" ? (
-            <>
-              <h2 className="mt-5 text-[15px] font-bold text-foreground">איך תרצו להתחיל?</h2>
-              <p className="mb-3 text-[12.5px] text-muted-foreground">
-                תוכלו להתחיל הזמנה חדשה או להשתמש בהזמנה קודמת כבסיס
+          <div className="mt-5 rounded-2xl border border-border bg-card p-4 text-center">
+            <span className="mx-auto flex size-[44px] items-center justify-center rounded-2xl bg-primary-soft text-primary">
+              <Copy className="size-[20px]" />
+            </span>
+            <h2 className="mt-3 text-[15px] font-bold text-foreground">
+              להעתיק מוצרים מההזמנה הקודמת?
+            </h2>
+            {pastOrders[0] ? (
+              <p className="mt-1 text-[12.5px] text-muted-foreground">
+                {formatLongDate(pastOrders[0].order.date)} • {linesCount(pastOrders[0].order.lines)} מוצרים •{" "}
+                {formatPrice(linesTotal(pastOrders[0].order.lines))}
               </p>
+            ) : null}
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
+            </p>
 
-              <div className="rounded-2xl border border-border bg-card p-3.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[13.5px] font-bold text-foreground">התחלה מהקטלוג</div>
-                    <div className="mt-0.5 text-[12px] text-muted-foreground">
-                      התחילו הזמנה ריקה ובחרו מוצרים וכמויות
-                    </div>
-                  </div>
-                  <span className="flex size-[38px] shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                    <ShoppingCart className="size-[18px]" />
-                  </span>
-                </div>
-                <Button className="mt-3 w-full" pill onClick={startFromScratch}>
-                  מעבר לקטלוג
-                </Button>
-              </div>
-
-              <div className="mt-3 rounded-2xl border border-border bg-card p-3.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[13.5px] font-bold text-foreground">העתקת מוצרים מהזמנה קודמת</div>
-                    <div className="mt-0.5 text-[12px] text-muted-foreground">
-                      המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
-                    </div>
-                  </div>
-                  <span className="flex size-[38px] shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                    <Copy className="size-[18px]" />
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  pill
-                  className="mt-3 w-full"
-                  disabled={pastOrders.length === 0}
-                  onClick={() => setStep("pick")}
-                >
-                  {pastOrders.length === 0 ? "אין הזמנות קודמות" : "בחירת הזמנה קודמת"}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="mt-5 text-[15px] font-bold text-foreground">בחירת הזמנה קודמת</h2>
-              <p className="mb-3 text-[12.5px] text-muted-foreground">
-                בחרו הזמנה שתשמש כבסיס להזמנה החדשה
-              </p>
-              <div className="flex flex-col gap-2.5">
-                {pastOrders.map(({ order, badge }, i) => (
-                  <button
-                    key={order.id}
-                    type="button"
-                    onClick={() => startFromOrder(order.id)}
-                    className="rounded-[14px] border border-border bg-card p-3.5 text-start"
-                  >
-                    {badge || i === 0 ? (
-                      <span className="inline-block rounded-full bg-primary-soft px-2.5 py-1 text-[10.5px] font-bold text-primary">
-                        {badge ?? "ההזמנה האחרונה שלך"}
-                      </span>
-                    ) : null}
-                    <div className="mt-1.5 text-[13.5px] font-bold text-foreground">
-                      {formatLongDate(order.date)}
-                    </div>
-                    <div className="mt-0.5 text-[12px] text-muted-foreground">
-                      {linesCount(order.lines)} מוצרים • {formatPrice(linesTotal(order.lines))}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+            <div className="mt-4 flex gap-2.5">
+              <Button className="flex-1" pill onClick={copyFromLast}>
+                <Check className="size-[16px]" />
+                כן
+              </Button>
+              <Button variant="outline" className="flex-1" pill onClick={startFromScratch}>
+                <X className="size-[16px]" />
+                לא
+              </Button>
+            </div>
+          </div>
         </Section>
       </AppShell>
     );
