@@ -64,9 +64,9 @@ export function QuantityStepper({
     if (delta > 0) applyQty(qty <= 0 ? Math.max(min, delta) : qty + delta);
     else applyQty(qty + delta < min ? 0 : qty + delta);
   };
-  const size = compact ? "h-[28px] min-w-[28px]" : "h-[30px] min-w-[30px]";
+  const size = compact ? "h-[38px] min-w-[38px]" : "h-[42px] min-w-[42px]";
   const btn = cn(
-    "flex items-center justify-center rounded-[9px] border-[1.5px] border-foreground/35 bg-card px-1.5 text-[13px] font-bold text-foreground shadow-sm disabled:opacity-40",
+    "flex items-center justify-center rounded-[11px] border-[1.5px] border-foreground/35 bg-card px-2 text-[19px] leading-none font-bold text-foreground shadow-sm disabled:opacity-40",
     size,
   );
   const editable = !!onSetQty && !disabled;
@@ -116,7 +116,7 @@ export function QuantityStepper({
   }, [editing]);
 
   return (
-    <div className="flex shrink-0 items-start gap-1.5">
+    <div className="flex shrink-0 items-start gap-2">
       <button
         type="button"
         dir="ltr"
@@ -139,7 +139,7 @@ export function QuantityStepper({
             onBlur={commit}
             onKeyDown={handleKeyDown}
             className={cn(
-              "flex items-center justify-center rounded-[9px] px-1.5 text-center text-[13px] font-bold outline-none",
+              "flex items-center justify-center rounded-[11px] px-2 text-center text-[16px] font-bold outline-none",
               size,
               qty > 0
                 ? "border-[1.5px] border-primary bg-primary text-primary-foreground"
@@ -153,7 +153,7 @@ export function QuantityStepper({
             disabled={!editable}
             onClick={startEdit}
             className={cn(
-              "flex items-center justify-center rounded-[9px] px-1.5 text-[13px] font-bold",
+              "flex items-center justify-center rounded-[11px] px-2 text-[16px] font-bold",
               editable && "cursor-text",
               size,
               qty > 0
