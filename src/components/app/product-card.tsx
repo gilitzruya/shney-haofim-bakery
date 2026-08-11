@@ -206,7 +206,7 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "mb-2.5 flex flex-col items-stretch gap-2 overflow-hidden rounded-[16px] border-[1.5px] p-2 ps-2.5",
+        "mb-2.5 flex flex-col items-stretch gap-1.5 overflow-hidden rounded-[16px] border-[1.5px] p-2 ps-2.5",
         selected && !unavailable ? "border-primary/35 bg-primary-soft" : "border-border bg-card",
         unavailable && "opacity-60",
       )}
@@ -219,7 +219,7 @@ export function ProductCard({
             loading="lazy"
             width={1024}
             height={1024}
-            className="aspect-square size-[120px] shrink-0 rounded-[12px] object-contain"
+            className="aspect-square size-[84px] shrink-0 rounded-[12px] object-contain"
           />
         ) : (
           <ProductPlaceholder />
@@ -228,9 +228,9 @@ export function ProductCard({
           {product.name}
         </div>
       </div>
-      <div className="flex min-w-0 flex-1 flex-col items-start gap-1 py-0.5 text-start">
-        <div className="w-full">
-          <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
+      <div className="flex min-w-0 items-start gap-2 text-start">
+        <div className="min-w-0 flex-1">
+          <div className="text-[11.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
             <span className="font-normal text-muted-foreground">
               {" "}
@@ -261,7 +261,7 @@ export function ProductCard({
             </div>
           ) : null}
         </div>
-        <div className="mt-1 flex w-full flex-col items-end gap-1.5">
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
           <button
             type="button"
             disabled={unavailable || (!dirty && pending === 0)}
