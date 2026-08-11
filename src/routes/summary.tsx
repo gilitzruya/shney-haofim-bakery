@@ -152,7 +152,7 @@ function SummaryPage() {
 
         <Card className="mt-4 bg-card-muted">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-muted-foreground">סה״כ לתשלום</span>
+            <span className="text-[13px] text-muted-foreground">סה״כ לתשלום <span className="text-[11px]">(לפני מע״מ)</span></span>
             <span className="text-[19px] font-bold text-foreground">{formatPrice(total)}</span>
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">המחירים אינם כוללים מע״מ.</div>
@@ -193,7 +193,7 @@ function SummaryPage() {
         description={
           isRecurring
             ? "ההזמנה תישלח למאפייה בכל אחד מימי האספקה שנבחרו."
-            : `סה״כ ${formatPrice(total)}${draft.date ? ` · ${formatDate(draft.date)}` : ""}`
+            : `סה״כ ${formatPrice(total)} (לפני מע״מ)${draft.date ? ` · ${formatDate(draft.date)}` : ""}`
         }
         confirmLabel="אישור"
         onConfirm={confirm}

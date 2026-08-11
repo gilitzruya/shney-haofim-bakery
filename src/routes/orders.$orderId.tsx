@@ -102,7 +102,7 @@ function OrderDetailsPage() {
 
         <Card className="mt-3 bg-card-muted">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-muted-foreground">סה״כ</span>
+            <span className="text-[13px] text-muted-foreground">סה״כ <span className="text-[11px]">(לפני מע״מ)</span></span>
             <span className="text-[17px] font-bold text-foreground">{formatPrice(linesTotal(order.lines))}</span>
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">המחירים אינם כוללים מע״מ.</div>

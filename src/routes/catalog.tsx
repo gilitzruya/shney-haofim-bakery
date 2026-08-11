@@ -171,7 +171,9 @@ function CatalogPage() {
         <div className="mx-auto flex max-w-5xl items-center gap-2.5">
           <div className="min-w-0 flex-1">
             <div className="text-[11px] text-muted-foreground">{selectedCount} מוצרים נבחרו</div>
-            <div className="text-[15px] font-bold text-foreground">{formatPrice(total)}</div>
+            <div className="text-[15px] font-bold text-foreground">
+              {formatPrice(total)} <span className="text-[10.5px] font-normal text-muted-foreground">(לפני מע״מ)</span>
+            </div>
           </div>
           <Button size="lg" disabled={selectedCount === 0} onClick={() => navigate({ to: "/summary" })}>
             <ShoppingBasket className="size-4" />
