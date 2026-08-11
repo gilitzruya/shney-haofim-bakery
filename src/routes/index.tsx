@@ -103,26 +103,26 @@ function HomePage() {
                   params={{ orderId: item.order.id }}
                   className="no-underline"
                 >
-                  <Card className="rounded-[18px] p-4">
+                  <Card>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-[15px] font-bold text-heading">
+                      <div className="text-[13.5px] font-semibold text-heading">
                         {formatDate(item.order.date)} · {roundLabel(item.order.round)}
                       </div>
                       <StatusChip status={item.order.status} />
                     </div>
-                    <div className="mt-1 text-[12.5px] text-muted-foreground">
+                    <div className="mt-1 text-[11.5px] text-muted-foreground">
                       {linesCount(item.order.lines)} מוצרים
                     </div>
-                    <div className="mt-3 flex items-center justify-between">
+                    <div className="mt-2.5 flex items-center justify-between">
                       <span className="flex items-center gap-2">
-                        <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
-                          <Tag className="size-[17px]" />
+                        <span className="flex size-7 items-center justify-center rounded-full bg-primary-soft text-primary">
+                          <Tag className="size-[14px]" />
                         </span>
-                        <span className="text-[16px] font-bold text-heading">
+                        <span className="text-[14px] font-bold text-heading">
                           {formatPrice(linesTotal(item.order.lines))}
                         </span>
                       </span>
-                      <ChevronLeft className="size-5 text-primary" />
+                      <ChevronLeft className="size-4 text-primary" />
                     </div>
                   </Card>
                 </Link>
@@ -133,24 +133,24 @@ function HomePage() {
                   params={{ recurringId: item.rec.id }}
                   className="no-underline"
                 >
-                  <Card variant={item.rec.needsAttention ? "attention" : "active"} className="rounded-[18px] p-4">
+                  <Card variant={item.rec.needsAttention ? "attention" : "active"}>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-[15px] font-bold text-heading">
+                      <div className="text-[13.5px] font-semibold text-heading">
                         {formatDate(item.date)} · {roundLabel(item.rec.round)}
                       </div>
                       <Chip tone="accent">קבועה</Chip>
                     </div>
-                    <div className="mt-1 text-[12.5px] text-muted-foreground">{item.rec.name}</div>
-                    <div className="mt-3 flex items-center justify-between">
+                    <div className="mt-1 text-[11.5px] text-muted-foreground">{item.rec.name}</div>
+                    <div className="mt-2.5 flex items-center justify-between">
                       <span className="flex items-center gap-2">
-                        <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
-                          <Tag className="size-[17px]" />
+                        <span className="flex size-7 items-center justify-center rounded-full bg-primary-soft text-primary">
+                          <Tag className="size-[14px]" />
                         </span>
-                        <span className="text-[16px] font-bold text-heading">
+                        <span className="text-[14px] font-bold text-heading">
                           {formatPrice(linesTotal(item.rec.lines))}
                         </span>
                       </span>
-                      <ChevronLeft className="size-5 text-primary" />
+                      <ChevronLeft className="size-4 text-primary" />
                     </div>
                   </Card>
                 </Link>
