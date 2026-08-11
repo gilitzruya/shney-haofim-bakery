@@ -21,7 +21,7 @@ export const Route = createFileRoute("/summary")({
   head: () => ({
     meta: [
       { title: "סיכום הזמנה — מאפיית שני האופים" },
-      { name: "description", content: "בדיקה ואישור סופי של פריטי ההזמנה, המועד וסבב החלוקה." },
+      { name: "description", content: "בדיקה ואישור סופי של פריטי ההזמנה והמועד." },
       { property: "og:title", content: "סיכום הזמנה — מאפיית שני האופים" },
       { property: "og:description", content: "בדקו את הפריטים ואשרו את ההזמנה." },
     ],

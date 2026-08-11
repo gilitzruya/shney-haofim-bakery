@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
-import { FormField, RoundSelector, TextArea, TextInput, WeekdayChips } from "@/components/app/form-controls";
+import { FormField, TextArea, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
 
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/recurring/$recurringId/edit")({
   head: () => ({
     meta: [
       { title: "עריכת הזמנה קבועה — מאפיית שני האופים" },
-      { name: "description", content: "עדכון שם, ימי אספקה, סבב חלוקה והערות בהזמנה קבועה." },
+      { name: "description", content: "עדכון שם, ימי אספקה והערות בהזמנה קבועה." },
       { property: "og:title", content: "עריכת הזמנה קבועה — מאפיית שני האופים" },
       { property: "og:description", content: "עדכנו את פרטי ההזמנה הקבועה ואת רשימת המוצרים." },
     ],

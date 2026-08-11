@@ -19,7 +19,7 @@ export const Route = createFileRoute("/recurring/$recurringId/")({
   head: () => ({
     meta: [
       { title: "פרטי הזמנה קבועה — מאפיית שני האופים" },
-      { name: "description", content: "ימי אספקה, סבב חלוקה ורשימת המוצרים של ההזמנה הקבועה." },
+      { name: "description", content: "ימי אספקה ורשימת המוצרים של ההזמנה הקבועה." },
       { property: "og:title", content: "פרטי הזמנה קבועה — מאפיית שני האופים" },
       { property: "og:description", content: "עדכון, השהיה או ביטול של הזמנה קבועה." },
     ],

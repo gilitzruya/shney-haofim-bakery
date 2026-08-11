@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
-import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
+import { FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
@@ -59,7 +59,6 @@ function NewRecurringPage() {
   const missing: string[] = [];
   if (name.trim().length <= 1) missing.push("שם להזמנה הקבועה");
   if (weekdays.length === 0) missing.push("ימי אספקה");
-  if (!round) missing.push("סבב חלוקה");
   if (weekdays.length > 0 && round && !startDate) missing.push("תאריך התחלה");
 
   const valid = missing.length === 0 && conflicts.length === 0;
@@ -87,8 +86,8 @@ function NewRecurringPage() {
               <AlertTriangle className="mt-px size-3.5 shrink-0" />
               <span>
                 כבר קיימת הזמנה קבועה ({conflicts.map((c) => c.name).join(", ")}) לימים{" "}
-                {conflictDays.map((d) => WEEKDAY_LABELS[d]).join(", ")} באותו סבב. לא ניתן ליצור הזמנה קבועה נוספת
-                לאותו יום ואותו סבב — יש לבחור ימים או סבב אחרים, או לערוך את ההזמנה הקבועה הקיימת.
+                {conflictDays.map((d) => WEEKDAY_LABELS[d]).join(", ")} . לא ניתן ליצור הזמנה קבועה נוספת
+                לאותו יום — יש לבחור ימים אחרים, או לערוך את ההזמנה הקבועה הקיימת.
               </span>
             </div>
           ) : null}
@@ -150,7 +149,7 @@ function NewRecurringPage() {
           ) : conflicts.length > 0 ? (
             <div className="mb-2 flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
               <AlertTriangle className="mt-px size-3.5 shrink-0" />
-              <span>קיימת כבר הזמנה קבועה לאותם ימים ולאותו סבב — שנו ימים או סבב כדי להמשיך.</span>
+              <span>קיימת כבר הזמנה קבועה לאותם ימים — שנו ימים כדי להמשיך.</span>
             </div>
           ) : null}
           <Button
