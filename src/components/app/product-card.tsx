@@ -256,14 +256,7 @@ export function ProductCard({
             </div>
           ) : null}
         </div>
-        <div className="mt-1 flex w-full flex-wrap items-center justify-end gap-2">
-          <QuantityStepper
-            product={product}
-            qty={pending}
-            onChange={(delta) => setPending((p) => clampQty(product, p + delta))}
-            onSetQty={(next) => setPending(next)}
-            disabled={unavailable}
-          />
+        <div className="mt-1 flex w-full flex-col items-end gap-1.5">
           <button
             type="button"
             disabled={unavailable || (!dirty && pending === 0)}
@@ -272,6 +265,13 @@ export function ProductCard({
           >
             {selected && !dirty ? "בסל" : selected ? "עדכון הסל" : "הוספה לסל"}
           </button>
+          <QuantityStepper
+            product={product}
+            qty={pending}
+            onChange={(delta) => setPending((p) => clampQty(product, p + delta))}
+            onSetQty={(next) => setPending(next)}
+            disabled={unavailable}
+          />
         </div>
       </div>
     </div>
