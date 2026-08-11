@@ -267,7 +267,7 @@ export function ProductCard({
             </div>
           ) : null}
         </div>
-        <div className="flex shrink-0 flex-col items-center gap-1.5">
+        <div className="-mt-2.5 flex shrink-0 flex-col items-center gap-1.5">
           <button
             type="button"
             disabled={unavailable || (!dirty && pending === 0)}
