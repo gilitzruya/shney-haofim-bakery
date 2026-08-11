@@ -53,7 +53,7 @@ function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-canvas" />
       </div>
 
-      <Section className="-mt-16 pb-10 md:-mt-20">
+      <Section className="-mt-8 pb-10 md:-mt-10">
         <Link
           to="/new-order"
           className="relative block overflow-hidden rounded-[26px] bg-primary p-5 no-underline shadow-[0_18px_40px_-18px_rgba(74,31,45,0.55)] md:p-7"
@@ -77,7 +77,7 @@ function HomePage() {
           </div>
         </Link>
 
-        <div className="mt-7 mb-3 flex items-center justify-between gap-2">
+        <div className="mt-12 mb-3 flex items-center justify-between gap-2 md:mt-16">
           <div className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-[12px] bg-accent-soft text-heading">
               <CalendarDays className="size-[18px]" />
