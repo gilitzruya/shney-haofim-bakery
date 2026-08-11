@@ -39,21 +39,17 @@ function HomePage() {
     .slice(0, 4);
 
   return (
-    <AppShell>
+    <AppShell className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroImage})` }}
+      />
+      <div aria-hidden className="pointer-events-none fixed inset-0 bg-canvas/45" />
+      <div className="relative z-10 flex min-h-screen w-full flex-col">
       <AppHeader />
 
-      <div className="relative">
-        <img
-          src={heroImage}
-          alt="סלסלת לחמים טריים ממאפיית שני האופים"
-          width={1536}
-          height={768}
-          className="h-[190px] w-full object-cover md:h-[240px]"
-        />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-canvas" />
-      </div>
-
-      <Section className="-mt-8 pb-10 md:-mt-10">
+      <Section className="pt-24 pb-10 md:pt-28">
         <Link
           to="/new-order"
           className="relative block overflow-hidden rounded-[26px] bg-primary p-5 no-underline shadow-[0_18px_40px_-18px_rgba(74,31,45,0.55)] md:p-7"
