@@ -66,7 +66,7 @@ export function QuantityStepper({
   };
   const size = compact ? "h-[28px] min-w-[28px]" : "h-[30px] min-w-[30px]";
   const btn = cn(
-    "flex items-center justify-center rounded-[9px] border border-border bg-card px-1.5 text-[12px] font-bold text-foreground disabled:opacity-40",
+    "flex items-center justify-center rounded-[9px] border-[1.5px] border-foreground/35 bg-card px-1.5 text-[13px] font-bold text-foreground shadow-sm disabled:opacity-40",
     size,
   );
   const editable = !!onSetQty && !disabled;
@@ -141,7 +141,9 @@ export function QuantityStepper({
             className={cn(
               "flex items-center justify-center rounded-[9px] px-1.5 text-center text-[13px] font-bold outline-none",
               size,
-              qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground",
+              qty > 0
+                ? "border-[1.5px] border-primary bg-primary text-primary-foreground"
+                : "border-[1.5px] border-foreground/35 bg-card text-foreground",
             )}
           />
         ) : (
@@ -154,7 +156,9 @@ export function QuantityStepper({
               "flex items-center justify-center rounded-[9px] px-1.5 text-[13px] font-bold",
               editable && "cursor-text",
               size,
-              qty > 0 ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground",
+              qty > 0
+                ? "border-[1.5px] border-primary bg-primary text-primary-foreground"
+                : "border-[1.5px] border-foreground/35 bg-card text-foreground",
             )}
           >
             {formatQty(qty, product.unit)}
