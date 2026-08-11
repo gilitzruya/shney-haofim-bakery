@@ -6,7 +6,6 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { FlowBanner } from "@/components/app/flow-banner";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
@@ -84,8 +83,7 @@ function SummaryPage() {
         <PageTitleBar title="סיכום ההזמנה" />
       </AppHeader>
       <Section className="pb-28">
-        <FlowBanner draft={draft} className="mt-1" />
-        <Card className="mt-2.5">
+        <div className="mt-1 rounded-xl border border-primary/30 bg-primary-soft px-3.5 py-2.5">
           <div className="text-[13.5px] font-semibold text-foreground">
             {isRecurring
               ? draft.name || "הזמנה קבועה"
@@ -96,7 +94,7 @@ function SummaryPage() {
           {isRecurring && draft.weekdays?.length ? (
             <div className="mt-1 text-[12px] text-muted-foreground">{weekdaysLabel(draft.weekdays)}</div>
           ) : null}
-        </Card>
+        </div>
 
         <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">פריטי ההזמנה</h2>
         <div className="flex flex-col gap-2">
