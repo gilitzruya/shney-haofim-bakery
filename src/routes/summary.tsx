@@ -118,6 +118,11 @@ function SummaryPage() {
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
+                    {product.sku ? (
+                      <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                        קוד פריט: <span className="font-semibold text-foreground">{product.sku}</span>
+                      </div>
+                    ) : null}
                     <div className="mt-0.5 text-[11.5px] text-muted-foreground">
                       {formatQty(line.qty, product.unit)} × {formatPrice(product.price)} ={" "}
                       <span className="font-semibold text-foreground">
