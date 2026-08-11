@@ -272,7 +272,7 @@ export function ProductCard({
             type="button"
             disabled={unavailable || (!dirty && pending === 0)}
             onClick={commitToCart}
-            className="-mt-2 mb-1 h-[30px] shrink-0 rounded-[9px] bg-primary px-3 text-[11.5px] font-bold text-primary-foreground disabled:opacity-40"
+            className="-mt-2 mb-1.5 h-[38px] shrink-0 rounded-[11px] bg-primary px-4 text-[14px] font-bold text-primary-foreground disabled:opacity-40"
           >
             {selected && !dirty ? "בסל" : selected ? "עדכון הסל" : "הוספה לסל"}
           </button>
