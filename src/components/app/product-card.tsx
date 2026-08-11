@@ -228,7 +228,7 @@ export function ProductCard({
         ) : (
           <ProductPlaceholder />
         )}
-        <div className="min-w-0 flex-1 text-[14.5px] font-semibold leading-snug text-foreground">
+        <div className="min-w-0 flex-1 text-[17px] font-bold leading-snug text-foreground">
           {product.name}
         </div>
       </div>
