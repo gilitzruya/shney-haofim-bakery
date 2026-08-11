@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarPlus, ClipboardList, Repeat } from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
@@ -56,11 +56,6 @@ function HomePage() {
           </span>
         </Link>
 
-
-        <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-          <QuickAction to="/orders" icon={<ClipboardList className="size-[18px]" />} label="ההזמנות שלי" />
-          <QuickAction to="/recurring" icon={<Repeat className="size-[18px]" />} label="הזמנות קבועות" />
-        </div>
 
         <SectionTitle title="הזמנות קרובות" linkTo="/orders" linkLabel="לכל ההזמנות" />
         <div className="flex flex-col gap-2.5">
@@ -120,18 +115,6 @@ function HomePage() {
         </div>
       </Section>
     </AppShell>
-  );
-}
-
-function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
-  return (
-    <Link
-      to={to}
-      className="flex flex-col items-center gap-1.5 rounded-[14px] border border-border bg-card px-2 py-3 text-center no-underline"
-    >
-      <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">{icon}</span>
-      <span className="text-[11.5px] font-semibold text-foreground">{label}</span>
-    </Link>
   );
 }
 
