@@ -13,6 +13,12 @@ export interface Product {
   quickAdd: number;
   available: boolean;
   unavailableReason?: string;
+  /** Optional catalog item code (falls back to id). */
+  sku?: string;
+  /** Optional item weight in grams. */
+  weightGrams?: number;
+  /** Optional product note shown on the card. */
+  note?: string;
 }
 
 export interface Category {
