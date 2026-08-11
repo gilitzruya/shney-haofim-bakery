@@ -6,7 +6,7 @@ import { AppShell, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
 import { Chip, StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
-import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence, weekdaysLabel } from "@/lib/format";
+import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
       { title: "דף הבית — מאפיית שני האופים" },
       {
         name: "description",
-        content: "מרכז ההזמנות הסיטונאיות שלכם: הזמנה חדשה, הזמנות קרובות והזמנות קבועות.",
+        content: "מרכז ההזמנות הסיטונאיות שלכם: הזמנה חדשה וכל ההזמנות הקרובות במקום אחד.",
       },
       { property: "og:title", content: "דף הבית — מאפיית שני האופים" },
       { property: "og:description", content: "מרכז ההזמנות הסיטונאיות של מאפיית שני האופים." },
@@ -26,11 +26,16 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { orders, recurring } = useStore();
-  const upcoming = orders
+  const upcomingOrders = orders
     .filter((o) => !o.closed && o.status !== "cancelled")
+    .map((o) => ({ kind: "order" as const, date: o.date, order: o }));
+  const upcomingRecurring = recurring
+    .filter((r) => r.status === "active")
+    .map((r) => ({ kind: "recurring" as const, date: nextOccurrence(r.weekdays), rec: r }))
+    .filter((r): r is { kind: "recurring"; date: string; rec: (typeof recurring)[number] } => Boolean(r.date));
+  const upcoming = [...upcomingOrders, ...upcomingRecurring]
     .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 3);
-  const activeRecurring = recurring.filter((r) => r.status === "active");
+    .slice(0, 4);
 
   return (
     <AppShell>
@@ -64,61 +69,53 @@ function HomePage() {
               <div className="text-center text-[12.5px] text-muted-foreground">אין הזמנות קרובות כרגע.</div>
             </Card>
           ) : (
-            upcoming.map((order) => (
-              <Link
-                key={order.id}
-                to="/orders/$orderId"
-                params={{ orderId: order.id }}
-                className="no-underline"
-              >
-                <Card>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-[13.5px] font-semibold text-foreground">
-                      {formatDate(order.date)} · {roundLabel(order.round)}
-                    </div>
-                    <StatusChip status={order.status} />
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between text-[12px] text-muted-foreground">
-                    <span>{linesCount(order.lines)} מוצרים</span>
-                    <span className="font-semibold text-foreground">{formatPrice(linesTotal(order.lines))}</span>
-                  </div>
-                </Card>
-              </Link>
-            ))
-          )}
-        </div>
-
-        <SectionTitle title="הזמנות קבועות" linkTo="/recurring" linkLabel="ניהול" />
-        <div className="flex flex-col gap-2.5">
-          {activeRecurring.length === 0 ? (
-            <Card variant="muted">
-              <div className="text-center text-[12.5px] text-muted-foreground">אין הזמנות קבועות פעילות.</div>
-            </Card>
-          ) : (
-            activeRecurring.slice(0, 2).map((rec) => {
-              const next = nextOccurrence(rec.weekdays);
-              return (
+            upcoming.map((item) =>
+              item.kind === "order" ? (
                 <Link
-                  key={rec.id}
-                  to="/recurring/$recurringId"
-                  params={{ recurringId: rec.id }}
+                  key={item.order.id}
+                  to="/orders/$orderId"
+                  params={{ orderId: item.order.id }}
                   className="no-underline"
                 >
-                  <Card variant={rec.needsAttention ? "attention" : "active"}>
+                  <Card>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-[13.5px] font-semibold text-foreground">{rec.name}</div>
-                      <Chip tone="accent">קבועה</Chip>
+                      <div className="text-[13.5px] font-semibold text-foreground">
+                        {formatDate(item.order.date)} · {roundLabel(item.order.round)}
+                      </div>
+                      <StatusChip status={item.order.status} />
                     </div>
-                    <div className="mt-1 text-[12px] text-muted-foreground">
-                      {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)}
+                    <div className="mt-1.5 flex items-center justify-between text-[12px] text-muted-foreground">
+                      <span>{linesCount(item.order.lines)} מוצרים</span>
+                      <span className="font-semibold text-foreground">
+                        {formatPrice(linesTotal(item.order.lines))}
+                      </span>
                     </div>
-                    {next ? (
-                      <div className="mt-1 text-[11.5px] text-primary">האספקה הבאה: {formatDate(next)}</div>
-                    ) : null}
                   </Card>
                 </Link>
-              );
-            })
+              ) : (
+                <Link
+                  key={item.rec.id}
+                  to="/recurring/$recurringId"
+                  params={{ recurringId: item.rec.id }}
+                  className="no-underline"
+                >
+                  <Card variant={item.rec.needsAttention ? "attention" : "active"}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[13.5px] font-semibold text-foreground">
+                        {formatDate(item.date)} · {roundLabel(item.rec.round)}
+                      </div>
+                      <Chip tone="accent">קבועה</Chip>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between text-[12px] text-muted-foreground">
+                      <span>{item.rec.name}</span>
+                      <span className="font-semibold text-foreground">
+                        {formatPrice(linesTotal(item.rec.lines))}
+                      </span>
+                    </div>
+                  </Card>
+                </Link>
+              ),
+            )
           )}
         </div>
       </Section>
