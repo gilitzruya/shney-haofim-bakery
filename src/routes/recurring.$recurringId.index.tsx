@@ -106,7 +106,7 @@ function RecurringDetailsPage() {
 
         <Card className="mt-3 bg-card-muted">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-muted-foreground">סה״כ לאספקה</span>
+            <span className="text-[13px] text-muted-foreground">סה״כ לאספקה <span className="text-[11px]">(לפני מע״מ)</span></span>
             <span className="text-[17px] font-bold text-foreground">{formatPrice(linesTotal(rec.lines))}</span>
           </div>
         </Card>
