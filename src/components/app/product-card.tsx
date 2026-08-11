@@ -260,7 +260,6 @@ export function ProductCard({
           <QuantityStepper
             product={product}
             qty={pending}
-            compact
             onChange={(delta) => setPending((p) => clampQty(product, p + delta))}
             onSetQty={(next) => setPending(next)}
             disabled={unavailable}
