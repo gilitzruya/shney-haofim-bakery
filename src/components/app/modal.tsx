@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { X } from "lucide-react";
 
 import { Button } from "./button";
 
@@ -13,6 +14,7 @@ export function Modal({
   onClose,
   destructive = false,
   loading = false,
+  xClose = false,
 }: {
   open: boolean;
   title: string;
@@ -24,6 +26,8 @@ export function Modal({
   onClose: () => void;
   destructive?: boolean;
   loading?: boolean;
+  /** מציג איקס לסגירה בפינה במקום כפתור "סגירה" */
+  xClose?: boolean;
 }) {
   if (!open) return null;
   return (
@@ -32,7 +36,17 @@ export function Modal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex w-full max-w-[320px] flex-col gap-3.5 rounded-2xl bg-card p-5">
+      <div className="relative flex w-full max-w-[320px] flex-col gap-3.5 rounded-2xl bg-card p-5">
+        {xClose ? (
+          <button
+            type="button"
+            aria-label="סגירה"
+            onClick={onClose}
+            className="absolute left-3 top-3 flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card-muted"
+          >
+            <X className="size-[16px]" />
+          </button>
+        ) : null}
         <div className="text-[17px] font-bold text-foreground">{title}</div>
         {description ? (
           <div className="text-[12.5px] leading-relaxed text-muted-foreground">{description}</div>
@@ -52,7 +66,7 @@ export function Modal({
               {confirmLabel}
             </Button>
           </div>
-        ) : (
+        ) : xClose ? null : (
           <Button variant="secondary" className="font-semibold" onClick={onClose}>
             סגירה
           </Button>
