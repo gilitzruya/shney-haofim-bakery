@@ -234,9 +234,9 @@ export function ProductCard({
       </div>
       <div className="flex min-w-0 items-start gap-2 text-start">
         <div className="min-w-0 flex-1">
-          <div className="text-[11.5px] font-semibold text-primary">
+          <div className="text-[13.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
-            <span className="font-normal text-muted-foreground"> (לפני מע״מ)</span>
+            <span className="text-[12px] font-normal text-muted-foreground"> (לפני מע״מ)</span>
           </div>
           <div className="mt-0.5 text-[10.5px] text-muted-foreground">
             קוד פריט: <span dir="ltr" className="font-mono">{product.sku ?? product.id}</span>
