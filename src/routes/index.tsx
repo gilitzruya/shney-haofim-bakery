@@ -77,7 +77,7 @@ function HomePage() {
           </div>
         </Link>
 
-        <div className="mt-12 mb-3 flex items-center justify-between gap-2 md:mt-16">
+        <div className="mt-20 mb-3 flex items-center justify-between gap-2 md:mt-24">
           <div className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-[12px] bg-accent-soft text-heading">
               <CalendarDays className="size-[18px]" />
