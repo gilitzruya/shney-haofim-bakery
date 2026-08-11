@@ -3,12 +3,19 @@ import { ChevronLeft } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 
 import { cn } from "@/lib/utils";
+import heroImage from "@/assets/home-hero.jpg";
 
 /** The mobile-first app canvas used by every screen in the handoff. */
 export function AppShell({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
-    <div dir="rtl" lang="he" className={cn("min-h-screen bg-background", className)}>
-      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col bg-canvas md:max-w-[834px] lg:max-w-[1120px]">
+    <div dir="rtl" lang="he" className={cn("relative min-h-screen bg-background", className)}>
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroImage})` }}
+      />
+      <div aria-hidden className="pointer-events-none fixed inset-0 bg-foreground/10" />
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[430px] flex-col md:max-w-[834px] lg:max-w-[1120px]">
         {children}
       </div>
     </div>
