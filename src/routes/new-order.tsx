@@ -95,7 +95,7 @@ function NewOrderPage() {
     setMonth({ year: d.getFullYear(), month: d.getMonth() });
   };
 
-  /** התנגשות: הזמנה מאושרת או הזמנה קבועה קיימת לאותו יום ואותו סבב */
+  /** התנגשות: הזמנה מאושרת או הזמנה קבועה קיימת לאותו יום */
   const conflictOrder =
     date
       ? orders.find(
@@ -122,7 +122,7 @@ function NewOrderPage() {
     setStep("start");
   };
 
-  /** הזמנות קודמות עם מוצרים, מדורגות לפי התאמה ליום ולסבב שנבחרו */
+  /** הזמנות קודמות עם מוצרים, מדורגות לפי התאמה ליום שנבחר */
   const pastOrders = (() => {
     if (!date) return [] as { order: (typeof orders)[number]; badge?: string; score: number }[];
     const weekday = parseDate(date).getDay();

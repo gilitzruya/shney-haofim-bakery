@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/app/card";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
 
-import { CATEGORIES, roundLabel } from "@/data/catalog";
+import { CATEGORIES } from "@/data/catalog";
 import { formatDate, formatPrice, formatWeekday, linesTotal, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
@@ -91,11 +91,11 @@ function CatalogPage() {
 
   const heading =
     draft?.mode === "recurring_create"
-      ? `${draft.weekdays?.length ? weekdaysLabel(draft.weekdays) : "ללא ימי אספקה"} · ${roundLabel(draft.round)}`
+      ? `${draft.weekdays?.length ? weekdaysLabel(draft.weekdays) : "ללא ימי אספקה"}`
       : draft?.mode === "recurring_edit"
         ? draft.name || "הזמנה קבועה"
         : draft?.date
-          ? `${formatWeekday(draft.date)}, ${formatDate(draft.date)} · ${roundLabel(draft.round)}`
+          ? `${formatWeekday(draft.date)}, ${formatDate(draft.date)}`
           : "בחירת מוצרים";
 
   return (

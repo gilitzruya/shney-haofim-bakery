@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
-import { FormField, RoundSelector, TextInput, WeekdayChips } from "@/components/app/form-controls";
+import { FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/recurring/new")({
   head: () => ({
     meta: [
       { title: "הזמנה קבועה חדשה — מאפיית שני האופים" },
-      { name: "description", content: "הגדרת שם, ימי אספקה וסבב חלוקה להזמנה קבועה חדשה." },
+      { name: "description", content: "הגדרת שם, ימי אספקה להזמנה קבועה חדשה." },
       { property: "og:title", content: "הזמנה קבועה חדשה — מאפיית שני האופים" },
       { property: "og:description", content: "צרו הזמנה שתישלח אוטומטית בימים שתבחרו." },
     ],
@@ -59,7 +59,6 @@ function NewRecurringPage() {
   const missing: string[] = [];
   if (name.trim().length <= 1) missing.push("שם להזמנה הקבועה");
   if (weekdays.length === 0) missing.push("ימי אספקה");
-  if (!round) missing.push("סבב חלוקה");
   if (weekdays.length > 0 && round && !startDate) missing.push("תאריך התחלה");
 
   const valid = missing.length === 0 && conflicts.length === 0;
@@ -82,18 +81,13 @@ function NewRecurringPage() {
             <WeekdayChips value={weekdays} onChange={setWeekdays} />
           </div>
 
-          <div>
-            <div className="mb-2 text-[12px] font-semibold text-muted-foreground">סבב חלוקה</div>
-            <RoundSelector value={round} onChange={setRound} />
-          </div>
-
           {conflicts.length > 0 ? (
             <div className="flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2.5 text-[12px] font-semibold text-destructive">
               <AlertTriangle className="mt-px size-3.5 shrink-0" />
               <span>
                 כבר קיימת הזמנה קבועה ({conflicts.map((c) => c.name).join(", ")}) לימים{" "}
-                {conflictDays.map((d) => WEEKDAY_LABELS[d]).join(", ")} באותו סבב. לא ניתן ליצור הזמנה קבועה נוספת
-                לאותו יום ואותו סבב — יש לבחור ימים או סבב אחרים, או לערוך את ההזמנה הקבועה הקיימת.
+                {conflictDays.map((d) => WEEKDAY_LABELS[d]).join(", ")} . לא ניתן ליצור הזמנה קבועה נוספת
+                לאותו יום — יש לבחור ימים אחרים, או לערוך את ההזמנה הקבועה הקיימת.
               </span>
             </div>
           ) : null}
@@ -105,7 +99,7 @@ function NewRecurringPage() {
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ממתי להתחיל</div>
             {weekdays.length === 0 || !round ? (
               <div className="rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
-                יש לבחור קודם ימי אספקה וסבב חלוקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
+                יש לבחור קודם ימי אספקה כדי לקבוע ממתי ההזמנה הקבועה מתחילה.
               </div>
             ) : (
               <div className="flex flex-col gap-2">
@@ -155,7 +149,7 @@ function NewRecurringPage() {
           ) : conflicts.length > 0 ? (
             <div className="mb-2 flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
               <AlertTriangle className="mt-px size-3.5 shrink-0" />
-              <span>קיימת כבר הזמנה קבועה לאותם ימים ולאותו סבב — שנו ימים או סבב כדי להמשיך.</span>
+              <span>קיימת כבר הזמנה קבועה לאותם ימים — שנו ימים כדי להמשיך.</span>
             </div>
           ) : null}
           <Button

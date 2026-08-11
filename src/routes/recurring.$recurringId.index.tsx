@@ -9,7 +9,7 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
-import { findProduct, roundLabel } from "@/data/catalog";
+import { findProduct } from "@/data/catalog";
 import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
 import { nextRecurringDelivery } from "@/lib/recurring";
 import { useStore } from "@/store/app-store";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/recurring/$recurringId/")({
   head: () => ({
     meta: [
       { title: "פרטי הזמנה קבועה — מאפיית שני האופים" },
-      { name: "description", content: "ימי אספקה, סבב חלוקה ורשימת המוצרים של ההזמנה הקבועה." },
+      { name: "description", content: "ימי אספקה ורשימת המוצרים של ההזמנה הקבועה." },
       { property: "og:title", content: "פרטי הזמנה קבועה — מאפיית שני האופים" },
       { property: "og:description", content: "עדכון, השהיה או ביטול של הזמנה קבועה." },
     ],
@@ -64,7 +64,7 @@ function RecurringDetailsPage() {
             <Chip tone={rec.status === "active" ? "neutral" : "muted"}>{RECURRING_STATUS_LABEL[rec.status]}</Chip>
           </div>
           <div className="mt-1 text-[12.5px] text-muted-foreground">
-            {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)}
+            {weekdaysLabel(rec.weekdays)}
           </div>
           {rec.startDate ? (
             <div className="mt-1 text-[12px] text-muted-foreground">מתחילה מ־{formatDate(rec.startDate)}</div>

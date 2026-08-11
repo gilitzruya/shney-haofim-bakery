@@ -8,7 +8,6 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { FilterChips } from "@/components/app/tabs";
-import { roundLabel } from "@/data/catalog";
 import { formatDate, formatPrice, linesCount, linesTotal, weekdaysLabel } from "@/lib/format";
 import { nextRecurringDelivery } from "@/lib/recurring";
 import { useStore } from "@/store/app-store";
@@ -80,7 +79,7 @@ function RecurringListPage() {
                       </Chip>
                     </div>
                     <div className="mt-1 text-[12px] text-muted-foreground">
-                      {weekdaysLabel(rec.weekdays)} · {roundLabel(rec.round)} · {linesCount(rec.lines)} מוצרים
+                      {weekdaysLabel(rec.weekdays)} · {linesCount(rec.lines)} מוצרים
                     </div>
                     <div className="mt-1.5 flex items-center justify-between">
                       <span className="text-[11.5px] text-muted-foreground">
