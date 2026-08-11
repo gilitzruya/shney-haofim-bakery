@@ -7,7 +7,6 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { StatusChip } from "@/components/app/status-chip";
 import { Tabs } from "@/components/app/tabs";
-import { roundLabel } from "@/data/catalog";
 import { formatDate, formatPrice, linesCount, linesTotal } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -70,7 +69,7 @@ function OrdersPage() {
                     <StatusChip status={order.status} />
                   </div>
                   <div className="mt-1 text-[12px] text-muted-foreground">
-                    {roundLabel(order.round)} · {linesCount(order.lines)} מוצרים
+                    {linesCount(order.lines)} מוצרים
                   </div>
                   <div className="mt-1.5 flex items-center justify-between">
                     <span className="text-[11.5px] text-muted-foreground">

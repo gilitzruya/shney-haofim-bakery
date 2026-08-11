@@ -6,7 +6,6 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
 import { Chip, StatusChip } from "@/components/app/status-chip";
-import { roundLabel } from "@/data/catalog";
 import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -102,7 +101,7 @@ function HomePage() {
                   <Card>
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-[13.5px] font-semibold text-heading">
-                        {formatDate(item.order.date)} · {roundLabel(item.order.round)}
+                        {formatDate(item.order.date)}
                       </div>
                       <StatusChip status={item.order.status} />
                     </div>
@@ -132,7 +131,7 @@ function HomePage() {
                   <Card variant={item.rec.needsAttention ? "attention" : "active"}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-[13.5px] font-semibold text-heading">
-                        {formatDate(item.date)} · {roundLabel(item.rec.round)}
+                        {formatDate(item.date)}
                       </div>
                       <Chip tone="accent">קבועה</Chip>
                     </div>

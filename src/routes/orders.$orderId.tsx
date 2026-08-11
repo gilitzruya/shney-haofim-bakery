@@ -9,7 +9,7 @@ import { Card, EmptyState } from "@/components/app/card";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
-import { findProduct, roundLabel } from "@/data/catalog";
+import { findProduct } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { formatLongDate, formatPrice, formatQty, linesTotal } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -62,7 +62,6 @@ function OrderDetailsPage() {
             <span className="text-[15px] font-bold text-foreground">{formatLongDate(order.date)}</span>
             <StatusChip status={order.status} />
           </div>
-          <div className="mt-1 text-[12.5px] text-muted-foreground">{roundLabel(order.round)}</div>
           {order.cutoffText ? (
             <div className="mt-2.5 rounded-[10px] bg-accent-soft px-3 py-2 text-[11.5px] font-semibold text-accent-foreground">
               {order.cutoffText}

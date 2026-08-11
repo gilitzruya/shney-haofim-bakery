@@ -11,7 +11,7 @@ import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 
-import { findProduct, roundLabel } from "@/data/catalog";
+import { findProduct } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { formatCutoff, isCutoffPassed } from "@/lib/cutoff";
 import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
@@ -93,10 +93,9 @@ function SummaryPage() {
                 ? formatDate(draft.date)
                 : "ללא מועד"}
           </div>
-          <div className="mt-1 text-[12px] text-muted-foreground">
-            {isRecurring && draft.weekdays?.length ? `${weekdaysLabel(draft.weekdays)} · ` : ""}
-            {roundLabel(draft.round)}
-          </div>
+          {isRecurring && draft.weekdays?.length ? (
+            <div className="mt-1 text-[12px] text-muted-foreground">{weekdaysLabel(draft.weekdays)}</div>
+          ) : null}
         </Card>
 
         <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">פריטי ההזמנה</h2>
@@ -194,7 +193,7 @@ function SummaryPage() {
         description={
           isRecurring
             ? "ההזמנה תישלח למאפייה בכל אחד מימי האספקה שנבחרו."
-            : `סה״כ ${formatPrice(total)} · ${roundLabel(draft.round)}${draft.date ? ` · ${formatDate(draft.date)}` : ""}`
+            : `סה״כ ${formatPrice(total)}${draft.date ? ` · ${formatDate(draft.date)}` : ""}`
         }
         confirmLabel="אישור"
         onConfirm={confirm}
