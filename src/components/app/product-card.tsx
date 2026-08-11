@@ -228,17 +228,20 @@ export function ProductCard({
       <div className="flex min-w-0 flex-1 flex-col items-start gap-1 py-0.5 text-start">
         <div className="w-full">
           <div className="truncate text-[13.5px] font-semibold text-foreground">{product.name}</div>
-          <div dir="ltr" className="font-mono text-[10px] text-muted-foreground text-start">
-            {product.sku ?? product.id}
-          </div>
           <div className="mt-0.5 text-[11.5px] font-semibold text-primary">
             {priceLabel(product.price, product.unit)}
+            <span className="font-normal text-muted-foreground">
+              {" "}
+              ({formatPrice(priceExVat(product.price))} לפני מע״מ)
+            </span>
           </div>
-          <div className="text-[10.5px] text-muted-foreground">
-            {formatPrice(priceExVat(product.price))} לפני מע״מ
+          <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+            קוד פריט: <span dir="ltr" className="font-mono">{product.sku ?? product.id}</span>
           </div>
+          {product.weightGrams ? (
+            <div className="text-[10.5px] text-muted-foreground">משקל: {weightLabel(product.weightGrams)}</div>
+          ) : null}
           <div className="mt-0.5 flex flex-wrap items-center justify-start gap-x-2 gap-y-0.5 text-[10.5px] text-muted-foreground">
-            {product.weightGrams ? <span>משקל: {weightLabel(product.weightGrams)}</span> : null}
             {minQtyFor(product) > (product.unit === "kg" ? 0.5 : 1) ? (
               <span>
                 מינימום {formatQty(minQtyFor(product), product.unit)} {unitLabel(product.unit)}
