@@ -368,23 +368,19 @@ function NewOrderPage() {
       <Modal
         open={blockedCutoff}
         title="מועד ההזמנה נסגר"
-        description={
-          date
-            ? `ההזמנות ל${formatLongDate(date)} נסגרו ב${formatCutoff(date)}. לא ניתן לפתוח הזמנה למועד זה במערכת.`
-            : undefined
-        }
+        xClose
         onClose={() => setBlockedCutoff(false)}
       >
         <div className="space-y-3">
           <p className="text-[13px] leading-relaxed text-muted-foreground">
-            לא ניתן לאשר הזמנה במערכת למועד שעבר את שעת הסגירה. לבירור אפשרויות חריגות, פנו לבעל המאפייה דרך דף יצירת הקשר.
+            לא ניתן לפתוח הזמנה למועד זה במערכת. לבירור אפשרויות חריגות ניתן לפנות לבעל המאפייה.
           </p>
           <Button
             variant="primary"
             className="w-full font-semibold"
             onClick={() => navigate({ to: "/contact" })}
           >
-            לדף יצירת הקשר
+            צור קשר
           </Button>
         </div>
       </Modal>
