@@ -150,10 +150,9 @@ function SummaryPage() {
 
         <Card className="mt-4 bg-card-muted">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-muted-foreground">סה״כ לתשלום <span className="text-[11px]">(לפני מע״מ)</span></span>
+            <span className="text-[13.5px] font-bold text-foreground">סה״כ לתשלום <span className="text-[11px] font-normal text-muted-foreground">(לפני מע״מ)</span></span>
             <span className="text-[19px] font-bold text-foreground">{formatPrice(total)}</span>
           </div>
-          <div className="mt-1 text-[11px] text-muted-foreground">המחירים אינם כוללים מע״מ.</div>
         </Card>
 
         <button
