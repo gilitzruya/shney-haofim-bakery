@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarPlus } from "lucide-react";
+import { CalendarDays, CalendarPlus, ChevronLeft, Tag } from "lucide-react";
 
+import heroImage from "@/assets/home-hero.jpg";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
@@ -40,25 +41,55 @@ function HomePage() {
   return (
     <AppShell>
       <AppHeader />
-      <Section className="pb-10">
+
+      <div className="relative">
+        <img
+          src={heroImage}
+          alt="סלסלת לחמים טריים ממאפיית שני האופים"
+          width={1536}
+          height={768}
+          className="h-[190px] w-full object-cover md:h-[240px]"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-canvas" />
+      </div>
+
+      <Section className="-mt-16 pb-10 md:-mt-20">
         <Link
           to="/new-order"
-          className="flex items-center justify-between gap-3 rounded-[18px] border border-border bg-primary-soft p-4 no-underline"
+          className="relative block overflow-hidden rounded-[26px] bg-primary p-5 no-underline shadow-[0_18px_40px_-18px_rgba(74,31,45,0.55)] md:p-7"
         >
-          <div className="min-w-0">
-            <div className="text-[16px] font-bold text-foreground">יצירת הזמנה חדשה</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-              בחרו מועד אספקה והתחילו להזמין
-            </p>
+          <div className="flex items-center gap-4 md:gap-6">
+            <span className="flex size-[86px] shrink-0 items-center justify-center rounded-full bg-canvas text-primary shadow-[0_8px_20px_-8px_rgba(0,0,0,0.35)] md:size-[104px]">
+              <CalendarPlus className="size-11 md:size-14" strokeWidth={1.8} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[24px] leading-tight font-bold text-primary-foreground md:text-[30px]">
+                יצירת הזמנה חדשה
+              </div>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-primary-foreground/85 md:text-[15px]">
+                בחרו מועד אספקה והתחילו להזמין
+              </p>
+              <span className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-[14px] font-bold text-accent-foreground">
+                התחילו עכשיו
+                <ChevronLeft className="size-4" />
+              </span>
+            </div>
           </div>
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-[12px] bg-primary text-primary-foreground">
-            <CalendarPlus className="size-[22px]" />
-          </span>
         </Link>
 
+        <div className="mt-7 mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-9 items-center justify-center rounded-[12px] bg-accent-soft text-heading">
+              <CalendarDays className="size-[18px]" />
+            </span>
+            <h2 className="text-[18px] font-bold text-heading">הזמנות קרובות</h2>
+          </div>
+          <Link to="/orders" className="text-[12px] font-semibold text-primary no-underline">
+            לכל ההזמנות
+          </Link>
+        </div>
 
-        <SectionTitle title="הזמנות קרובות" linkTo="/orders" linkLabel="לכל ההזמנות" />
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-3">
           {upcoming.length === 0 ? (
             <Card variant="muted">
               <div className="text-center text-[12.5px] text-muted-foreground">אין הזמנות קרובות כרגע.</div>
@@ -72,18 +103,26 @@ function HomePage() {
                   params={{ orderId: item.order.id }}
                   className="no-underline"
                 >
-                  <Card>
+                  <Card className="rounded-[18px] p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-[13.5px] font-semibold text-foreground">
+                      <div className="text-[15px] font-bold text-heading">
                         {formatDate(item.order.date)} · {roundLabel(item.order.round)}
                       </div>
                       <StatusChip status={item.order.status} />
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between text-[12px] text-muted-foreground">
-                      <span>{linesCount(item.order.lines)} מוצרים</span>
-                      <span className="font-semibold text-foreground">
-                        {formatPrice(linesTotal(item.order.lines))}
+                    <div className="mt-1 text-[12.5px] text-muted-foreground">
+                      {linesCount(item.order.lines)} מוצרים
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+                          <Tag className="size-[17px]" />
+                        </span>
+                        <span className="text-[16px] font-bold text-heading">
+                          {formatPrice(linesTotal(item.order.lines))}
+                        </span>
                       </span>
+                      <ChevronLeft className="size-5 text-primary" />
                     </div>
                   </Card>
                 </Link>
@@ -94,18 +133,24 @@ function HomePage() {
                   params={{ recurringId: item.rec.id }}
                   className="no-underline"
                 >
-                  <Card variant={item.rec.needsAttention ? "attention" : "active"}>
+                  <Card variant={item.rec.needsAttention ? "attention" : "active"} className="rounded-[18px] p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-[13.5px] font-semibold text-foreground">
+                      <div className="text-[15px] font-bold text-heading">
                         {formatDate(item.date)} · {roundLabel(item.rec.round)}
                       </div>
                       <Chip tone="accent">קבועה</Chip>
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between text-[12px] text-muted-foreground">
-                      <span>{item.rec.name}</span>
-                      <span className="font-semibold text-foreground">
-                        {formatPrice(linesTotal(item.rec.lines))}
+                    <div className="mt-1 text-[12.5px] text-muted-foreground">{item.rec.name}</div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+                          <Tag className="size-[17px]" />
+                        </span>
+                        <span className="text-[16px] font-bold text-heading">
+                          {formatPrice(linesTotal(item.rec.lines))}
+                        </span>
                       </span>
+                      <ChevronLeft className="size-5 text-primary" />
                     </div>
                   </Card>
                 </Link>
@@ -115,16 +160,5 @@ function HomePage() {
         </div>
       </Section>
     </AppShell>
-  );
-}
-
-function SectionTitle({ title, linkTo, linkLabel }: { title: string; linkTo: string; linkLabel: string }) {
-  return (
-    <div className="mt-5 mb-2.5 flex items-center justify-between">
-      <h2 className="text-[15px] font-bold text-foreground">{title}</h2>
-      <Link to={linkTo} className="text-[12px] font-semibold text-primary no-underline">
-        {linkLabel}
-      </Link>
-    </div>
   );
 }
