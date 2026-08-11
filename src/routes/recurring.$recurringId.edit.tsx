@@ -71,11 +71,6 @@ function EditRecurringPage() {
             <WeekdayChips value={weekdays} onChange={setWeekdays} />
           </div>
 
-          <div>
-            <div className="mb-2 text-[12px] font-semibold text-muted-foreground">סבב חלוקה</div>
-            <RoundSelector value={round} onChange={setRound} />
-          </div>
-
           <FormField label="הערה למאפייה">
             <TextArea value={note} onChange={(e) => setNote(e.target.value)} placeholder="הערות אספקה…" />
           </FormField>
