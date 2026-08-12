@@ -22,9 +22,10 @@ export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props
         aria-label="התחלת הזמנה חדשה"
         className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center shadow-xl"
       >
-        <span className="mx-auto inline-flex items-center rounded-full bg-primary-soft px-3 py-1 text-[13px] font-bold text-primary">
+        <span className="mx-auto inline-flex items-center rounded-full bg-primary/15 px-3.5 py-1.5 text-[14px] font-extrabold text-primary">
           הזמנה חדשה
         </span>
+
 
         <h2 className="mt-4 text-[16px] font-bold text-foreground">
           להעתיק מוצרים מההזמנה הקודמת?
