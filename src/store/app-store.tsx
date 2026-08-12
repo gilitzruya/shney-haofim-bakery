@@ -419,13 +419,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
       setQty: (productId, qty) =>
         update((s) => {
-          if (!s.draft) return s;
+          const draft = s.draft ?? emptyDraft("order");
           const product = findProduct(productId);
           const next = roundQty(qty, product?.unit ?? "unit");
-          const quantities = { ...s.draft.quantities };
+          const quantities = { ...draft.quantities };
           if (next <= 0) delete quantities[productId];
           else quantities[productId] = next;
-          return syncDraftOrder(s, { ...s.draft, quantities });
+          return syncDraftOrder(s, { ...draft, quantities });
         }),
 
       bumpQty: (productId, delta) =>
