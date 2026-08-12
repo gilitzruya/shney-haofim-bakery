@@ -112,7 +112,7 @@ function OrderDetailsPage() {
           type="button"
           onClick={() => {
             copyOrderAsNew(order.id);
-            navigate({ to: "/new-order" });
+            navigate({ to: "/catalog" });
           }}
           className="mt-3 w-full rounded-xl border border-border bg-card py-2.5 text-[12.5px] font-semibold text-foreground"
         >
