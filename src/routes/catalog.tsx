@@ -56,8 +56,21 @@ function CatalogPage() {
         .sort((a, b) => (a.date < b.date ? 1 : -1))[0],
     [orders],
   );
-  const askCopy = copy === 1 && !!lastOrder;
-  const closeCopyPrompt = () => navigate({ to: "/catalog", search: {}, replace: true });
+  /** נשאל בכל כניסה להזמנה חדשה שעדיין ריקה, כל עוד לא ענו בסשן הזה */
+  const [dismissed, setDismissed] = useState(true);
+  useEffect(() => {
+    setDismissed(sessionStorage.getItem("copy-prompt-answered") === "1");
+  }, []);
+
+  const isEmptyNewOrder =
+    (!draft || (draft.mode !== "recurring_create" && draft.mode !== "recurring_edit")) && selectedCount === 0;
+  const askCopy = !!lastOrder && !dismissed && (copy === 1 || isEmptyNewOrder);
+
+  const closeCopyPrompt = () => {
+    sessionStorage.setItem("copy-prompt-answered", "1");
+    setDismissed(true);
+    if (copy === 1) navigate({ to: "/catalog", search: {}, replace: true });
+  };
   const copyFromLast = () => {
     if (lastOrder) startOrderDraft(draft?.date, draft?.round ?? "morning", lastOrder.lines);
     closeCopyPrompt();
