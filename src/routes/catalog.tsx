@@ -60,8 +60,13 @@ function CatalogPage() {
   const DISMISS_KEY = "copyPromptDismissed";
   const [dismissed, setDismissed] = useState(true);
   useEffect(() => {
+    if (copy === 1) {
+      sessionStorage.removeItem(DISMISS_KEY);
+      setDismissed(false);
+      return;
+    }
     setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
-  }, []);
+  }, [copy]);
   const dismiss = () => {
     sessionStorage.setItem(DISMISS_KEY, "1");
     setDismissed(true);
