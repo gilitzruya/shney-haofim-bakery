@@ -22,20 +22,20 @@ export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props
         aria-label="התחלת הזמנה חדשה"
         className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center shadow-xl"
       >
-        <span className="mx-auto inline-flex items-center rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-bold text-primary">
+        <span className="mx-auto inline-flex items-center rounded-full bg-primary-soft px-3 py-1 text-[13px] font-bold text-primary">
           הזמנה חדשה
         </span>
-        <h2 className="mt-2.5 text-[16px] font-bold text-foreground">נתחיל את ההזמנה החדשה</h2>
 
-        <h3 className="mt-4 text-[15px] font-bold text-foreground">
+        <h2 className="mt-4 text-[16px] font-bold text-foreground">
           להעתיק מוצרים מההזמנה הקודמת?
-        </h3>
-        <p className="mt-1.5 text-[13px] font-medium text-foreground">
+        </h2>
+        <p className="mt-2 text-[14px] font-normal text-muted-foreground">
           {formatLongDate(date)} • {linesCount(lines)} מוצרים • {formatPrice(linesTotal(lines))}
         </p>
         <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
           המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
         </p>
+
 
         <div className="mt-5 flex flex-row-reverse items-center gap-2.5">
           <Button pill className="flex-1" onClick={onConfirm}>
