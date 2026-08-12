@@ -9,11 +9,12 @@ import { Card, EmptyState } from "@/components/app/card";
 import { FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
+import { DateCalendar } from "@/components/app/date-calendar";
 
 import { findProduct } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
-import { formatCutoff, isCutoffPassed } from "@/lib/cutoff";
-import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
+import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
+import { formatDate, formatLongDate, formatPrice, formatQty, linesTotal, parseDate, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/summary")({
@@ -30,10 +31,12 @@ export const Route = createFileRoute("/summary")({
 
 function SummaryPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty, setQty, confirmDraft, discardDraft } = useStore();
+  const { draft, bumpQty, setQty, confirmDraft, discardDraft, setDraft, orders, recurring } = useStore();
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [step, setStep] = useState<"review" | "date">("review");
+  const [pickDate, setPickDate] = useState<string | null>(null);
 
   if (!draft) {
     return (
@@ -89,7 +92,7 @@ function SummaryPage() {
               ? draft.name || "הזמנה קבועה"
               : draft.date
                 ? formatDate(draft.date)
-                : "ללא מועד"}
+                : "מועד האספקה ייבחר באישור ההזמנה"}
           </div>
           {isRecurring && draft.weekdays?.length ? (
             <div className="mt-1 text-[12px] text-muted-foreground">{weekdaysLabel(draft.weekdays)}</div>
@@ -176,11 +179,12 @@ function SummaryPage() {
             עריכת מוצרים
           </Button>
           <Button size="lg" className="flex-1" disabled={lines.length === 0} onClick={() => {
-              if (!isRecurring && draft.date && isCutoffPassed(draft.date)) {
-                setBlocked(true);
+              if (isRecurring) {
+                setConfirming(true);
                 return;
               }
-              setConfirming(true);
+              setPickDate(draft.date ?? null);
+              setStep("date");
             }}>
             {isRecurring ? "שמירת ההזמנה הקבועה" : "אישור ההזמנה"}
           </Button>
