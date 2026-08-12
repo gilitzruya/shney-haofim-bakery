@@ -1,4 +1,4 @@
-import { Check, Copy, X } from "lucide-react";
+import { Copy, ShoppingBasket } from "lucide-react";
 
 import { Button } from "@/components/app/button";
 import { formatLongDate, formatPrice, linesCount, linesTotal } from "@/lib/format";
@@ -11,7 +11,7 @@ type Props = {
   onDecline: () => void;
 };
 
-/** חלון מודאלי מעל הקטלוג: להעתיק מוצרים מההזמנה הקודמת? */
+/** חלון מודאלי מעל הקטלוג: פתיחת הזמנה חדשה — להתחיל מההזמנה הקודמת או מאפס */
 export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
@@ -19,31 +19,40 @@ export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="להעתיק מוצרים מההזמנה הקודמת?"
+        aria-label="התחלת הזמנה חדשה"
         className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-4 text-center shadow-xl"
       >
-        <span className="mx-auto flex size-[44px] items-center justify-center rounded-2xl bg-primary-soft text-primary">
-          <Copy className="size-[20px]" />
+        <span className="mx-auto inline-flex items-center rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-bold text-primary">
+          הזמנה חדשה
         </span>
-        <h2 className="mt-3 text-[15px] font-bold text-foreground">להעתיק מוצרים מההזמנה הקודמת?</h2>
+        <h2 className="mt-2.5 text-[16px] font-bold text-foreground">נתחיל את ההזמנה החדשה</h2>
         <p className="mt-1 text-[12.5px] text-muted-foreground">
-          {formatLongDate(date)} • {linesCount(lines)} מוצרים • {formatPrice(linesTotal(lines))}
-        </p>
-        <p className="mt-1 text-[12px] text-muted-foreground">
-          המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם. מועד האספקה נבחר בסוף, באישור ההזמנה
+          אפשר להתחיל מההזמנה הקודמת שלכם ולחסוך זמן, או לבחור מוצרים מהקטלוג מאפס.
         </p>
 
-        <div className="mt-4 flex gap-2.5">
-          <Button className="flex-1" pill onClick={onConfirm}>
-            <Check className="size-[16px]" />
-            כן
+        <div className="mt-3 rounded-xl border border-border bg-background p-2.5 text-start">
+          <p className="text-[11.5px] font-bold text-muted-foreground">ההזמנה הקודמת</p>
+          <p className="mt-0.5 text-[12.5px] font-semibold text-foreground">
+            {formatLongDate(date)} • {linesCount(lines)} מוצרים • {formatPrice(linesTotal(lines))}
+          </p>
+        </div>
+
+        <p className="mt-2 text-[12px] text-muted-foreground">
+          המוצרים והכמויות יועתקו כטיוטה ותוכלו לשנות הכל. מועד האספקה נבחר בסוף, באישור ההזמנה.
+        </p>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <Button pill onClick={onConfirm}>
+            <Copy className="size-[16px]" />
+            העתיקו את ההזמנה הקודמת
           </Button>
-          <Button variant="outline" className="flex-1" pill onClick={onDecline}>
-            <X className="size-[16px]" />
-            לא
+          <Button variant="outline" pill onClick={onDecline}>
+            <ShoppingBasket className="size-[16px]" />
+            אתחיל מאפס
           </Button>
         </div>
       </div>
     </div>
   );
 }
+
