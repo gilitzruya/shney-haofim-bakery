@@ -63,7 +63,7 @@ function CatalogPage() {
   }, []);
 
   const isEmptyNewOrder =
-    !!draft && draft.mode !== "recurring_create" && draft.mode !== "recurring_edit" && selectedCount === 0;
+    (!draft || (draft.mode !== "recurring_create" && draft.mode !== "recurring_edit")) && selectedCount === 0;
   const askCopy = !!lastOrder && !dismissed && (copy === 1 || isEmptyNewOrder);
 
   const closeCopyPrompt = () => {
