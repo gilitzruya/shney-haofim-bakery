@@ -57,7 +57,20 @@ const initialState: PersistedState = {
   draft: null,
 };
 
+/**
+ * A one-off order draft with no products selected is meaningless — never keep
+ * it in storage, so leaving the app without picking anything leaves no draft.
+ */
+function stripEmptyDraft(s: PersistedState): PersistedState {
+  const d = s.draft;
+  if (d && d.mode === "order" && linesFromQuantities(d.quantities).length === 0) {
+    return { ...s, draft: null };
+  }
+  return s;
+}
+
 function loadState(): PersistedState {
+
   if (typeof window === "undefined") return initialState;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
