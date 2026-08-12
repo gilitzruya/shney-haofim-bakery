@@ -80,6 +80,7 @@ function SideMenu({ onClose }: { onClose: () => void }) {
             <Link
               key={item.to}
               to={item.to}
+              search={(item.to === "/catalog" ? { copy: 1 } : {}) as never}
               onClick={onClose}
               className={cn(
                 "rounded-xl border border-border bg-card px-3.5 py-3 text-[13.5px] font-semibold text-foreground no-underline",
