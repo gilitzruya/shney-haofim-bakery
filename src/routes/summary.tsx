@@ -196,7 +196,19 @@ function SummaryPage() {
           ) : null}
         </div>
 
-        <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">פריטי ההזמנה</h2>
+        <div className="mt-4 mb-2 flex items-center justify-between">
+          <h2 className="text-[15px] font-bold text-foreground">פריטי ההזמנה</h2>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/catalog" })}
+            className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary transition-opacity"
+          >
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M8 3v10M3 8h10" />
+            </svg>
+            הוספת מוצרים
+          </button>
+        </div>
         <div className="flex flex-col gap-2">
           {lines.length === 0 ? (
             <EmptyState title="לא נבחרו מוצרים" description="חזרו לקטלוג כדי להוסיף פריטים." />
