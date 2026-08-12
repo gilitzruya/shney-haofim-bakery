@@ -2,7 +2,7 @@ import { Check, Copy, X } from "lucide-react";
 
 import { Button } from "@/components/app/button";
 import { formatLongDate, formatPrice, linesCount, linesTotal } from "@/lib/format";
-import type { OrderLine } from "@/store/app-store";
+import type { OrderLine } from "@/data/seed";
 
 type Props = {
   date: string;
