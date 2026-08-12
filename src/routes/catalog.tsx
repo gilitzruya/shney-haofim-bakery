@@ -11,7 +11,7 @@ import { Tabs } from "@/components/app/tabs";
 import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 
 import { CATEGORIES } from "@/data/catalog";
-import { formatDate, formatPrice, formatWeekday, linesTotal, weekdaysLabel } from "@/lib/format";
+import { formatPrice, linesTotal } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/catalog")({
