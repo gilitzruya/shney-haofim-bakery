@@ -180,11 +180,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stripEmptyDraft(state)));
     } catch {
       /* storage unavailable — demo continues in memory */
     }
   }, [state, hydrated]);
+
 
   const update = useCallback((fn: (s: PersistedState) => PersistedState) => {
     setState((s) => fn(s));
