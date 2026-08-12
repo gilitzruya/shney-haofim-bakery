@@ -23,9 +23,9 @@ export const Route = createFileRoute("/catalog")({
       { property: "og:description", content: "בחרו מוצרים וכמויות מתוך קטלוג המאפייה." },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>) => ({
-    copy: search["copy"] === 1 || search["copy"] === "1" ? 1 : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { copy?: 1 } =>
+    search["copy"] === 1 || search["copy"] === "1" ? { copy: 1 } : {},
+
   component: CatalogPage,
 });
 
