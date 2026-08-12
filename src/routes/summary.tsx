@@ -48,7 +48,7 @@ function SummaryPage() {
           <EmptyState
             title="אין הזמנה פעילה"
             description="התחילו הזמנה חדשה כדי לראות כאן סיכום."
-            action={<Button onClick={() => navigate({ to: "/catalog" })}>הזמנה חדשה</Button>}
+            action={<Button onClick={() => navigate({ to: "/catalog", search: { copy: 1 } as never })}>הזמנה חדשה</Button>}
           />
         </Section>
       </AppShell>
