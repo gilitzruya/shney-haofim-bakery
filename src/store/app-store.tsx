@@ -76,12 +76,13 @@ function loadState(): PersistedState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return initialState;
     const parsed = JSON.parse(raw) as Partial<PersistedState>;
-    return {
+    return stripEmptyDraft({
       orders: parsed.orders ?? SEED_ORDERS,
       recurring: parsed.recurring ?? SEED_RECURRING,
       business: parsed.business ?? BUSINESS,
       draft: parsed.draft ?? null,
-    };
+    });
+
   } catch {
     return initialState;
   }
