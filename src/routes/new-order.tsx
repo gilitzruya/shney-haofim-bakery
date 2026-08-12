@@ -200,7 +200,7 @@ function NewOrderPage() {
   return (
     <AppShell>
       <AppHeader>
-        <PageTitleBar title="הזמנה חדשה" backTo="/" />
+        <PageTitleBar title="הזמנה חדשה" />
       </AppHeader>
       <Section className="pb-28">
 
