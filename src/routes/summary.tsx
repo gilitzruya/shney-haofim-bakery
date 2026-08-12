@@ -183,20 +183,16 @@ function SummaryPage() {
         <PageTitleBar title="סיכום ההזמנה" />
       </AppHeader>
       <Section className="pb-28">
-        <div className="mt-1 rounded-xl border border-primary/30 bg-primary-soft px-3.5 py-2.5">
-          <div className="text-[13.5px] font-semibold text-foreground">
-            {isRecurring
-              ? draft.name || "הזמנה קבועה"
-              : draft.date
-                ? formatDate(draft.date)
-                : "מועד האספקה ייבחר באישור ההזמנה"}
+        {isRecurring ? (
+          <div className="mt-1 rounded-xl border border-primary/30 bg-primary-soft px-3.5 py-2.5">
+            <div className="text-[13.5px] font-semibold text-foreground">{draft.name || "הזמנה קבועה"}</div>
+            {draft.weekdays?.length ? (
+              <div className="mt-1 text-[12px] text-muted-foreground">{weekdaysLabel(draft.weekdays)}</div>
+            ) : null}
           </div>
-          {isRecurring && draft.weekdays?.length ? (
-            <div className="mt-1 text-[12px] text-muted-foreground">{weekdaysLabel(draft.weekdays)}</div>
-          ) : null}
-        </div>
+        ) : null}
 
-        <div className="mt-4 mb-2 flex items-center justify-between">
+        <div className="sticky top-0 z-20 -mx-3.5 mb-2 flex items-center justify-between bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
           <h2 className="text-[15px] font-bold text-foreground">פריטי ההזמנה</h2>
           <button
             type="button"
