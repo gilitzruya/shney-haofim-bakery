@@ -14,7 +14,6 @@ import { Route as BusinessRouteImport } from './routes/business'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
-import { Route as NewOrderRouteImport } from './routes/new-order'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
@@ -46,11 +45,6 @@ const ContactRoute = ContactRouteImport.update({
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NewOrderRoute = NewOrderRouteImport.update({
-  id: '/new-order',
-  path: '/new-order',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SummaryRoute = SummaryRouteImport.update({
@@ -97,7 +91,6 @@ export interface FileRoutesByFullPath {
   '/catalog': typeof CatalogRoute
   '/contact': typeof ContactRoute
   '/design-system': typeof DesignSystemRoute
-  '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
@@ -112,7 +105,6 @@ export interface FileRoutesByTo {
   '/catalog': typeof CatalogRoute
   '/contact': typeof ContactRoute
   '/design-system': typeof DesignSystemRoute
-  '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
@@ -128,7 +120,6 @@ export interface FileRoutesById {
   '/catalog': typeof CatalogRoute
   '/contact': typeof ContactRoute
   '/design-system': typeof DesignSystemRoute
-  '/new-order': typeof NewOrderRoute
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
@@ -145,7 +136,6 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/contact'
     | '/design-system'
-    | '/new-order'
     | '/summary'
     | '/orders/$orderId'
     | '/recurring/new'
@@ -160,7 +150,6 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/contact'
     | '/design-system'
-    | '/new-order'
     | '/summary'
     | '/orders/$orderId'
     | '/recurring/new'
@@ -175,7 +164,6 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/contact'
     | '/design-system'
-    | '/new-order'
     | '/summary'
     | '/orders/$orderId'
     | '/recurring/new'
@@ -191,7 +179,6 @@ export interface RootRouteChildren {
   CatalogRoute: typeof CatalogRoute
   ContactRoute: typeof ContactRoute
   DesignSystemRoute: typeof DesignSystemRoute
-  NewOrderRoute: typeof NewOrderRoute
   SummaryRoute: typeof SummaryRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   RecurringNewRoute: typeof RecurringNewRoute
@@ -236,13 +223,6 @@ declare module '@tanstack/react-router' {
       path: '/design-system'
       fullPath: '/design-system'
       preLoaderRoute: typeof DesignSystemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/new-order': {
-      id: '/new-order'
-      path: '/new-order'
-      fullPath: '/new-order'
-      preLoaderRoute: typeof NewOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/summary': {
@@ -303,7 +283,6 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogRoute: CatalogRoute,
   ContactRoute: ContactRoute,
   DesignSystemRoute: DesignSystemRoute,
-  NewOrderRoute: NewOrderRoute,
   SummaryRoute: SummaryRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
   RecurringNewRoute: RecurringNewRoute,
@@ -315,3 +294,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
