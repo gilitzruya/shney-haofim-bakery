@@ -56,20 +56,28 @@ function CatalogPage() {
         .sort((a, b) => (a.date < b.date ? 1 : -1))[0],
     [orders],
   );
-  /** נשאל בכל כניסה מחדש לקטלוג כשההזמנה עדיין ריקה (טיוטה עם מוצרים → ממשיכים ממנה) */
-  const [dismissed, setDismissed] = useState(false);
+  /** ההודעה נשאלת פעם אחת לכל סשן — אחרי "לא" לא חוזרים להציג אותה גם אם מאפסים כמויות */
+  const DISMISS_KEY = "copyPromptDismissed";
+  const [dismissed, setDismissed] = useState(true);
+  useEffect(() => {
+    setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
+  }, []);
+  const dismiss = () => {
+    sessionStorage.setItem(DISMISS_KEY, "1");
+    setDismissed(true);
+  };
 
   const isEmptyNewOrder =
     (!draft || (draft.mode !== "recurring_create" && draft.mode !== "recurring_edit")) && selectedCount === 0;
   const askCopy = !!lastOrder && !dismissed && (copy === 1 || isEmptyNewOrder);
 
   const closeCopyPrompt = () => {
-    setDismissed(true);
+    dismiss();
     if (copy === 1) navigate({ to: "/catalog", search: {}, replace: true });
   };
   const copyFromLast = () => {
     if (lastOrder) startOrderDraft(draft?.date, draft?.round ?? "morning", lastOrder.lines);
-    setDismissed(true);
+    dismiss();
     navigate({ to: "/summary", replace: true });
   };
 
