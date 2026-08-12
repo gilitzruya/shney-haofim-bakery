@@ -10,8 +10,9 @@ import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/")({
   beforeLoad: () => {
-    throw redirect({ to: "/new-order" });
+    throw redirect({ to: "/catalog" });
   },
+
   head: () => ({
     meta: [
       { title: "דף הבית — מאפיית שני האופים" },
