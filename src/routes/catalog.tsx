@@ -73,7 +73,9 @@ function CatalogPage() {
   };
   const copyFromLast = () => {
     if (lastOrder) startOrderDraft(draft?.date, draft?.round ?? "morning", lastOrder.lines);
-    closeCopyPrompt();
+    sessionStorage.setItem("copy-prompt-answered", "1");
+    setDismissed(true);
+    navigate({ to: "/summary", replace: true });
   };
 
   const searching = query.trim().length > 0;
