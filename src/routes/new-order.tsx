@@ -47,12 +47,7 @@ function NewOrderPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, draft, lastOrder]);
 
-  return (
-    <AppShell>
-      <AppHeader>
-        <PageTitleBar title="הזמנה חדשה" />
-      </AppHeader>
-      <Section className="pb-28">{null}</Section>
-    </AppShell>
-  );
+  // Pure redirect step — render nothing so no intermediate screen flashes.
+  return null;
+
 }
