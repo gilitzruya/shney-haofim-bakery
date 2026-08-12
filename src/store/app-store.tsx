@@ -139,7 +139,7 @@ interface StoreValue extends PersistedState {
   hydrated: boolean;
   /* orders */
   getOrder: (id: string) => Order | undefined;
-  startOrderDraft: (date: string, round: RoundId, from?: OrderLine[]) => void;
+  startOrderDraft: (date: string | undefined, round: RoundId, from?: OrderLine[]) => void;
   editOrder: (id: string) => void;
   confirmDraft: () => Order | RecurringOrder | null;
   cancelOrder: (id: string) => void;
@@ -203,7 +203,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       startOrderDraft: (date, round, from) =>
         update((s) => {
           const existingDraft = s.orders.find(
-            (o) => o.status === "draft" && o.date === date && o.round === round,
+            (o) => o.status === "draft" && (date ? o.date === date : !o.date) && o.round === round,
           );
           const quantities = from
             ? quantitiesFromLines(from)

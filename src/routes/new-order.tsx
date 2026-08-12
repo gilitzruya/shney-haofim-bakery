@@ -67,7 +67,7 @@ function NewOrderPage() {
         <AppHeader>
           <PageTitleBar title="הזמנה חדשה" />
         </AppHeader>
-        <Section className="pb-28" />
+        <Section className="pb-28">{null}</Section>
       </AppShell>
     );
   }
