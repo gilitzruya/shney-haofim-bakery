@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
@@ -22,6 +22,7 @@ const ROUND: RoundId = "morning";
 
 function NewOrderPage() {
   const navigate = useNavigate();
+  const doneRef = useRef(false);
   const { startOrderDraft, orders, draft, hydrated } = useStore();
 
   /** ההזמנה האחרונה עם מוצרים */
@@ -35,7 +36,8 @@ function NewOrderPage() {
 
   /** נכנסים ישר לקטלוג; אם יש הזמנה קודמת — נשאל שם, מעל הקטלוג */
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || doneRef.current) return;
+    doneRef.current = true;
     if (!draft) startOrderDraft(undefined, ROUND);
     navigate({
       to: "/catalog",
