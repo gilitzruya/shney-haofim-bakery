@@ -11,7 +11,7 @@ import { Tabs } from "@/components/app/tabs";
 import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 
 import { CATEGORIES } from "@/data/catalog";
-import { formatDate, formatPrice, formatWeekday, linesTotal, weekdaysLabel } from "@/lib/format";
+import { formatPrice, linesTotal } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/catalog")({
@@ -132,15 +132,6 @@ function CatalogPage() {
     }, 900);
   };
 
-  const heading =
-    draft?.mode === "recurring_create"
-      ? `${draft.weekdays?.length ? weekdaysLabel(draft.weekdays) : "ללא ימי אספקה"}`
-      : draft?.mode === "recurring_edit"
-        ? draft.name || "הזמנה קבועה"
-        : draft?.date
-          ? `${formatWeekday(draft.date)}, ${formatDate(draft.date)}`
-          : "בחירת מוצרים";
-
   return (
     <AppShell>
       <AppHeader>
@@ -154,11 +145,8 @@ function CatalogPage() {
             />
           </div>
         )}
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-1.5 px-3.5 pb-1 md:px-5">
-          <div className="rounded-xl border border-primary/30 bg-primary-soft px-3.5 py-2.5 text-[12.5px] font-semibold text-foreground">
-            {heading}
-          </div>
-          <div className="relative pb-1">
+        <div className="mx-auto w-full max-w-5xl px-3.5 pb-1 md:px-5">
+          <div className="relative">
             <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={query}
