@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { CalendarDays, CalendarPlus, ChevronLeft, Tag } from "lucide-react";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -9,6 +9,9 @@ import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence } from 
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    throw redirect({ to: "/new-order" });
+  },
   head: () => ({
     meta: [
       { title: "דף הבית — מאפיית שני האופים" },

@@ -7,7 +7,7 @@ import { useStore } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "דף הבית" },
+  { to: "/new-order", label: "הזמנה חדשה" },
   { to: "/orders", label: "ההזמנות שלי" },
   { to: "/recurring", label: "הזמנות קבועות" },
   { to: "/business", label: "פרטי העסק" },
@@ -85,7 +85,7 @@ function SideMenu({ onClose }: { onClose: () => void }) {
                 "rounded-xl border border-border bg-card px-3.5 py-3 text-[13.5px] font-semibold text-foreground no-underline",
               )}
               activeProps={{ className: "border-primary bg-primary-soft text-primary" }}
-              activeOptions={{ exact: item.to === "/" }}
+              activeOptions={{ exact: false }}
             >
               {item.label}
             </Link>
