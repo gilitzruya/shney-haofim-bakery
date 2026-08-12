@@ -1,198 +1,73 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronLeft, ChevronRight, Copy, Info, X } from "lucide-react";
-import { useState } from "react";
+import { Check, Copy, X } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
-import { Modal } from "@/components/app/modal";
-import { BAKERY_CONTACT, WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
-import { formatLongDate, formatPrice, linesCount, linesTotal, parseDate, toIso } from "@/lib/format";
-import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
-import { cn } from "@/lib/utils";
+import type { RoundId } from "@/data/catalog";
+import { formatLongDate, formatPrice, linesCount, linesTotal } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/new-order")({
   head: () => ({
     meta: [
       { title: "הזמנה חדשה — מאפיית שני האופים" },
-      { name: "description", content: "בחירת מועד אספקה להזמנה סיטונאית חדשה." },
+      { name: "description", content: "פתיחת הזמנה סיטונאית חדשה, עם אפשרות להעתיק מההזמנה הקודמת." },
       { property: "og:title", content: "הזמנה חדשה — מאפיית שני האופים" },
-      { property: "og:description", content: "בחרו תאריך אספקה ועברו לקטלוג המוצרים." },
+      { property: "og:description", content: "העתיקו מוצרים מההזמנה הקודמת או התחילו הזמנה חדשה." },
     ],
   }),
   component: NewOrderPage,
 });
 
-const now = israelNow();
-const TODAY = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-const TODAY_ISO = toIso(TODAY);
-/** ניתן להזמין עד חודשיים קדימה */
-const MAX_DATE = new Date(TODAY.getFullYear(), TODAY.getMonth() + 2, TODAY.getDate());
-const HE_MONTHS = [
-  "ינואר",
-  "פברואר",
-  "מרץ",
-  "אפריל",
-  "מאי",
-  "יוני",
-  "יולי",
-  "אוגוסט",
-  "ספטמבר",
-  "אוקטובר",
-  "נובמבר",
-  "דצמבר",
-];
-
-/** Full month grid (7 columns), padded with blanks before the 1st. */
-function buildMonth(year: number, month: number) {
-  const first = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: ({ iso: string; date: Date; disabled: boolean } | null)[] = [];
-  for (let i = 0; i < first.getDay(); i++) cells.push(null);
-  for (let day = 1; day <= daysInMonth; day++) {
-    const d = new Date(year, month, day);
-    const isPast = d.getTime() <= TODAY.getTime();
-    const isTooFar = d.getTime() > MAX_DATE.getTime();
-    cells.push({ iso: toIso(d), date: d, disabled: isPast || isTooFar || d.getDay() === 6 });
-  }
-  while (cells.length % 7 !== 0) cells.push(null);
-  return cells;
-}
+const ROUND: RoundId = "morning";
 
 function NewOrderPage() {
   const navigate = useNavigate();
-  const { startOrderDraft, editOrder, startOneTimeUpdate, startRecurringEdit, orders, recurring } = useStore();
-  const [month, setMonth] = useState({ year: TODAY.getFullYear(), month: TODAY.getMonth() });
-  const [date, setDate] = useState<string | null>(null);
-  const round: RoundId = "morning";
-  const [blockedOrder, setBlockedOrder] = useState<string | null>(null);
-  const [blockedCutoff, setBlockedCutoff] = useState(false);
-  const [blockedRecurring, setBlockedRecurring] = useState<string | null>(null);
-  const [step, setStep] = useState<"setup" | "start">("setup");
+  const { startOrderDraft, orders, draft, hydrated } = useStore();
 
-  const missing: string[] = [];
-  if (!date) missing.push("מועד אספקה");
-
-  const cells = buildMonth(month.year, month.month);
-
-  /** סימונים לכל תאריך: מ׳ מאושרת, ט׳ טיוטה, ק׳ קבועה */
-  const markersFor = (iso: string, weekday: number) => {
-    const marks: { key: string; label: string; title: string }[] = [];
-    const dayOrders = orders.filter((o) => o.date === iso);
-    if (dayOrders.some((o) => o.status === "approved" || o.status === "completed"))
-      marks.push({ key: "m", label: "מ׳", title: "הזמנה מאושרת" });
-    if (dayOrders.some((o) => o.status === "draft" || o.status === "needs_update" || o.status === "reopened"))
-      marks.push({ key: "t", label: "ט׳", title: "טיוטה" });
-    if (recurring.some((r) => r.status === "active" && r.weekdays.includes(weekday)))
-      marks.push({ key: "k", label: "ק׳", title: "הזמנה קבועה" });
-    return marks;
-  };
-  const canGoBack = new Date(month.year, month.month, 1) > new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
-  const canGoForward = new Date(month.year, month.month + 1, 1) <= MAX_DATE;
-  const shiftMonth = (delta: number) => {
-    const d = new Date(month.year, month.month + delta, 1);
-    setMonth({ year: d.getFullYear(), month: d.getMonth() });
-  };
-
-  /** התנגשות: הזמנה מאושרת או הזמנה קבועה קיימת לאותו יום */
-  const conflictOrder =
-    date
-      ? orders.find(
-          (o) =>
-            o.date === date &&
-            (o.status === "approved" || o.status === "completed" || o.status === "needs_update" || o.status === "reopened"),
-        )
-      : undefined;
-  const conflictRecurring =
-    date && !conflictOrder
-      ? recurring.find(
-          (r) => r.status === "active" && r.weekdays.includes(parseDate(date).getDay()),
-        )
-      : undefined;
-
-  const goCatalog = () => navigate({ to: "/catalog" });
-
-  const proceed = () => {
-    if (!date) return;
-    if (isCutoffPassed(date)) return setBlockedCutoff(true);
-    if (conflictOrder) return setBlockedOrder(conflictOrder.id);
-    if (conflictRecurring) return setBlockedRecurring(conflictRecurring.id);
-    if (pastOrders.length === 0) return startFromScratch();
-    setStep("start");
-  };
-
-  /** הזמנות קודמות עם מוצרים, מדורגות לפי התאמה ליום שנבחר */
-  const pastOrders = (() => {
-    if (!date) return [] as { order: (typeof orders)[number]; badge?: string; score: number }[];
-    const weekday = parseDate(date).getDay();
-    return orders
-      .filter((o) => o.lines.length > 0 && o.date < date)
-      .map((o) => {
-        const sameWeekday = parseDate(o.date).getDay() === weekday;
-        const score = sameWeekday ? 2 : 0;
-        const badge = sameWeekday ? "אותו יום בשבוע" : undefined;
-        return { order: o, badge, score };
-      })
-      .sort((a, b) => b.score - a.score || (a.order.date < b.order.date ? 1 : -1))
-      .slice(0, 6);
-  })();
+  /** ההזמנה האחרונה עם מוצרים */
+  const lastOrder = useMemo(
+    () =>
+      orders
+        .filter((o) => o.lines.length > 0 && o.status !== "cancelled" && o.status !== "draft")
+        .sort((a, b) => (a.date < b.date ? 1 : -1))[0],
+    [orders],
+  );
 
   const startFromScratch = () => {
-    if (!date) return;
-    startOrderDraft(date, round);
-    goCatalog();
+    startOrderDraft(undefined, ROUND);
+    navigate({ to: "/catalog" });
   };
 
   const copyFromLast = () => {
-    if (!date) return;
-    const source = pastOrders[0]?.order;
-    if (!source) return startFromScratch();
-    startOrderDraft(date, round, source.lines);
-    navigate({ to: "/summary" });
+    if (!lastOrder) return startFromScratch();
+    startOrderDraft(undefined, ROUND, lastOrder.lines);
+    navigate({ to: "/catalog" });
   };
 
+  /** הזמנה בעבודה — ממשיכים ממנה; אין הזמנות קודמות — ישר לקטלוג */
+  useEffect(() => {
+    if (!hydrated) return;
+    if (draft) {
+      navigate({ to: "/catalog", replace: true });
+      return;
+    }
+    if (!lastOrder) {
+      startOrderDraft(undefined, ROUND);
+      navigate({ to: "/catalog", replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, draft, lastOrder]);
 
-  if (step !== "setup" && date) {
+  if (!hydrated || !lastOrder || draft) {
     return (
       <AppShell>
         <AppHeader>
-          <PageTitleBar title="הזמנה חדשה" onBack={() => setStep("setup")} />
+          <PageTitleBar title="הזמנה חדשה" />
         </AppHeader>
-        <Section className="pb-28">
-          <div className="mt-4 rounded-xl border border-border bg-card-muted p-3 text-[12.5px] text-muted-foreground">
-            {formatLongDate(date)}
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-border bg-card p-4 text-center">
-            <span className="mx-auto flex size-[44px] items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <Copy className="size-[20px]" />
-            </span>
-            <h2 className="mt-3 text-[15px] font-bold text-foreground">
-              להעתיק מוצרים מההזמנה הקודמת?
-            </h2>
-            {pastOrders[0] ? (
-              <p className="mt-1 text-[12.5px] text-muted-foreground">
-                {formatLongDate(pastOrders[0].order.date)} • {linesCount(pastOrders[0].order.lines)} מוצרים •{" "}
-                {formatPrice(linesTotal(pastOrders[0].order.lines))}
-              </p>
-            ) : null}
-            <p className="mt-1 text-[12px] text-muted-foreground">
-              המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם לפני האישור
-            </p>
-
-            <div className="mt-4 flex gap-2.5">
-              <Button className="flex-1" pill onClick={copyFromLast}>
-                <Check className="size-[16px]" />
-                כן
-              </Button>
-              <Button variant="outline" className="flex-1" pill onClick={startFromScratch}>
-                <X className="size-[16px]" />
-                לא
-              </Button>
-            </div>
-          </div>
-        </Section>
+        <Section className="pb-28">{null}</Section>
       </AppShell>
     );
   }
@@ -203,234 +78,31 @@ function NewOrderPage() {
         <PageTitleBar title="הזמנה חדשה" />
       </AppHeader>
       <Section className="pb-28">
-
-        <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">בחירת מועד אספקה</h2>
-
-        <div className="rounded-2xl border border-border bg-card p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => shiftMonth(-1)}
-              disabled={!canGoBack}
-              aria-label="חודש קודם"
-              className={cn(
-                "flex size-8 items-center justify-center rounded-lg border border-border",
-                !canGoBack && "opacity-30",
-              )}
-            >
-              <ChevronRight className="size-4" />
-            </button>
-            <div className="text-[13.5px] font-bold text-foreground">
-              {HE_MONTHS[month.month]} {month.year}
-            </div>
-            <button
-              type="button"
-              onClick={() => shiftMonth(1)}
-              disabled={!canGoForward}
-              aria-label="חודש הבא"
-              className={cn(
-                "flex size-8 items-center justify-center rounded-lg border border-border",
-                !canGoForward && "opacity-30",
-              )}
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {WEEKDAY_LABELS.map((label) => (
-              <div key={label} className="pb-1 text-center text-[10.5px] font-semibold text-muted-foreground">
-                {label}
-              </div>
-            ))}
-            {cells.map((cell, i) =>
-              cell === null ? (
-                <div key={`empty-${i}`} />
-              ) : (
-                <button
-                  key={cell.iso}
-                  type="button"
-                  disabled={cell.disabled}
-                  onClick={() => setDate(cell.iso)}
-                  className={cn(
-                    "flex h-[44px] items-center justify-center rounded-lg border text-[13.5px] font-bold",
-                    date === cell.iso
-                      ? "border-[1.5px] border-primary bg-primary-soft text-foreground"
-                      : "border-border bg-card text-foreground",
-                    cell.disabled && "cursor-not-allowed border-transparent bg-card-muted text-muted-foreground opacity-40",
-                    cell.iso === TODAY_ISO &&
-                      "relative border-[1.5px] border-dashed !border-primary !opacity-100 !text-primary",
-                  )}
-                >
-                  <span className="flex flex-col items-center leading-none">
-                    {cell.date.getDate()}
-                    {cell.iso === TODAY_ISO ? (
-                      <span className="mt-0.5 text-[8px] font-semibold text-primary">היום</span>
-                    ) : null}
-                    {(() => {
-                      const marks = markersFor(cell.iso, cell.date.getDay());
-                      if (marks.length === 0) return null;
-                      return (
-                        <span className="mt-0.5 flex gap-[2px]">
-                          {marks.map((m) => (
-                            <span
-                              key={m.key}
-                              title={m.title}
-                              className="text-[8px] font-bold leading-none text-muted-foreground"
-                            >
-                              {m.label}
-                            </span>
-                          ))}
-                        </span>
-                      );
-                    })()}
-                  </span>
-                </button>
-              ),
-            )}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 border-t border-border pt-2 text-[10.5px] text-muted-foreground">
-            <span>מ׳ — הזמנה מאושרת</span>
-            <span>ט׳ — טיוטה</span>
-            <span>ק׳ — הזמנה קבועה</span>
-          </div>
-        </div>
-
-
-        {date && conflictOrder ? (
-          <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
-            כבר קיימת הזמנה {conflictOrder.status === "completed" ? "שסופקה" : "מאושרת"} ל{formatLongDate(date)}.
-          </div>
-        ) : date && conflictRecurring ? (
-          <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
-            קיימת הזמנה קבועה ({conflictRecurring.name}) ל{formatLongDate(date)}.
-          </div>
-        ) : date && isCutoffPassed(date) ? (
-          <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
-            מועד ההזמנות ל{formatLongDate(date)} נסגר ב{formatCutoff(date)}. לא ניתן לפתוח הזמנה חדשה למועד זה — לאישור חריג יש ליצור קשר עם בעל המאפייה.
-          </div>
-        ) : date ? (
-          <div className="mt-4 rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
-            האספקה תתבצע ביום {formatLongDate(date)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 12:00.
-          </div>
-        ) : null}
-      </Section>
-
-      <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
-        <div className="mx-auto max-w-5xl">
-          {missing.length > 0 ? (
-            <div className="mb-2 flex items-start gap-1.5 rounded-[10px] bg-card-muted px-3 py-2 text-[11.5px] font-semibold text-muted-foreground">
-              <Info className="mt-px size-3.5 shrink-0" />
-              <span>כדי להמשיך יש לבחור {missing.join(" ו")}</span>
-            </div>
-          ) : null}
-          <Button size="lg" className="w-full" disabled={missing.length > 0} onClick={proceed}>
-            המשך לבחירת מוצרים
-          </Button>
-        </div>
-      </div>
-
-      {/* התנגשות עם הזמנה קיימת */}
-      <Modal
-        open={Boolean(blockedOrder && conflictOrder && date)}
-        title="כבר קיימת הזמנה למועד זה"
-        description={
-          date
-            ? `יש כבר הזמנה מאושרת ל${formatLongDate(date)}. לא ניתן ליצור הזמנה נוספת לאותו יום.`
-            : undefined
-        }
-        onClose={() => setBlockedOrder(null)}
-      >
-        {date && !isCutoffPassed(date) ? (
-          <Button
-            className="w-full"
-            onClick={() => {
-              if (conflictOrder) {
-                editOrder(conflictOrder.id);
-                goCatalog();
-              }
-            }}
-          >
-            עדכון ההזמנה הקיימת
-          </Button>
-        ) : (
-          <div className="rounded-xl bg-card-muted p-3 text-[12.5px] leading-relaxed text-muted-foreground">
-            {date ? `מועד העדכון להזמנה זו נסגר ב${formatCutoff(date)}. ` : ""}לאישור חריג יש לפנות למנהל המאפייה:
-            <div className="mt-1.5 font-semibold text-foreground">{BAKERY_CONTACT.name}</div>
-            <a href={`tel:${BAKERY_CONTACT.phone}`} className="mt-0.5 block font-semibold text-primary">
-              {BAKERY_CONTACT.phone}
-            </a>
-          </div>
-        )}
-      </Modal>
-
-      {/* מועד ההזמנות נסגר */}
-      <Modal
-        open={blockedCutoff}
-        title="מועד ההזמנה נסגר"
-        xClose
-        onClose={() => setBlockedCutoff(false)}
-      >
-        <div className="space-y-3">
-          <p className="text-[13px] leading-relaxed text-muted-foreground">
-            לא ניתן לפתוח הזמנה למועד זה במערכת. לבירור אפשרויות חריגות ניתן לפנות לבעל המאפייה.
+        <div className="mt-5 rounded-2xl border border-border bg-card p-4 text-center">
+          <span className="mx-auto flex size-[44px] items-center justify-center rounded-2xl bg-primary-soft text-primary">
+            <Copy className="size-[20px]" />
+          </span>
+          <h2 className="mt-3 text-[15px] font-bold text-foreground">להעתיק מוצרים מההזמנה הקודמת?</h2>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">
+            {formatLongDate(lastOrder.date)} • {linesCount(lastOrder.lines)} מוצרים •{" "}
+            {formatPrice(linesTotal(lastOrder.lines))}
           </p>
-          <Button
-            variant="primary"
-            className="w-full font-semibold"
-            onClick={() => navigate({ to: "/contact" })}
-          >
-            צור קשר
-          </Button>
-        </div>
-      </Modal>
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            המוצרים והכמויות יועתקו להזמנה החדשה ותוכלו לערוך אותם. מועד האספקה נבחר בסוף, באישור ההזמנה
+          </p>
 
-      {/* התנגשות עם הזמנה קבועה */}
-      <Modal
-        open={Boolean(blockedRecurring && conflictRecurring && date)}
-        title="קיימת הזמנה קבועה למועד זה"
-        description={
-          date && conflictRecurring
-            ? `ההזמנה הקבועה "${conflictRecurring.name}" כבר מסופקת ב${formatLongDate(date)}. מה תרצו לעשות?`
-            : undefined
-        }
-        onClose={() => setBlockedRecurring(null)}
-      >
-        <div className="flex flex-col gap-2">
-          <Button
-            className="w-full"
-            disabled={Boolean(date && isCutoffPassed(date))}
-            onClick={() => {
-              if (conflictRecurring && date) {
-                startOneTimeUpdate(conflictRecurring.id, date);
-                goCatalog();
-              }
-            }}
-          >
-            עדכון חד־פעמי לתאריך זה
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full font-semibold"
-            onClick={() => {
-              if (conflictRecurring) {
-                startRecurringEdit(conflictRecurring.id);
-                goCatalog();
-              }
-            }}
-          >
-            שינוי ההזמנה הקבועה באופן קבוע
-          </Button>
-          {date && isCutoffPassed(date) ? (
-            <div className="rounded-xl bg-card-muted p-3 text-[12px] leading-relaxed text-muted-foreground">
-              מועד העדכון לתאריך זה נסגר ב{formatCutoff(date)} — לאישור חריג פנו ל{BAKERY_CONTACT.name},{" "}
-              <a href={`tel:${BAKERY_CONTACT.phone}`} className="font-semibold text-primary">
-                {BAKERY_CONTACT.phone}
-              </a>
-            </div>
-          ) : null}
+          <div className="mt-4 flex gap-2.5">
+            <Button className="flex-1" pill onClick={copyFromLast}>
+              <Check className="size-[16px]" />
+              כן
+            </Button>
+            <Button variant="outline" className="flex-1" pill onClick={startFromScratch}>
+              <X className="size-[16px]" />
+              לא
+            </Button>
+          </div>
         </div>
-      </Modal>
+      </Section>
     </AppShell>
   );
 }
