@@ -57,18 +57,32 @@ const initialState: PersistedState = {
   draft: null,
 };
 
+/**
+ * A one-off order draft with no products selected is meaningless — never keep
+ * it in storage, so leaving the app without picking anything leaves no draft.
+ */
+function stripEmptyDraft(s: PersistedState): PersistedState {
+  const d = s.draft;
+  if (d && d.mode === "order" && linesFromQuantities(d.quantities).length === 0) {
+    return { ...s, draft: null };
+  }
+  return s;
+}
+
 function loadState(): PersistedState {
+
   if (typeof window === "undefined") return initialState;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return initialState;
     const parsed = JSON.parse(raw) as Partial<PersistedState>;
-    return {
+    return stripEmptyDraft({
       orders: parsed.orders ?? SEED_ORDERS,
       recurring: parsed.recurring ?? SEED_RECURRING,
       business: parsed.business ?? BUSINESS,
       draft: parsed.draft ?? null,
-    };
+    });
+
   } catch {
     return initialState;
   }
@@ -180,11 +194,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stripEmptyDraft(state)));
     } catch {
       /* storage unavailable — demo continues in memory */
     }
   }, [state, hydrated]);
+
 
   const update = useCallback((fn: (s: PersistedState) => PersistedState) => {
     setState((s) => fn(s));
