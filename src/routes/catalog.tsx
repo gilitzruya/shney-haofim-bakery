@@ -8,6 +8,7 @@ import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
+import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 
 import { CATEGORIES } from "@/data/catalog";
 import { formatDate, formatPrice, formatWeekday, linesTotal, weekdaysLabel } from "@/lib/format";
@@ -22,6 +23,9 @@ export const Route = createFileRoute("/catalog")({
       { property: "og:description", content: "בחרו מוצרים וכמויות מתוך קטלוג המאפייה." },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    copy: search["copy"] === 1 || search["copy"] === "1" ? 1 : undefined,
+  }),
   component: CatalogPage,
 });
 
@@ -33,7 +37,8 @@ function headerOffset() {
 
 function CatalogPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty, setQty } = useStore();
+  const { copy } = Route.useSearch();
+  const { draft, orders, bumpQty, setQty, startOrderDraft } = useStore();
   const [category, setCategory] = useState(CATEGORIES[0]!.id);
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -43,12 +48,37 @@ function CatalogPage() {
   const total = useMemo(() => linesTotal(linesFromQuantities(quantities)), [quantities]);
   const selectedCount = Object.keys(quantities).length;
 
+  /** ההזמנה האחרונה עם מוצרים — לשאלת ההעתקה מעל הקטלוג */
+  const lastOrder = useMemo(
+    () =>
+      orders
+        .filter((o) => o.lines.length > 0 && o.status !== "cancelled" && o.status !== "draft")
+        .sort((a, b) => (a.date < b.date ? 1 : -1))[0],
+    [orders],
+  );
+  const askCopy = copy === 1 && !!lastOrder;
+  const closeCopyPrompt = () => navigate({ to: "/catalog", search: {}, replace: true });
+  const copyFromLast = () => {
+    if (lastOrder) startOrderDraft(draft?.date, draft?.round ?? "morning", lastOrder.lines);
+    closeCopyPrompt();
+  };
+
   const searching = query.trim().length > 0;
   const searchResults = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
     return CATEGORIES.flatMap((c) => c.products).filter((p) => p.name.includes(q));
   }, [query]);
+
+  // Prevent background scrolling while the copy prompt is open.
+  useEffect(() => {
+    if (!askCopy) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [askCopy]);
 
   // Scroll-spy: highlight the category currently in view.
   useEffect(() => {
@@ -181,6 +211,14 @@ function CatalogPage() {
           </Button>
         </div>
       </div>
+      {askCopy && lastOrder ? (
+        <CopyLastOrderPrompt
+          date={lastOrder.date}
+          lines={lastOrder.lines}
+          onConfirm={copyFromLast}
+          onDecline={closeCopyPrompt}
+        />
+      ) : null}
     </AppShell>
   );
 }
