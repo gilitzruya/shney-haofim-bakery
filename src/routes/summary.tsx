@@ -80,6 +80,103 @@ function SummaryPage() {
     }
   };
 
+  if (step === "date") {
+    const now = israelNow();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const maxDate = new Date(today.getFullYear(), today.getMonth() + 2, today.getDate());
+    const conflictOrder = pickDate
+      ? orders.find(
+          (o) =>
+            o.date === pickDate &&
+            (o.status === "approved" ||
+              o.status === "completed" ||
+              o.status === "needs_update" ||
+              o.status === "reopened"),
+        )
+      : undefined;
+    const conflictRecurring =
+      pickDate && !conflictOrder
+        ? recurring.find((r) => r.status === "active" && r.weekdays.includes(parseDate(pickDate).getDay()))
+        : undefined;
+
+    return (
+      <AppShell>
+        <AppHeader>
+          <PageTitleBar title="מועד האספקה" onBack={() => setStep("review")} />
+        </AppHeader>
+        <Section className="pb-28">
+          <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">בחירת מועד אספקה</h2>
+          <DateCalendar
+            value={pickDate}
+            onSelect={setPickDate}
+            isEnabled={(iso, d) =>
+              d.getTime() > today.getTime() &&
+              d.getTime() <= maxDate.getTime() &&
+              d.getDay() !== 6 &&
+              !isCutoffPassed(iso)
+            }
+          />
+
+          {pickDate && conflictOrder ? (
+            <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
+              כבר קיימת הזמנה {conflictOrder.status === "completed" ? "שסופקה" : "מאושרת"} ל
+              {formatLongDate(pickDate)}.
+            </div>
+          ) : pickDate && conflictRecurring ? (
+            <div className="mt-4 rounded-xl border border-primary/35 bg-primary-soft p-3.5 text-[12.5px] text-foreground">
+              קיימת הזמנה קבועה ({conflictRecurring.name}) ל{formatLongDate(pickDate)}.
+            </div>
+          ) : pickDate ? (
+            <div className="mt-4 rounded-xl border border-border bg-card-muted p-3.5 text-[12.5px] text-muted-foreground">
+              האספקה תתבצע ביום {formatLongDate(pickDate)}. ניתן לעדכן את ההזמנה עד יום לפני המועד בשעה 12:00.
+            </div>
+          ) : null}
+        </Section>
+
+        <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
+          <div className="mx-auto flex max-w-5xl gap-2.5">
+            <Button variant="secondary" size="lg" className="font-semibold" onClick={() => setStep("review")}>
+              חזרה לסיכום
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
+              disabled={!pickDate}
+              onClick={() => {
+                if (!pickDate) return;
+                if (isCutoffPassed(pickDate)) return setBlocked(true);
+                setDraft({ ...draft, date: pickDate });
+                setConfirming(true);
+              }}
+            >
+              אישור ההזמנה
+            </Button>
+          </div>
+        </div>
+
+        <Modal
+          open={confirming}
+          title="לאשר את ההזמנה?"
+          description={`סה״כ ${formatPrice(total)} (לפני מע״מ)${pickDate ? ` · ${formatDate(pickDate)}` : ""}`}
+          confirmLabel="אישור"
+          onConfirm={confirm}
+          onClose={() => setConfirming(false)}
+        />
+
+        <Modal
+          open={blocked}
+          title="מועד ההזמנה נסגר"
+          description={
+            pickDate
+              ? `ההזמנות ל${formatDate(pickDate)} נסגרו ב${formatCutoff(pickDate)}. יש לבחור מועד אחר.`
+              : "לא ניתן לאשר את ההזמנה — מועד סגירת ההזמנות חלף."
+          }
+          onClose={() => setBlocked(false)}
+        />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <AppHeader>
