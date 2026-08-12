@@ -1,10 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef } from "react";
 
-import { AppHeader } from "@/components/app/app-header";
-import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import type { RoundId } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
+
 
 export const Route = createFileRoute("/new-order")({
   head: () => ({
