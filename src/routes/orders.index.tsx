@@ -54,7 +54,7 @@ function OrdersPage() {
               description={tab === "open" ? "אפשר להתחיל הזמנה חדשה בכל רגע." : undefined}
               action={
                 tab === "open" ? (
-                  <Link to="/new-order" className="no-underline">
+                  <Link to="/catalog" className="no-underline">
                     <Button>הזמנה חדשה</Button>
                   </Link>
                 ) : undefined

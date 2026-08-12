@@ -47,7 +47,7 @@ function HomePage() {
 
       <Section className="pt-24 pb-10 md:pt-28">
         <Link
-          to="/new-order"
+          to="/catalog"
           className="relative block overflow-hidden rounded-[26px] bg-primary p-5 no-underline shadow-[0_18px_40px_-18px_rgba(74,31,45,0.55)] md:p-7"
         >
           <div className="flex items-center gap-4 md:gap-6">
