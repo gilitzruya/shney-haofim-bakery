@@ -125,6 +125,9 @@ function OrdersTable({
           {views.map((v) => (
             <tr key={v.order.id} className="border-b border-border last:border-b-0">
               <td className="px-4 py-3 font-semibold text-heading">{v.customerName}</td>
+              {showDate ? (
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(v.order.date)}</td>
+              ) : null}
               <td className="px-4 py-3 text-muted-foreground">{roundLabel(v.order.round)}</td>
               <td className="px-4 py-3 text-muted-foreground">{v.itemsCount}</td>
               <td className="px-4 py-3 font-semibold text-foreground">{formatPrice(v.total)}</td>
