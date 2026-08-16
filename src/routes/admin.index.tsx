@@ -147,8 +147,8 @@ function AdminHomePage() {
           <div className="mt-2">
             <AttentionRow
               icon={<AlertTriangle className="size-[18px] text-destructive" />}
-              text={`${drafts} טיוטות עדיין לא אושרו`}
-              count={drafts}
+              text={`${attention.drafts} טיוטות עדיין לא אושרו`}
+              count={attention.drafts}
             />
             <AttentionRow
               icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
