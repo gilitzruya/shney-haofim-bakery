@@ -7,7 +7,11 @@ import type { Order, OrderLine, RecurringOrder } from "@/data/seed";
 import { nextOccurrence, roundQty } from "@/lib/format";
 import { findProduct } from "@/data/catalog";
 
-const STORAGE_KEY = "bakery-demo-state:v10";
+import { buildAdminOrders, SEED_CUSTOMERS } from "@/data/admin-seed";
+import type { Customer } from "@/data/admin-seed";
+import { isoFromToday } from "@/lib/admin/dates";
+
+const STORAGE_KEY = "bakery-demo-state:v11";
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
@@ -42,6 +46,10 @@ interface PersistedState {
   recurring: RecurringOrder[];
   business: Business;
   draft: CartDraft | null;
+  /** admin side: bakery customers */
+  customers: Customer[];
+  /** admin side: orders placed by the other customers */
+  adminOrders: Order[];
 }
 
 const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
@@ -50,11 +58,15 @@ const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
   quantities: {},
 });
 
+const seedAdminOrders = () => buildAdminOrders((offset) => isoFromToday(1 + offset));
+
 const initialState: PersistedState = {
   orders: SEED_ORDERS,
   recurring: SEED_RECURRING,
   business: BUSINESS,
   draft: null,
+  customers: SEED_CUSTOMERS,
+  adminOrders: seedAdminOrders(),
 };
 
 /**
@@ -69,6 +81,14 @@ function stripEmptyDraft(s: PersistedState): PersistedState {
   return s;
 }
 
+/** Demo admin orders are relative to "tomorrow" — refresh them once they age out. */
+function freshAdminOrders(persisted: Order[] | undefined): Order[] {
+  if (!persisted || persisted.length === 0) return seedAdminOrders();
+  const today = isoFromToday(0);
+  const hasFuture = persisted.some((o) => o.date >= today);
+  return hasFuture ? persisted : seedAdminOrders();
+}
+
 function loadState(): PersistedState {
 
   if (typeof window === "undefined") return initialState;
@@ -81,12 +101,15 @@ function loadState(): PersistedState {
       recurring: parsed.recurring ?? SEED_RECURRING,
       business: parsed.business ?? BUSINESS,
       draft: parsed.draft ?? null,
+      customers: parsed.customers ?? SEED_CUSTOMERS,
+      adminOrders: freshAdminOrders(parsed.adminOrders),
     });
 
   } catch {
     return initialState;
   }
 }
+
 
 export function linesFromQuantities(q: Record<string, number>): OrderLine[] {
   return Object.entries(q)

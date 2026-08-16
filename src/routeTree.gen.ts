@@ -15,10 +15,16 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as SummaryRouteImport } from './routes/summary'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as RecurringIndexRouteImport } from './routes/recurring.index'
 import { Route as RecurringNewRouteImport } from './routes/recurring.new'
+import { Route as AdminCustomersIndexRouteImport } from './routes/admin.customers.index'
+import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
+import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
+import { Route as AdminReportsDistributionRouteImport } from './routes/admin.reports.distribution'
+import { Route as AdminReportsProductionRouteImport } from './routes/admin.reports.production'
 import { Route as RecurringRecurringIdIndexRouteImport } from './routes/recurring.$recurringId.index'
 import { Route as RecurringRecurringIdEditRouteImport } from './routes/recurring.$recurringId.edit'
 
@@ -52,6 +58,11 @@ const SummaryRoute = SummaryRouteImport.update({
   path: '/summary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersIndexRoute = OrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
@@ -70,6 +81,32 @@ const RecurringIndexRoute = RecurringIndexRouteImport.update({
 const RecurringNewRoute = RecurringNewRouteImport.update({
   id: '/recurring/new',
   path: '/recurring/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
+  id: '/admin/customers/',
+  path: '/admin/customers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
+  id: '/admin/orders/',
+  path: '/admin/orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
+  id: '/admin/products/',
+  path: '/admin/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsDistributionRoute =
+  AdminReportsDistributionRouteImport.update({
+    id: '/admin/reports/distribution',
+    path: '/admin/reports/distribution',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminReportsProductionRoute = AdminReportsProductionRouteImport.update({
+  id: '/admin/reports/production',
+  path: '/admin/reports/production',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecurringRecurringIdIndexRoute =
@@ -94,9 +131,15 @@ export interface FileRoutesByFullPath {
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
+  '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/recurring/': typeof RecurringIndexRoute
+  '/admin/reports/distribution': typeof AdminReportsDistributionRoute
+  '/admin/reports/production': typeof AdminReportsProductionRoute
   '/recurring/$recurringId/edit': typeof RecurringRecurringIdEditRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
   '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -108,9 +151,15 @@ export interface FileRoutesByTo {
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
+  '/admin': typeof AdminIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/recurring': typeof RecurringIndexRoute
+  '/admin/reports/distribution': typeof AdminReportsDistributionRoute
+  '/admin/reports/production': typeof AdminReportsProductionRoute
   '/recurring/$recurringId/edit': typeof RecurringRecurringIdEditRoute
+  '/admin/customers': typeof AdminCustomersIndexRoute
+  '/admin/orders': typeof AdminOrdersIndexRoute
+  '/admin/products': typeof AdminProductsIndexRoute
   '/recurring/$recurringId': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRoutesById {
@@ -123,9 +172,15 @@ export interface FileRoutesById {
   '/summary': typeof SummaryRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
+  '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/recurring/': typeof RecurringIndexRoute
+  '/admin/reports/distribution': typeof AdminReportsDistributionRoute
+  '/admin/reports/production': typeof AdminReportsProductionRoute
   '/recurring/$recurringId/edit': typeof RecurringRecurringIdEditRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
   '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -139,9 +194,15 @@ export interface FileRouteTypes {
     | '/summary'
     | '/orders/$orderId'
     | '/recurring/new'
+    | '/admin/'
     | '/orders/'
     | '/recurring/'
+    | '/admin/reports/distribution'
+    | '/admin/reports/production'
     | '/recurring/$recurringId/edit'
+    | '/admin/customers/'
+    | '/admin/orders/'
+    | '/admin/products/'
     | '/recurring/$recurringId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,9 +214,15 @@ export interface FileRouteTypes {
     | '/summary'
     | '/orders/$orderId'
     | '/recurring/new'
+    | '/admin'
     | '/orders'
     | '/recurring'
+    | '/admin/reports/distribution'
+    | '/admin/reports/production'
     | '/recurring/$recurringId/edit'
+    | '/admin/customers'
+    | '/admin/orders'
+    | '/admin/products'
     | '/recurring/$recurringId'
   id:
     | '__root__'
@@ -167,9 +234,15 @@ export interface FileRouteTypes {
     | '/summary'
     | '/orders/$orderId'
     | '/recurring/new'
+    | '/admin/'
     | '/orders/'
     | '/recurring/'
+    | '/admin/reports/distribution'
+    | '/admin/reports/production'
     | '/recurring/$recurringId/edit'
+    | '/admin/customers/'
+    | '/admin/orders/'
+    | '/admin/products/'
     | '/recurring/$recurringId/'
   fileRoutesById: FileRoutesById
 }
@@ -182,9 +255,15 @@ export interface RootRouteChildren {
   SummaryRoute: typeof SummaryRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   RecurringNewRoute: typeof RecurringNewRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   RecurringIndexRoute: typeof RecurringIndexRoute
+  AdminReportsDistributionRoute: typeof AdminReportsDistributionRoute
+  AdminReportsProductionRoute: typeof AdminReportsProductionRoute
   RecurringRecurringIdEditRoute: typeof RecurringRecurringIdEditRoute
+  AdminCustomersIndexRoute: typeof AdminCustomersIndexRoute
+  AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
+  AdminProductsIndexRoute: typeof AdminProductsIndexRoute
   RecurringRecurringIdIndexRoute: typeof RecurringRecurringIdIndexRoute
 }
 
@@ -232,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders/': {
       id: '/orders/'
       path: '/orders'
@@ -260,6 +346,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecurringNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/customers/': {
+      id: '/admin/customers/'
+      path: '/admin/customers'
+      fullPath: '/admin/customers/'
+      preLoaderRoute: typeof AdminCustomersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/orders/': {
+      id: '/admin/orders/'
+      path: '/admin/orders'
+      fullPath: '/admin/orders/'
+      preLoaderRoute: typeof AdminOrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/products/': {
+      id: '/admin/products/'
+      path: '/admin/products'
+      fullPath: '/admin/products/'
+      preLoaderRoute: typeof AdminProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/distribution': {
+      id: '/admin/reports/distribution'
+      path: '/admin/reports/distribution'
+      fullPath: '/admin/reports/distribution'
+      preLoaderRoute: typeof AdminReportsDistributionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/production': {
+      id: '/admin/reports/production'
+      path: '/admin/reports/production'
+      fullPath: '/admin/reports/production'
+      preLoaderRoute: typeof AdminReportsProductionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recurring/$recurringId/': {
       id: '/recurring/$recurringId/'
       path: '/recurring/$recurringId'
@@ -286,9 +407,15 @@ const rootRouteChildren: RootRouteChildren = {
   SummaryRoute: SummaryRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
   RecurringNewRoute: RecurringNewRoute,
+  AdminIndexRoute: AdminIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   RecurringIndexRoute: RecurringIndexRoute,
+  AdminReportsDistributionRoute: AdminReportsDistributionRoute,
+  AdminReportsProductionRoute: AdminReportsProductionRoute,
   RecurringRecurringIdEditRoute: RecurringRecurringIdEditRoute,
+  AdminCustomersIndexRoute: AdminCustomersIndexRoute,
+  AdminOrdersIndexRoute: AdminOrdersIndexRoute,
+  AdminProductsIndexRoute: AdminProductsIndexRoute,
   RecurringRecurringIdIndexRoute: RecurringRecurringIdIndexRoute,
 }
 export const routeTree = rootRouteImport

@@ -19,6 +19,8 @@ export interface Order {
   closed?: boolean | undefined;
   note?: string | undefined;
   createdFrom?: "manual" | "recurring" | undefined;
+  /** מזהה הלקוח שההזמנה שייכת לו (ריק = העסק המחובר בצד הלקוח) */
+  customerId?: string | undefined;
   cutoffText?: string | undefined;
 }
 
