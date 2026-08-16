@@ -42,6 +42,7 @@ function NewCustomerPage() {
           onCancel={() => void navigate({ to: "/admin/customers" })}
           onSubmit={(v) => {
             const created = addCustomer({
+              code: v.code.trim() || undefined,
               name: v.name,
               address: v.address,
               contacts: [{ name: v.contactName, phone: v.phone, email: v.email }],
