@@ -14,12 +14,15 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { BakingSheet } from "@/components/admin/baking-sheet";
+import { PackingSheet } from "@/components/admin/packing-sheet";
 import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
 import { Chip } from "@/components/app/status-chip";
 import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { intakeTime, tomorrowIso } from "@/lib/admin/dates";
 import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
+import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
 import { formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -40,15 +43,35 @@ export const Route = createFileRoute("/admin/")({
   component: AdminHomePage,
 });
 
+type PrintTarget = "production" | "distribution" | null;
+
 function AdminHomePage() {
   const { hydrated, documents } = useStore();
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
+  const [pendingPrint, setPendingPrint] = useState<PrintTarget>(null);
+
   const summary = useMemo(() => {
     const forDate = views.filter((v) => ordersForDate([v.order], date).length > 0);
     return summarizeDay(forDate, date);
   }, [views, date]);
+
+  const tomorrowViews = useMemo(
+    () => views.filter((v) => v.order.date === date && v.order.status !== "cancelled" && v.order.status !== "draft"),
+    [views, date],
+  );
+  const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
+  const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
+
+  useEffect(() => {
+    if (!pendingPrint) return undefined;
+    const id = window.setTimeout(() => {
+      window.print();
+      setPendingPrint(null);
+    }, 250);
+    return () => window.clearTimeout(id);
+  }, [pendingPrint]);
 
   const todayIntake = useMemo(
     () =>
@@ -60,7 +83,6 @@ function AdminHomePage() {
   );
   const [expanded, setExpanded] = useState(false);
   const visibleIntake = expanded ? todayIntake : todayIntake.slice(0, 4);
-
 
   const attention = useMemo(() => {
     const drafts = views.filter((v) => v.order.status === "draft").length;
@@ -85,12 +107,23 @@ function AdminHomePage() {
 
   return (
     <AdminShell>
-      <Section className="pt-4 pb-10 md:pt-6">
+      {pendingPrint === "production" ? <BakingSheet date={date} groups={productionGroups} /> : null}
+      {pendingPrint === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
+
+      <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <ReportTile to="/admin/reports/distribution" icon={<Truck className="size-5" />} title="הפקת דוח חלוקה" />
-          <ReportTile to="/admin/reports/production" icon={<FileText className="size-5" />} title="הפקת דוח אפייה / ייצור" />
+          <PrintReportButton
+            icon={<Truck className="size-5" />}
+            title="הדפסת דוח חלוקה"
+            onClick={() => setPendingPrint("distribution")}
+          />
+          <PrintReportButton
+            icon={<FileText className="size-5" />}
+            title="הדפסת דוח אפייה / ייצור"
+            onClick={() => setPendingPrint("production")}
+          />
         </div>
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
@@ -173,19 +206,20 @@ function AdminHomePage() {
   );
 }
 
-function ReportTile({
-  to,
+function PrintReportButton({
   icon,
   title,
+  onClick,
 }: {
-  to: "/admin/reports/production" | "/admin/reports/distribution";
   icon: React.ReactNode;
   title: string;
+  onClick: () => void;
 }) {
   return (
-    <Link
-      to={to}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 no-underline"
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 text-start"
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2">
@@ -194,7 +228,7 @@ function ReportTile({
           {icon}
         </span>
       </span>
-    </Link>
+    </button>
   );
 }
 

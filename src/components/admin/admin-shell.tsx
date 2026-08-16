@@ -12,7 +12,8 @@ export const ADMIN_NAV = [
   { to: "/admin/orders", label: "הזמנות" },
   { to: "/admin/customers", label: "לקוחות" },
   { to: "/admin/products", label: "מוצרים" },
-  { to: "/admin/reports/production", label: "דוחות" },
+  { to: "/admin/reports/distribution", label: "דוח חלוקה" },
+  { to: "/admin/reports/production", label: "דוח אפייה / ייצור" },
   { to: "/admin/documents", label: "מסמכים" },
 ] as const;
 
