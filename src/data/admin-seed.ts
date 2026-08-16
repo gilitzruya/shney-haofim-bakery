@@ -129,7 +129,6 @@ const SPECS: SeedSpec[] = [
       { productId: "c1_14", qty: 15 },
       { productId: "c3_1", qty: 30 },
     ],
-    status: "needs_update",
   },
   {
     customerId: "cust-5",
