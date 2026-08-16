@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AdminOrderList } from "@/components/admin/order-list";
+import { BatchDocumentsBar } from "@/components/admin/batch-documents-bar";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
@@ -38,7 +39,9 @@ function shiftIso(iso: string, days: number): string {
 }
 
 function AdminOrdersPage() {
-  const { hydrated } = useStore();
+  const { hydrated, documents, issueDocuments } = useStore();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [issuing, setIssuing] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundFilter>("all");
 
@@ -48,6 +51,24 @@ function AdminOrdersPage() {
     [views, round],
   );
   const summary = summarizeDay(filtered, date);
+
+  const latestDocFor = (orderId: string) =>
+    documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
+
+  const toggle = (orderId: string) =>
+    setSelected((prev) =>
+      prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId],
+    );
+
+  const issueSelected = async () => {
+    setIssuing(true);
+    try {
+      await issueDocuments(selected);
+      setSelected([]);
+    } finally {
+      setIssuing(false);
+    }
+  };
 
   return (
     <AdminShell>
@@ -104,9 +125,20 @@ function AdminOrdersPage() {
           {!hydrated ? null : filtered.length === 0 ? (
             <EmptyState title="אין הזמנות ליום זה" description="אפשר לעבור ליום אחר או לשנות את סינון הסבב." />
           ) : (
-            <AdminOrderList views={filtered} />
+            <AdminOrderList
+              views={filtered}
+              selection={{ selected, onToggle: toggle }}
+              documentFor={latestDocFor}
+            />
           )}
         </div>
+
+        <BatchDocumentsBar
+          count={selected.length}
+          busy={issuing}
+          onIssue={issueSelected}
+          onClear={() => setSelected([])}
+        />
       </Section>
     </AdminShell>
   );
