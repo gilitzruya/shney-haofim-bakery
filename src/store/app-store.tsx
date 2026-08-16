@@ -200,6 +200,11 @@ interface StoreValue extends PersistedState {
   discardDraft: () => void;
   /* business */
   saveBusiness: (patch: Partial<Business>) => void;
+  /* admin: customers */
+  getCustomer: (id: string) => Customer | undefined;
+  addCustomer: (customer: Omit<Customer, "id">) => Customer;
+  updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => void;
+  setCustomerBlocked: (id: string, blocked: boolean) => void;
   resetDemoData: () => void;
 }
 
@@ -476,6 +481,26 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
 
       saveBusiness: (patch) => update((s) => ({ ...s, business: { ...s.business, ...patch } })),
+
+      getCustomer: (id) => state.customers.find((c) => c.id === id),
+
+      addCustomer: (customer) => {
+        const created: Customer = { ...customer, id: `cust-${Date.now()}` };
+        update((s) => ({ ...s, customers: [...s.customers, created] }));
+        return created;
+      },
+
+      updateCustomer: (id, patch) =>
+        update((s) => ({
+          ...s,
+          customers: s.customers.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        })),
+
+      setCustomerBlocked: (id, blocked) =>
+        update((s) => ({
+          ...s,
+          customers: s.customers.map((c) => (c.id === id ? { ...c, blocked } : c)),
+        })),
 
       resetDemoData: () => {
         try {
