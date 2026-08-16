@@ -94,7 +94,7 @@ function AdminHomePage() {
         v.order.status !== "draft" &&
         !documents.some((d) => d.orderId === v.order.id && d.type === "delivery_note"),
     ).length;
-    return { drafts: drafts || 3, flagged: flagged || 1, missingNotes: missingNotes || 2 };
+    return { drafts, flagged, missingNotes };
   }, [views, documents, date]);
 
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
