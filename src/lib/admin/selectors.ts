@@ -37,15 +37,16 @@ export function toOrderViews(orders: Order[], customers: Customer[]): AdminOrder
 export interface DaySummary {
   date: string;
   ordersCount: number;
-  itemsCount: number;
+  productsCount: number;
   total: number;
 }
 
 export function summarizeDay(views: AdminOrderView[], date: string): DaySummary {
+  const productIds = new Set(views.flatMap((v) => v.order.lines.map((l) => l.productId)));
   return {
     date,
     ordersCount: views.length,
-    itemsCount: views.reduce((sum, v) => sum + v.itemsCount, 0),
+    productsCount: productIds.size,
     total: views.reduce((sum, v) => sum + v.total, 0),
   };
 }
