@@ -132,7 +132,7 @@ function NewCustomerOrderPage() {
   return (
     <AdminShell>
       <Section className="pt-4 pb-28">
-        <PageTitleBar title={customer.name} backTo="/admin/customers/$customerId" backParams={{ customerId }} />
+        <PageTitleBar title={customer.name} onBack={() => void navigate({ to: "/admin/customers/$customerId", params: { customerId } })} />
 
         <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary">
           <Sparkles className="size-3.5" />
