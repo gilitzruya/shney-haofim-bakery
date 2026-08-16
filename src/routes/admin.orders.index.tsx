@@ -167,12 +167,17 @@ function AdminOrdersPage() {
         </div>
 
         <div className="sticky top-[58px] z-10 -mx-3.5 mt-3 bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
-          <div className="rounded-[16px] border border-border bg-card px-3.5 py-3">
-            <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
-              <CalendarDays className="size-3.5" />
-              {formatLongDate(date)}
+          <div className="overflow-hidden rounded-[16px] border border-primary/20 bg-primary-soft shadow-sm">
+            <div className="flex items-center justify-between border-b border-primary/10 px-3.5 py-2">
+              <div className="flex items-center gap-1.5 text-[13px] font-bold text-primary">
+                <CalendarDays className="size-4" />
+                {formatLongDate(date)}
+              </div>
+              <div className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                סיכום יום
+              </div>
             </div>
-            <div className="mt-2.5 grid grid-cols-3 divide-x divide-x-reverse divide-border text-center">
+            <div className="grid grid-cols-3 divide-x divide-x-reverse divide-primary/10 px-1 py-3 text-center">
               <Metric value={hydrated ? String(summary.ordersCount) : "—"} label="הזמנות" />
               <Metric value={hydrated ? String(summary.productsCount) : "—"} label="מוצרים" />
               <Metric value={hydrated ? formatPrice(summary.total) : "—"} label="סה״כ" />
@@ -224,8 +229,8 @@ function AdminOrdersPage() {
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div className="px-1">
-      <div className="text-[17px] font-bold text-heading">{value}</div>
-      <div className="mt-0.5 text-[11px] text-muted-foreground">{label}</div>
+      <div className="text-[19px] font-extrabold text-primary md:text-[22px]">{value}</div>
+      <div className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{label}</div>
     </div>
   );
 }
