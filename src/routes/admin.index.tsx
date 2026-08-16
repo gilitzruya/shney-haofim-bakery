@@ -146,7 +146,7 @@ function AdminHomePage() {
                       {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      {formatWeekday(view.order.date)} · {formatShortDateNumeric(view.order.date)}
+                      הזמנה ל{formatWeekday(view.order.date)} · {formatShortDateNumeric(view.order.date)}
                     </span>
                   </span>
                   <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{time}</span>
