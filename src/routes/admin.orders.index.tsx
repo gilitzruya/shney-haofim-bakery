@@ -116,7 +116,7 @@ function AdminOrdersPage() {
 
         <div className="mt-3 flex items-center justify-between rounded-[14px] bg-card-muted px-3.5 py-2.5 text-[12px] text-muted-foreground">
           <span>
-            {hydrated ? `${summary.ordersCount} הזמנות · ${summary.itemsCount} פריטים` : "טוען…"}
+            {hydrated ? `${summary.ordersCount} הזמנות · ${summary.productsCount} מוצרים` : "טוען…"}
           </span>
           <span className="font-bold text-heading">{hydrated ? formatPrice(summary.total) : ""}</span>
         </div>
