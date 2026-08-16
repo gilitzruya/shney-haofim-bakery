@@ -53,6 +53,7 @@ function AdminOrderDetailPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [adding, setAdding] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmSave, setConfirmSave] = useState(false);
 
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
@@ -113,11 +114,29 @@ function AdminOrderDetailPage() {
       return next;
     });
 
+  const saveSummary = () => {
+    const originalMap: Record<string, number> = {};
+    for (const l of order.lines) originalMap[l.productId] = l.qty;
+    const currentMap = quantities;
+
+    const added = Object.entries(currentMap).filter(([id, qty]) => qty > 0 && !(id in originalMap));
+    const removed = Object.entries(originalMap).filter(([id, qty]) => (currentMap[id] ?? 0) <= 0);
+    const changed = Object.entries(currentMap).filter(([id, qty]) => {
+      const originalQty = originalMap[id];
+      return qty > 0 && originalQty !== undefined && qty !== originalQty;
+    });
+
+    return { added, removed, changed, originalCount: order.lines.length, newCount: currentLines.length };
+  };
+
   const save = () => {
     updateOrderAsAdmin(order.id, { lines: currentLines });
     setEditing(false);
+    setConfirmSave(false);
     toast.success("ההזמנה עודכנה. הלקוח יראה את השינוי");
   };
+
+  const promptSave = () => setConfirmSave(true);
 
   if (editing && adding) {
     return (
@@ -307,6 +326,34 @@ function AdminOrderDetailPage() {
         )}
       </Section>
 
+      <AlertDialog open={confirmSave} onOpenChange={setConfirmSave}>
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>לאשר את השינויים בהזמנה?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="block">ההזמנה של {view.customerName} לתאריך {formatLongDate(order.date)} תעודכן.</span>
+              {(() => {
+                const summary = saveSummary();
+                const parts = [];
+                if (summary.added.length) parts.push(`${summary.added.length} פריטים חדשים`);
+                if (summary.removed.length) parts.push(`${summary.removed.length} פריטים הוסרו`);
+                if (summary.changed.length) parts.push(`${summary.changed.length} פריטים שונו בכמות`);
+                if (parts.length === 0) parts.push("לא זוהו שינויים בכמויות");
+                return (
+                  <span className="mt-1.5 block">
+                    {parts.join(" · ")} ({summary.originalCount} פריטים → {summary.newCount} פריטים)
+                  </span>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:justify-start">
+            <AlertDialogCancel>חזרה</AlertDialogCancel>
+            <AlertDialogAction onClick={save}>אישור השינויים</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
         <AlertDialogContent dir="rtl" className="text-right">
           <AlertDialogHeader>
@@ -328,9 +375,9 @@ function AdminOrderDetailPage() {
         <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
           <div className="mx-auto flex max-w-5xl gap-2.5">
             <Button variant="secondary" size="lg" className="font-semibold" onClick={() => setEditing(false)}>
-              ביטול
+              ביטול העריכה
             </Button>
-            <Button size="lg" className="flex-1" onClick={save}>
+            <Button size="lg" className="flex-1" onClick={promptSave}>
               שמירת השינויים
             </Button>
           </div>
