@@ -178,23 +178,35 @@ function AdminHomePage() {
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
           <h2 className="text-[16px] font-bold text-primary">דורש טיפול</h2>
-          <div className="mt-2">
-            <AttentionRow
-              icon={<AlertTriangle className="size-[18px] text-destructive" />}
-              text={`${attention.drafts} טיוטות עדיין לא אושרו`}
-              count={attention.drafts}
-            />
-            <AttentionRow
-              icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
-              text={attention.flagged === 1 ? "הזמנה אחת עם חריגה" : `${attention.flagged} הזמנות עם חריגה`}
-              count={attention.flagged}
-            />
-            <AttentionRow
-              icon={<ClipboardList className="size-[18px] text-muted-foreground" />}
-              text={`${attention.missingNotes} תעודות משלוח טרם הופקו`}
-              count={attention.missingNotes}
-            />
-          </div>
+          {hydrated && attention.drafts + attention.flagged + attention.missingNotes === 0 ? (
+            <div className="py-3 text-center text-[12.5px] text-muted-foreground">
+              אין כרגע משימות שדורשות טיפול 🎉
+            </div>
+          ) : (
+            <div className="mt-2">
+              {attention.drafts > 0 ? (
+                <AttentionRow
+                  icon={<AlertTriangle className="size-[18px] text-destructive" />}
+                  text={`${attention.drafts} טיוטות עדיין לא אושרו`}
+                  count={attention.drafts}
+                />
+              ) : null}
+              {attention.flagged > 0 ? (
+                <AttentionRow
+                  icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
+                  text={attention.flagged === 1 ? "הזמנה אחת עם חריגה" : `${attention.flagged} הזמנות עם חריגה`}
+                  count={attention.flagged}
+                />
+              ) : null}
+              {attention.missingNotes > 0 ? (
+                <AttentionRow
+                  icon={<ClipboardList className="size-[18px] text-muted-foreground" />}
+                  text={`${attention.missingNotes} תעודות משלוח טרם הופקו`}
+                  count={attention.missingNotes}
+                />
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-3">
