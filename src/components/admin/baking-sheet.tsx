@@ -10,7 +10,10 @@ export function BakingSheet({ date, groups }: { date: string; groups: Production
   const rows = groups.flatMap((g) => g.rows);
 
   return (
-    <div className="baking-sheet hidden print:block" dir="rtl">
+    <div
+      className="baking-sheet hidden print:fixed print:inset-0 print:z-[999] print:block print:bg-white print:p-4"
+      dir="rtl"
+    >
       <div className="mb-3 text-center">
         <div className="text-[20px] font-bold text-black">דוח אפייה</div>
         <div className="text-[13px] text-black">
