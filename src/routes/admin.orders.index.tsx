@@ -87,7 +87,7 @@ function AdminOrdersPage() {
             type="button"
             onClick={() => setDate(tomorrowIso())}
             className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-bold",
+              "flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-[12.5px] font-bold",
               isTomorrow
                 ? "bg-primary text-primary-foreground"
                 : "border border-border bg-card text-foreground",
@@ -96,15 +96,15 @@ function AdminOrdersPage() {
             <CalendarDays className="size-4" />
             מחר
           </button>
-          <label className="flex flex-1 items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground">
-            <CalendarDays className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="shrink-0 text-muted-foreground">בחירת תאריך</span>
+          <label className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5 text-[12.5px] font-bold text-foreground">
+            <CalendarDays className="size-4 text-foreground" />
+            <span className="shrink-0">בחירת תאריך</span>
             <input
               type="date"
               value={date}
               onChange={(e) => e.target.value && setDate(e.target.value)}
               aria-label="בחירת תאריך אספקה"
-              className="w-full min-w-0 bg-transparent text-[12px] text-foreground outline-none"
+              className="sr-only"
             />
           </label>
         </div>
