@@ -140,9 +140,14 @@ function AdminHomePage() {
                   params={{ orderId: view.order.id }}
                   className="flex items-center gap-2 border-b border-dashed border-border py-2.5 no-underline last:border-b-0"
                 >
-                  <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="truncate text-[13.5px] font-semibold text-foreground">{view.customerName}</span>
-                    {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate text-[13.5px] font-semibold text-foreground">{view.customerName}</span>
+                      {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatWeekday(view.order.date)} · {formatShortDateNumeric(view.order.date)}
+                    </span>
                   </span>
                   <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{time}</span>
                   <span className="w-[74px] shrink-0 text-end text-[13px] font-bold text-heading tabular-nums">
@@ -154,15 +159,15 @@ function AdminHomePage() {
             )}
           </div>
 
-          {hydrated && todayIntake.length > 4 ? (
+          {hydrated && todayIntake.length > 3 ? (
             <button
               type="button"
-              aria-expanded={expanded}
-              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={intakeExpanded}
+              onClick={() => setIntakeExpanded((v) => !v)}
               className="mt-2 flex w-full items-center justify-center gap-1.5 py-1 text-[12.5px] font-bold text-primary"
             >
-              {expanded ? "הצגה מצומצמת" : `לכל ההזמנות של היום (${todayIntake.length})`}
-              <ChevronDown className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+              {intakeExpanded ? "הצגה מצומצמת" : `לכל ההזמנות שנכנסו היום (${todayIntake.length})`}
+              <ChevronDown className={`size-4 transition-transform ${intakeExpanded ? "rotate-180" : ""}`} />
             </button>
           ) : null}
         </div>
