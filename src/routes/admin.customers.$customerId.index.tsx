@@ -9,6 +9,8 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
+import { Tabs } from "@/components/app/tabs";
+import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { roundLabel } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
 
@@ -26,11 +28,14 @@ export const Route = createFileRoute("/admin/customers/$customerId/")({
   component: CustomerDetailPage,
 });
 
+type TabId = "details" | "prices";
+
 function CustomerDetailPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/" });
   const { customers, hydrated, updateCustomer, setCustomerBlocked } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
+  const [tab, setTab] = useState<TabId>("details");
   const [confirmBlock, setConfirmBlock] = useState(false);
 
   if (!customer) {
@@ -147,6 +152,20 @@ function CustomerDetailPage() {
                 {customer.blocked ? "שחרור חסימה" : "חסימת לקוח"}
               </Button>
             </div>
+
+            {customer.blocked ? (
+              <div className="rounded-[14px] border border-border bg-destructive-bg px-3.5 py-3 text-[12.5px] text-destructive">
+                הלקוח חסום — לא ניתן ליצור עבורו הזמנה חדשה.
+              </div>
+            ) : (
+              <Link
+                to="/admin/customers/$customerId/new-order"
+                params={{ customerId: customer.id }}
+                className="flex items-center justify-center rounded-xl border border-primary bg-transparent px-4 py-2.5 text-[13px] font-bold text-primary no-underline"
+              >
+                יצירת הזמנה בשם הלקוח
+              </Link>
+            )}
           </div>
         )}
       </Section>
