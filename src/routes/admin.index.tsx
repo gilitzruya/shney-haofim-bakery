@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
   Croissant,
+  ChevronDown,
   ChevronLeft,
   ClipboardList,
   FileText,
@@ -9,6 +10,7 @@ import {
   Truck,
   Users,
 } from "lucide-react";
+
 import { useEffect, useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -114,7 +116,7 @@ function AdminHomePage() {
             {!hydrated || todayIntake.length === 0 ? (
               <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות חדשות היום</div>
             ) : (
-              todayIntake.map(({ view, time }, index) => (
+              visibleIntake.map(({ view, time }, index) => (
                 <Link
                   key={view.order.id}
                   to="/admin/orders/$orderId"
@@ -135,14 +137,19 @@ function AdminHomePage() {
             )}
           </div>
 
-          <Link
-            to="/admin/orders"
-            className="mt-2 flex items-center justify-center gap-1.5 py-1 text-[12.5px] font-bold text-primary no-underline"
-          >
-            לכל ההזמנות של היום
-            <ChevronLeft className="size-4" />
-          </Link>
+          {hydrated && todayIntake.length > 4 ? (
+            <button
+              type="button"
+              aria-expanded={expanded}
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 py-1 text-[12.5px] font-bold text-primary"
+            >
+              {expanded ? "הצגה מצומצמת" : `לכל ההזמנות של היום (${todayIntake.length})`}
+              <ChevronDown className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </button>
+          ) : null}
         </div>
+
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
           <h2 className="text-[16px] font-bold text-primary">דורש טיפול</h2>
