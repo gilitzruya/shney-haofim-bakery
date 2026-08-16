@@ -604,11 +604,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       documentsForOrder: (orderId) => state.documents.filter((d) => d.orderId === orderId),
 
       issueDocument: async (orderId, type = "delivery_note") => {
-        await value.issueDocuments([orderId], type);
+        await issueMany([orderId], type);
       },
 
       issueDocuments: async (orderIds, type = "delivery_note") => {
-        if (!orderIds.length) return;
+        await issueMany(orderIds, type);
+      },
         const createdAt = new Date().toISOString();
         const pending: AdminDocument[] = orderIds.map((orderId, i) => ({
           id: `doc-${Date.now()}-${i}`,
