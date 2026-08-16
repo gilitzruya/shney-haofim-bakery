@@ -14,19 +14,26 @@ import { formatDate, formatPrice } from "@/lib/format";
 export function AdminOrderList({
   views,
   documentFor,
+  showDate = false,
 }: {
   views: AdminOrderView[];
   documentFor?: ((orderId: string) => AdminDocument | undefined) | undefined;
+  showDate?: boolean;
 }) {
   return (
     <>
       <div className="flex flex-col gap-2 md:hidden">
         {views.map((v) => (
-          <OrderRowCard key={v.order.id} view={v} document={documentFor?.(v.order.id)} />
+          <OrderRowCard
+            key={v.order.id}
+            view={v}
+            document={documentFor?.(v.order.id)}
+            showDate={showDate}
+          />
         ))}
       </div>
       <div className="hidden md:block">
-        <OrdersTable views={views} documentFor={documentFor} />
+        <OrdersTable views={views} documentFor={documentFor} showDate={showDate} />
       </div>
     </>
   );
