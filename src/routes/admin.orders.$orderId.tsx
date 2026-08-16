@@ -1,7 +1,19 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { FileText, MapPin, Pencil, Phone, Plus } from "lucide-react";
+import { FileText, MapPin, Pencil, Phone, Plus, RotateCcw, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
@@ -40,6 +52,8 @@ function AdminOrderDetailPage() {
   const [editing, setEditing] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [adding, setAdding] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
   const customer = view?.customer;
@@ -57,6 +71,20 @@ function AdminOrderDetailPage() {
 
   const { order } = view;
   const contact = customer?.contacts[0];
+  const isCancelled = order.status === "cancelled";
+
+  const cancelOrder = () => {
+    updateOrderAsAdmin(order.id, { status: "cancelled" });
+    setEditing(false);
+    setConfirmCancel(false);
+    toast.success("ההזמנה בוטלה. הלקוח יראה את הביטול");
+  };
+
+  const restoreOrder = () => {
+    updateOrderAsAdmin(order.id, { status: "approved" });
+    toast.success("ההזמנה שוחזרה");
+  };
+
 
   const currentLines = editing
     ? Object.entries(quantities)
@@ -149,7 +177,7 @@ function AdminOrderDetailPage() {
               <Plus className="size-3.5" />
               הוספת מוצרים
             </button>
-          ) : (
+          ) : isCancelled ? null : (
             <button
               type="button"
               onClick={startEdit}
@@ -159,6 +187,7 @@ function AdminOrderDetailPage() {
               עריכת ההזמנה
             </button>
           )}
+
         </div>
 
 
@@ -218,7 +247,7 @@ function AdminOrderDetailPage() {
           </div>
         </Card>
 
-        {editing ? null : (
+        {editing || isCancelled ? null : (
           <div className="mt-4 flex flex-col gap-2 rounded-[16px] border border-border bg-card p-3.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[13.5px] font-bold text-heading">תעודת משלוח</span>
@@ -252,7 +281,46 @@ function AdminOrderDetailPage() {
             </span>
           </div>
         )}
+
+        {editing ? null : isCancelled ? (
+          <div className="mt-4 flex flex-col gap-2 rounded-[16px] border border-destructive bg-destructive-bg p-3.5">
+            <span className="text-[13.5px] font-bold text-destructive">ההזמנה בוטלה</span>
+            <span className="text-[11.5px] text-muted-foreground">
+              ההזמנה אינה נכללת בדוחות הייצור והחלוקה. אפשר לשחזר אותה במידת הצורך.
+            </span>
+            <Button variant="secondary" size="lg" className="w-full md:w-auto" onClick={restoreOrder}>
+              <RotateCcw className="size-4" />
+              שחזור ההזמנה
+            </Button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmCancel(true)}
+            className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-[16px] border border-destructive bg-destructive-bg px-4 py-3 text-[13.5px] font-bold text-destructive"
+          >
+            <XCircle className="size-4" />
+            ביטול ההזמנה
+          </button>
+        )}
       </Section>
+
+      <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>לבטל את ההזמנה?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ההזמנה של {view.customerName} לתאריך {formatLongDate(order.date)} תסומן כמבוטלת ולא תיכלל בדוחות. הלקוח
+              יראה את הביטול.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:justify-start">
+            <AlertDialogCancel>חזרה</AlertDialogCancel>
+            <AlertDialogAction onClick={cancelOrder}>ביטול ההזמנה</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {editing ? (
         <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
