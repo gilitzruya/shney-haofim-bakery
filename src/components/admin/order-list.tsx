@@ -8,7 +8,7 @@ import { StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
 import { intakeTime } from "@/lib/admin/dates";
 import type { AdminOrderView } from "@/lib/admin/selectors";
-import { formatPrice } from "@/lib/format";
+import { formatDate, formatPrice } from "@/lib/format";
 
 /** רשימת הזמנות: כרטיסים במובייל, טבלה בדסקטופ. */
 export function AdminOrderList({
