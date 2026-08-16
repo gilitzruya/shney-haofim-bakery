@@ -43,7 +43,7 @@ function Divider() {
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div className="min-w-0 flex-1 text-center">
-      <div className="truncate text-[15.5px] font-bold text-primary md:text-[19px]">{value}</div>
+      <div className="truncate text-[19px] font-bold text-primary md:text-[24px]">{value}</div>
       <div className="mt-0.5 text-[10.5px] text-muted-foreground">{label}</div>
     </div>
   );
