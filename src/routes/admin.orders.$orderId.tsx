@@ -71,6 +71,20 @@ function AdminOrderDetailPage() {
 
   const { order } = view;
   const contact = customer?.contacts[0];
+  const isCancelled = order.status === "cancelled";
+
+  const cancelOrder = () => {
+    updateOrderAsAdmin(order.id, { status: "cancelled" });
+    setEditing(false);
+    setConfirmCancel(false);
+    toast.success("ההזמנה בוטלה. הלקוח יראה את הביטול");
+  };
+
+  const restoreOrder = () => {
+    updateOrderAsAdmin(order.id, { status: "approved" });
+    toast.success("ההזמנה שוחזרה");
+  };
+
 
   const currentLines = editing
     ? Object.entries(quantities)
