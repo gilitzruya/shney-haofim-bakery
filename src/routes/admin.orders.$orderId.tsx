@@ -347,9 +347,9 @@ function AdminOrderDetailPage() {
         <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
           <div className="mx-auto flex max-w-5xl gap-2.5">
             <Button variant="secondary" size="lg" className="font-semibold" onClick={() => setEditing(false)}>
-              ביטול
+              ביטול העריכה
             </Button>
-            <Button size="lg" className="flex-1" onClick={save}>
+            <Button size="lg" className="flex-1" onClick={promptSave}>
               שמירת השינויים
             </Button>
           </div>
