@@ -96,7 +96,7 @@ function AdminOrdersPage() {
             <CalendarDays className="size-4" />
             מחר
           </button>
-          <label className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5 text-[12.5px] font-bold text-foreground">
+          <label className="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5 text-[12.5px] font-bold text-foreground">
             <CalendarDays className="size-4 text-foreground" />
             <span className="shrink-0">בחירת תאריך</span>
             <input
@@ -104,7 +104,7 @@ function AdminOrdersPage() {
               value={date}
               onChange={(e) => e.target.value && setDate(e.target.value)}
               aria-label="בחירת תאריך אספקה"
-              className="sr-only"
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             />
           </label>
         </div>
