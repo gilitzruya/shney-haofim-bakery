@@ -130,7 +130,16 @@ function AdminOrderDetailPage() {
 
         <div className="mt-4 mb-2 flex items-center justify-between gap-2">
           <h2 className="text-[15px] font-bold text-heading">מוצרים בהזמנה</h2>
-          {editing ? null : (
+          {editing ? (
+            <button
+              type="button"
+              onClick={() => setAdding((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
+            >
+              <Plus className="size-3.5" />
+              {adding ? "סגירת הוספת מוצרים" : "הוספת מוצרים"}
+            </button>
+          ) : (
             <button
               type="button"
               onClick={startEdit}
@@ -142,7 +151,7 @@ function AdminOrderDetailPage() {
           )}
         </div>
 
-        {editing ? (
+        {editing && adding ? (
           <Card className="mb-2 flex flex-col gap-2.5">
             <div className="text-[12px] font-semibold text-muted-foreground">הוספת מוצר להזמנה</div>
             <div className="relative">
@@ -155,6 +164,8 @@ function AdminOrderDetailPage() {
                 className="pe-9"
               />
             </div>
+            <div className="flex max-h-[320px] flex-col gap-2 overflow-y-auto">
+
             {searchResults.map((p) => (
               <div
                 key={p.id}
