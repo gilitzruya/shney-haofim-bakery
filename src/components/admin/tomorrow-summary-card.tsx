@@ -21,7 +21,7 @@ export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
       <div className="mt-3.5 flex items-stretch justify-between gap-1">
         <Metric value={formatShortPrice(summary.total)} label="סכום כולל" />
         <Divider />
-        <Metric value={String(summary.itemsCount)} label='יח\'/ק״ג' />
+        <Metric value={String(summary.itemsCount)} label={"יח'/ק\"ג"} />
         <Divider />
         <Metric value={String(summary.ordersCount)} label="הזמנות" />
       </div>
