@@ -173,13 +173,9 @@ function AdminHomePage() {
         </div>
 
 
-        <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
-          <h2 className="text-[16px] font-bold text-primary">דורש טיפול</h2>
-          {hydrated && attention.drafts + attention.flagged + attention.missingNotes === 0 ? (
-            <div className="py-3 text-center text-[12.5px] text-muted-foreground">
-              אין כרגע משימות שדורשות טיפול 🎉
-            </div>
-          ) : (
+        {hydrated && attention.drafts + attention.flagged + attention.missingNotes > 0 ? (
+          <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
+            <h2 className="text-[16px] font-bold text-primary">דורש טיפול</h2>
             <div className="mt-2">
               {attention.drafts > 0 ? (
                 <AttentionRow
@@ -196,8 +192,8 @@ function AdminHomePage() {
                 />
               ) : null}
             </div>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         <div className="mt-3 grid grid-cols-2 gap-3">
           <ShortcutTile to="/admin/customers" icon={<Users className="size-5" />} title="לקוחות" subtitle="ניהול לקוחות" />
