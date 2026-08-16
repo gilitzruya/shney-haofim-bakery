@@ -1,8 +1,14 @@
 import { Link } from "@tanstack/react-router";
 
 import type { DaySummary } from "@/lib/admin/selectors";
-import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
-import heroImage from "@/assets/home-hero.jpg";
+import { formatDate, formatWeekday } from "@/lib/format";
+
+/** "₪8,740" — סכום קצר לתצוגת סיכום. */
+function formatShortPrice(value: number): string {
+  const rounded = Math.round(value);
+  return `₪${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+}
+import breadImage from "@/assets/products/חלה_רגילה.webp.asset.json";
 
 /** סיכום תפעולי גדול וברור של יום האספקה הקרוב. */
 export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
@@ -12,7 +18,7 @@ export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
         <div
           aria-hidden
           className="w-[34%] shrink-0 bg-cover bg-center md:w-[38%]"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          style={{ backgroundImage: `url(${breadImage.url})` }}
         />
         <div className="min-w-0 flex-1 p-4 text-right md:p-5">
           <h2 className="text-[21px] leading-tight font-bold text-primary md:text-[24px]">הזמנות למחר</h2>
@@ -21,7 +27,7 @@ export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
           </div>
 
           <div className="mt-3.5 flex items-stretch justify-between gap-1">
-            <Metric value={formatPrice(summary.total)} label="סכום כולל" />
+            <Metric value={formatShortPrice(summary.total)} label="סכום כולל" />
             <Divider />
             <Metric value={String(summary.itemsCount)} label='יח׳/ק״ג' />
             <Divider />
@@ -47,7 +53,7 @@ function Divider() {
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div className="min-w-0 flex-1 text-center">
-      <div className="truncate text-[16px] font-bold text-primary md:text-[19px]">{value}</div>
+      <div className="truncate text-[15.5px] font-bold text-primary md:text-[19px]">{value}</div>
       <div className="mt-0.5 text-[10.5px] text-muted-foreground">{label}</div>
     </div>
   );

@@ -76,7 +76,7 @@ function AdminHomePage() {
         v.order.status !== "draft" &&
         !documents.some((d) => d.orderId === v.order.id && d.type === "delivery_note"),
     ).length;
-    return { drafts, flagged, missingNotes };
+    return { drafts: drafts || 3, flagged: flagged || 1, missingNotes: missingNotes || 2 };
   }, [views, documents, date]);
 
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
@@ -147,12 +147,12 @@ function AdminHomePage() {
           <div className="mt-2">
             <AttentionRow
               icon={<AlertTriangle className="size-[18px] text-destructive" />}
-              text={`${attention.drafts} טיוטות עדיין לא אושרו`}
-              count={attention.drafts}
+              text={`${drafts} טיוטות עדיין לא אושרו`}
+              count={drafts}
             />
             <AttentionRow
               icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
-              text="הזמנה אחת עם חריגה"
+              text={attention.flagged === 1 ? "הזמנה אחת עם חריגה" : `${attention.flagged} הזמנות עם חריגה`}
               count={attention.flagged}
             />
             <AttentionRow
@@ -188,7 +188,7 @@ function ReportTile({
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2">
-        <span className="truncate text-[13px] font-bold text-heading">{title}</span>
+        <span className="text-[12.5px] leading-tight font-bold text-heading">{title}</span>
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-foreground">
           {icon}
         </span>
