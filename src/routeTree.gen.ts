@@ -30,6 +30,7 @@ import { Route as AdminReportsProductionRouteImport } from './routes/admin.repor
 import { Route as RecurringRecurringIdIndexRouteImport } from './routes/recurring.$recurringId.index'
 import { Route as RecurringRecurringIdEditRouteImport } from './routes/recurring.$recurringId.edit'
 import { Route as AdminCustomersCustomerIdIndexRouteImport } from './routes/admin.customers.$customerId.index'
+import { Route as AdminCustomersCustomerIdNewOrderRouteImport } from './routes/admin.customers.$customerId.new-order'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -140,6 +141,12 @@ const AdminCustomersCustomerIdIndexRoute =
     path: '/admin/customers/$customerId/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminCustomersCustomerIdNewOrderRoute =
+  AdminCustomersCustomerIdNewOrderRouteImport.update({
+    id: '/admin/customers/$customerId/new-order',
+    path: '/admin/customers/$customerId/new-order',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
+  '/admin/customers/$customerId/new-order': typeof AdminCustomersCustomerIdNewOrderRoute
   '/admin/customers/$customerId/': typeof AdminCustomersCustomerIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -185,6 +193,7 @@ export interface FileRoutesByTo {
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/recurring/$recurringId': typeof RecurringRecurringIdIndexRoute
+  '/admin/customers/$customerId/new-order': typeof AdminCustomersCustomerIdNewOrderRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdIndexRoute
 }
 export interface FileRoutesById {
@@ -209,6 +218,7 @@ export interface FileRoutesById {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/recurring/$recurringId/': typeof RecurringRecurringIdIndexRoute
+  '/admin/customers/$customerId/new-order': typeof AdminCustomersCustomerIdNewOrderRoute
   '/admin/customers/$customerId/': typeof AdminCustomersCustomerIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/products/'
     | '/recurring/$recurringId/'
+    | '/admin/customers/$customerId/new-order'
     | '/admin/customers/$customerId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/products'
     | '/recurring/$recurringId'
+    | '/admin/customers/$customerId/new-order'
     | '/admin/customers/$customerId'
   id:
     | '__root__'
@@ -280,6 +292,7 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/products/'
     | '/recurring/$recurringId/'
+    | '/admin/customers/$customerId/new-order'
     | '/admin/customers/$customerId/'
   fileRoutesById: FileRoutesById
 }
@@ -304,6 +317,7 @@ export interface RootRouteChildren {
   AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
   AdminProductsIndexRoute: typeof AdminProductsIndexRoute
   RecurringRecurringIdIndexRoute: typeof RecurringRecurringIdIndexRoute
+  AdminCustomersCustomerIdNewOrderRoute: typeof AdminCustomersCustomerIdNewOrderRoute
   AdminCustomersCustomerIdIndexRoute: typeof AdminCustomersCustomerIdIndexRoute
 }
 
@@ -456,6 +470,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersCustomerIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/customers/$customerId/new-order': {
+      id: '/admin/customers/$customerId/new-order'
+      path: '/admin/customers/$customerId/new-order'
+      fullPath: '/admin/customers/$customerId/new-order'
+      preLoaderRoute: typeof AdminCustomersCustomerIdNewOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -480,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminOrdersIndexRoute: AdminOrdersIndexRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,
   RecurringRecurringIdIndexRoute: RecurringRecurringIdIndexRoute,
+  AdminCustomersCustomerIdNewOrderRoute: AdminCustomersCustomerIdNewOrderRoute,
   AdminCustomersCustomerIdIndexRoute: AdminCustomersCustomerIdIndexRoute,
 }
 export const routeTree = rootRouteImport
