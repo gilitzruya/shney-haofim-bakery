@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { FileText, MapPin, Pencil, Phone, Search } from "lucide-react";
+import { FileText, MapPin, Pencil, Phone, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -40,16 +40,16 @@ function AdminOrderDetailPage() {
   const [editing, setEditing] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
   const customer = view?.customer;
 
   const searchResults = useMemo(() => {
     const q = query.trim();
-    if (!q) return [];
-    return allProducts()
-      .filter((p) => p.name.includes(q) || (p.sku ?? "").includes(q))
-      .slice(0, 8);
+    const list = allProducts();
+    if (!q) return list;
+    return list.filter((p) => p.name.includes(q) || (p.sku ?? "").includes(q));
   }, [query]);
 
   if (!view) {
@@ -82,6 +82,7 @@ function AdminOrderDetailPage() {
     for (const l of order.lines) map[l.productId] = l.qty;
     setQuantities(map);
     setQuery("");
+    setAdding(false);
     setEditing(true);
   };
 
