@@ -191,13 +191,6 @@ function AdminHomePage() {
                   count={attention.flagged}
                 />
               ) : null}
-              {attention.missingNotes > 0 ? (
-                <AttentionRow
-                  icon={<ClipboardList className="size-[18px] text-muted-foreground" />}
-                  text={`${attention.missingNotes} תעודות משלוח טרם הופקו`}
-                  count={attention.missingNotes}
-                />
-              ) : null}
             </div>
           )}
         </div>
