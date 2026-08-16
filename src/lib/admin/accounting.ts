@@ -12,8 +12,8 @@ export interface AdminDocument {
   type: DocumentType;
   status: DocumentStatus;
   /** מספר המסמך במערכת החשבונות (כשהופק) */
-  number?: string;
-  error?: string;
+  number?: string | undefined;
+  error?: string | undefined;
   createdAt: string;
 }
 
@@ -35,8 +35,8 @@ export interface IssueDocumentInput {
 
 export interface IssueDocumentResult {
   status: DocumentStatus;
-  number?: string;
-  error?: string;
+  number?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface AccountingAdapter {
