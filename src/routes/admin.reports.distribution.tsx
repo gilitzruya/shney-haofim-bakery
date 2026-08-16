@@ -8,6 +8,7 @@ import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { roundLabel } from "@/data/catalog";
+import { productImage } from "@/data/product-images";
 import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { buildDistributionReport } from "@/lib/admin/reports";
@@ -106,17 +107,39 @@ function DistributionReportPage() {
                       ) : null}
                     </div>
                     <ul className="flex flex-col">
-                      {stop.lines.map((line) => (
-                        <li
-                          key={line.product.id}
-                          className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2 last:border-b-0"
-                        >
-                          <span className="truncate text-[13px] text-foreground">{line.product.name}</span>
-                          <span className="shrink-0 text-[13.5px] font-bold text-heading">
-                            {formatQty(line.qty, line.product.unit)}
-                          </span>
-                        </li>
-                      ))}
+                      {stop.lines.map((line) => {
+                        const img = productImage(line.product.id);
+                        return (
+                          <li
+                            key={line.product.id}
+                            className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2 last:border-b-0"
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-muted">
+                                {img ? (
+                                  <img
+                                    src={img}
+                                    alt={line.product.name}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <span className="text-[10px] font-bold text-muted-foreground">?</span>
+                                )}
+                              </div>
+                              <div className="flex min-w-0 flex-col">
+                                <span className="truncate text-[13px] text-foreground">{line.product.name}</span>
+                                {line.product.sku ? (
+                                  <span className="text-[11px] text-muted-foreground">קוד {line.product.sku}</span>
+                                ) : null}
+                              </div>
+                            </div>
+                            <span className="shrink-0 text-[13.5px] font-bold text-heading">
+                              {formatQty(line.qty, line.product.unit)}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                     <div className="flex items-center justify-between bg-card-muted px-3.5 py-2 text-[11.5px] text-muted-foreground">
                       <span>{stop.lines.length} פריטים</span>
