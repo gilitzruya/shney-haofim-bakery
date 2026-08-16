@@ -21,6 +21,7 @@ import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as RecurringIndexRouteImport } from './routes/recurring.index'
 import { Route as RecurringNewRouteImport } from './routes/recurring.new'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin.customers.index'
+import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin.customers.$customerId'
 import { Route as AdminCustomersNewRouteImport } from './routes/admin.customers.new'
 import { Route as AdminOrdersIndexRouteImport } from './routes/admin.orders.index'
 import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin.orders.$orderId'
@@ -90,6 +91,12 @@ const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
   path: '/admin/customers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCustomersCustomerIdRoute =
+  AdminCustomersCustomerIdRouteImport.update({
+    id: '/admin/customers/$customerId',
+    path: '/admin/customers/$customerId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminCustomersNewRoute = AdminCustomersNewRouteImport.update({
   id: '/admin/customers/new',
   path: '/admin/customers/new',
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/recurring/': typeof RecurringIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/reports/distribution': typeof AdminReportsDistributionRoute
@@ -168,6 +176,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/recurring': typeof RecurringIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/reports/distribution': typeof AdminReportsDistributionRoute
@@ -191,6 +200,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/recurring/': typeof RecurringIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/reports/distribution': typeof AdminReportsDistributionRoute
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/orders/'
     | '/recurring/'
+    | '/admin/customers/$customerId'
     | '/admin/customers/new'
     | '/admin/orders/$orderId'
     | '/admin/reports/distribution'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/orders'
     | '/recurring'
+    | '/admin/customers/$customerId'
     | '/admin/customers/new'
     | '/admin/orders/$orderId'
     | '/admin/reports/distribution'
@@ -259,6 +271,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/orders/'
     | '/recurring/'
+    | '/admin/customers/$customerId'
     | '/admin/customers/new'
     | '/admin/orders/$orderId'
     | '/admin/reports/distribution'
@@ -282,6 +295,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   RecurringIndexRoute: typeof RecurringIndexRoute
+  AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
   AdminCustomersNewRoute: typeof AdminCustomersNewRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
   AdminReportsDistributionRoute: typeof AdminReportsDistributionRoute
@@ -379,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/customers/$customerId': {
+      id: '/admin/customers/$customerId'
+      path: '/admin/customers/$customerId'
+      fullPath: '/admin/customers/$customerId'
+      preLoaderRoute: typeof AdminCustomersCustomerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/customers/new': {
       id: '/admin/customers/new'
       path: '/admin/customers/new'
@@ -450,6 +471,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   RecurringIndexRoute: RecurringIndexRoute,
+  AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
   AdminCustomersNewRoute: AdminCustomersNewRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
   AdminReportsDistributionRoute: AdminReportsDistributionRoute,
