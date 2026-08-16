@@ -88,7 +88,7 @@ function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div className="min-w-0 flex-1 text-center">
       <div className="truncate text-[19px] font-bold text-black md:text-[24px]">{value}</div>
-      <div className="mt-0.5 text-[10.5px] text-black">{label}</div>
+      <div className="mt-0.5 text-[10.5px] text-primary">{label}</div>
     </div>
   );
 }
