@@ -14,11 +14,10 @@ import { useEffect, useMemo, useState } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
-import { Chip } from "@/components/app/status-chip";
 import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
-import { formatPrice } from "@/lib/format";
+import { formatDate, formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/")({
