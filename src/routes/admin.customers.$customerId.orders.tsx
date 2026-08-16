@@ -64,7 +64,7 @@ function CustomerOrdersPage() {
               </div>
               <div className="text-[15px] font-bold text-heading">{formatPrice(total)}</div>
             </Card>
-            <AdminOrderList views={views} documentFor={latestDocFor} />
+            <AdminOrderList views={views} documentFor={latestDocFor} showDate />
           </>
         ) : hydrated ? (
           <EmptyState
