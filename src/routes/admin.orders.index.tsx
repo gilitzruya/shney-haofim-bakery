@@ -166,17 +166,20 @@ function AdminOrdersPage() {
           )}
         </div>
 
-        <div className="mt-3 rounded-[16px] border border-border bg-card px-3.5 py-3">
-          <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
-            <CalendarDays className="size-3.5" />
-            {formatLongDate(date)}
-          </div>
-          <div className="mt-2.5 grid grid-cols-3 divide-x divide-x-reverse divide-border text-center">
-            <Metric value={hydrated ? String(summary.ordersCount) : "—"} label="הזמנות" />
-            <Metric value={hydrated ? String(summary.productsCount) : "—"} label="מוצרים" />
-            <Metric value={hydrated ? formatPrice(summary.total) : "—"} label="סה״כ" />
+        <div className="sticky top-[58px] z-10 -mx-3.5 mt-3 bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
+          <div className="rounded-[16px] border border-border bg-card px-3.5 py-3">
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+              <CalendarDays className="size-3.5" />
+              {formatLongDate(date)}
+            </div>
+            <div className="mt-2.5 grid grid-cols-3 divide-x divide-x-reverse divide-border text-center">
+              <Metric value={hydrated ? String(summary.ordersCount) : "—"} label="הזמנות" />
+              <Metric value={hydrated ? String(summary.productsCount) : "—"} label="מוצרים" />
+              <Metric value={hydrated ? formatPrice(summary.total) : "—"} label="סה״כ" />
+            </div>
           </div>
         </div>
+
 
         <div className="mt-3">
           {!hydrated ? null : filtered.length === 0 ? (
