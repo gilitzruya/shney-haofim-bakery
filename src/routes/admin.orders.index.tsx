@@ -28,7 +28,7 @@ export const Route = createFileRoute("/admin/orders/")({
   component: AdminOrdersPage,
 });
 
-type RoundFilter = RoundId | "all";
+type DateFilter = "tomorrow" | "all";
 
 function shiftIso(iso: string, days: number): string {
   const d = parseDate(iso);
@@ -41,14 +41,24 @@ function AdminOrdersPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [issuing, setIssuing] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
-  const [round, setRound] = useState<RoundFilter>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("tomorrow");
 
-  const views = useAdminOrdersForDate(date);
-  const filtered = useMemo(
-    () => views.filter((v) => round === "all" || v.order.round === round),
-    [views, round],
+  const dateViews = useAdminOrdersForDate(date);
+  const allViews = useAllAdminOrderViews();
+  const allActiveViews = useMemo(
+    () => allViews.filter((v) => activeOrders([v.order]).length > 0),
+    [allViews],
   );
-  const summary = summarizeDay(filtered, date);
+  const views = dateFilter === "tomorrow" ? dateViews : allActiveViews;
+  const summary =
+    dateFilter === "tomorrow"
+      ? summarizeDay(views, date)
+      : {
+          date: "all",
+          ordersCount: views.length,
+          productsCount: new Set(views.flatMap((v) => v.order.lines.map((l) => l.productId))).size,
+          total: views.reduce((sum, v) => sum + v.total, 0),
+        };
 
   const latestDocFor = (orderId: string) =>
     documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
