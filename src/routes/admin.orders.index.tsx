@@ -83,8 +83,21 @@ function AdminOrdersPage() {
         </h1>
 
         <div className="flex items-center gap-2">
-          <label className="flex flex-1 items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-[12.5px] font-semibold text-foreground">
-            <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
+          <button
+            type="button"
+            onClick={() => setDate(tomorrowIso())}
+            className={cn(
+              "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-bold",
+              isTomorrow
+                ? "bg-primary text-primary-foreground"
+                : "border border-border bg-card text-foreground",
+            )}
+          >
+            <CalendarDays className="size-4" />
+            מחר
+          </button>
+          <label className="flex flex-1 items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground">
+            <CalendarDays className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="shrink-0 text-muted-foreground">בחירת תאריך</span>
             <input
               type="date"
@@ -94,19 +107,6 @@ function AdminOrdersPage() {
               className="w-full min-w-0 bg-transparent text-[12px] text-foreground outline-none"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => setDate(tomorrowIso())}
-            className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-5 py-2 text-[12.5px] font-bold",
-              isTomorrow
-                ? "bg-primary text-primary-foreground"
-                : "border border-border bg-card text-foreground",
-            )}
-          >
-            <CalendarDays className="size-4" />
-            מחר
-          </button>
         </div>
 
         <label className="mt-2.5 flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2.5">
