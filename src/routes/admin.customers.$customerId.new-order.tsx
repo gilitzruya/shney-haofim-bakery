@@ -1,19 +1,32 @@
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ChevronRight, Search } from "lucide-react";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { MapPin, Phone, Plus, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { AdminShell } from "@/components/admin/admin-shell";
-import { Section } from "@/components/app/app-shell";
+import { OrderProductPicker } from "@/components/admin/order-product-picker";
+import { PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { TextInput } from "@/components/app/form-controls";
-import { QuantityStepper } from "@/components/app/product-card";
-import { Chip } from "@/components/app/status-chip";
-import { allProducts, ROUNDS, findProduct } from "@/data/catalog";
+import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
+import { findProduct, ROUNDS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
+import { productImage } from "@/data/product-images";
 import { tomorrowIso } from "@/lib/admin/dates";
-import { hasOverride, priceFor } from "@/lib/admin/pricing";
-import { clampQty, formatDate, formatPrice, formatWeekday, unitLabel } from "@/lib/format";
+import { priceFor } from "@/lib/admin/pricing";
+import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
 
@@ -39,20 +52,15 @@ function NewCustomerOrderPage() {
 
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundId | null>(null);
-  const [query, setQuery] = useState("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [adding, setAdding] = useState(false);
+  const [confirmCreate, setConfirmCreate] = useState(false);
 
   const allowedRounds = useMemo(
     () => ROUNDS.filter((r) => customer?.allowedRounds.includes(r.id)),
     [customer],
   );
   const activeRound = round ?? allowedRounds[0]?.id ?? null;
-
-  const results = useMemo(() => {
-    const q = query.trim();
-    if (!q) return [];
-    return allProducts().filter((p) => p.name.includes(q)).slice(0, 8);
-  }, [query]);
 
   const lines = useMemo(
     () =>
@@ -85,21 +93,51 @@ function NewCustomerOrderPage() {
     );
   }
 
+  const contact = customer.contacts[0];
   const blocked = Boolean(customer.blocked);
+
+  const create = () => {
+    if (!activeRound) return;
+    const created = addAdminOrder({
+      customerId: customer.id,
+      date,
+      round: activeRound,
+      status: "approved",
+      lines,
+      createdFrom: "manual",
+    });
+    setConfirmCreate(false);
+    toast.success("ההזמנה נוצרה. הלקוח יראה אותה אצלו");
+    void navigate({ to: "/admin/orders/$orderId", params: { orderId: created.id } });
+  };
+
+  if (adding) {
+    return (
+      <AdminShell>
+        <OrderProductPicker
+          quantities={quantities}
+          total={total}
+          onSetQty={(id, qty) => setQty(id, qty)}
+          onBumpQty={(id, delta) => {
+            const product = findProduct(id);
+            if (!product) return;
+            setQty(id, clampQty(product, (quantities[id] ?? 0) + delta));
+          }}
+          onDone={() => setAdding(false)}
+        />
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell>
-      <Section className="pt-5 pb-10">
-        <Link
-          to="/admin/customers/$customerId"
-          params={{ customerId: customer.id }}
-          className="mb-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-primary no-underline"
-        >
-          <ChevronRight className="size-4" />
-          חזרה לכרטיס הלקוח
-        </Link>
-        <h1 className="mb-1 text-[19px] font-bold text-heading">הזמנה חדשה</h1>
-        <div className="mb-4 text-[12.5px] text-muted-foreground">עבור {customer.name}</div>
+      <Section className="pt-4 pb-28">
+        <PageTitleBar title={customer.name} backTo="/admin/customers/$customerId" backParams={{ customerId }} />
+
+        <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary">
+          <Sparkles className="size-3.5" />
+          הזמנה חדשה בשם הלקוח
+        </div>
 
         {blocked ? (
           <EmptyState
@@ -107,125 +145,164 @@ function NewCustomerOrderPage() {
             description="לא ניתן ליצור הזמנה ללקוח חסום. יש לשחרר את החסימה בכרטיס הלקוח."
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            <Card className="flex flex-col gap-2.5">
-              <div className="text-[12px] font-semibold text-muted-foreground">תאריך אספקה</div>
-              <TextInput type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="תאריך אספקה" />
-              <div className="text-[11.5px] text-muted-foreground">
-                {formatWeekday(date)}, {formatDate(date)}
+          <>
+            <Card>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[14.5px] font-bold text-heading">{formatLongDate(date)}</span>
+                <span className="text-[12px] text-muted-foreground">{lines.length} פריטים</span>
               </div>
-            </Card>
-
-            <Card className="flex flex-col gap-2">
-              <div className="text-[12px] font-semibold text-muted-foreground">סבב אספקה</div>
-              {allowedRounds.length === 0 ? (
-                <div className="text-[12.5px] text-destructive">ללקוח אין הרשאת סבב. יש לעדכן בכרטיס הלקוח.</div>
-              ) : (
-                <div className="flex flex-col gap-2 md:flex-row">
-                  {allowedRounds.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setRound(r.id)}
-                      className={cn(
-                        "flex flex-1 items-center justify-between rounded-xl border px-3.5 py-3 text-start",
-                        activeRound === r.id
-                          ? "border-[1.5px] border-primary bg-primary-soft"
-                          : "border-border bg-card",
-                      )}
-                    >
-                      <span className="text-[13.5px] font-semibold text-foreground">{r.label}</span>
-                      <span className="text-[12px] text-muted-foreground">{r.time}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Card>
-
-            <Card className="flex flex-col gap-2.5">
-              <div className="text-[12px] font-semibold text-muted-foreground">הוספת מוצרים</div>
-              <div className="relative">
-                <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <div className="mt-2.5 flex flex-col gap-2">
+                <div className="text-[12px] font-semibold text-muted-foreground">תאריך אספקה</div>
                 <TextInput
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="חיפוש מוצר"
-                  aria-label="חיפוש מוצר"
-                  className="pe-9"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  aria-label="תאריך אספקה"
                 />
               </div>
-              {results.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card-muted px-3 py-2"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-[13px] font-semibold text-foreground">{p.name}</div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <span>
-                        {formatPrice(priceFor(customer, p))} ל{unitLabel(p.unit)}
-                      </span>
-                      {hasOverride(customer, p.id) ? <Chip tone="accent">מחיר מיוחד</Chip> : null}
-                    </div>
+              <div className="mt-3 flex flex-col gap-2">
+                <div className="text-[12px] font-semibold text-muted-foreground">סבב אספקה</div>
+                {allowedRounds.length === 0 ? (
+                  <div className="text-[12.5px] text-destructive">ללקוח אין הרשאת סבב. יש לעדכן בכרטיס הלקוח.</div>
+                ) : (
+                  <div className="flex flex-col gap-2 md:flex-row">
+                    {allowedRounds.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setRound(r.id)}
+                        className={cn(
+                          "flex flex-1 items-center justify-between rounded-xl border px-3.5 py-3 text-start",
+                          activeRound === r.id
+                            ? "border-[1.5px] border-primary bg-primary-soft"
+                            : "border-border bg-card",
+                        )}
+                      >
+                        <span className="text-[13.5px] font-semibold text-foreground">{r.label}</span>
+                        <span className="text-[12px] text-muted-foreground">{r.time}</span>
+                      </button>
+                    ))}
                   </div>
-                  <QuantityStepper
-                    product={p}
-                    qty={quantities[p.id] ?? 0}
-                    compact
-                    onChange={(delta) => setQty(p.id, clampQty(p, (quantities[p.id] ?? 0) + delta))}
-                    onSetQty={(qty) => setQty(p.id, qty)}
-                  />
-                </div>
-              ))}
-              {query.trim() && results.length === 0 ? (
-                <div className="text-[12px] text-muted-foreground">לא נמצאו מוצרים מתאימים.</div>
-              ) : null}
+                )}
+              </div>
+              <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="size-3.5 shrink-0" />
+                  {customer.address}
+                </span>
+                {contact ? (
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="size-3.5 shrink-0" />
+                    {contact.name} · {formatPhone(contact.phone)}
+                  </span>
+                ) : null}
+              </div>
             </Card>
 
-            <Card className="flex flex-col gap-2">
-              <div className="text-[12px] font-semibold text-muted-foreground">פריטים בהזמנה</div>
+            <div className="mt-4 mb-2 flex flex-col gap-2">
+              <div className="flex justify-start">
+                <button
+                  type="button"
+                  onClick={() => setAdding(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary"
+                >
+                  <Plus className="size-3.5" />
+                  הוספת מוצרים
+                </button>
+              </div>
+              <h2 className="text-[15px] font-bold text-heading">מוצרים בהזמנה</h2>
+            </div>
+
+            <div className="flex flex-col gap-2">
               {lines.length === 0 ? (
-                <div className="text-[12.5px] text-muted-foreground">עדיין לא נבחרו מוצרים.</div>
+                <EmptyState title="אין מוצרים בהזמנה" description="אפשר להוסיף מוצרים בכפתור הוספת מוצרים." />
               ) : (
-                lines.map((l) => {
-                  const p = findProduct(l.productId);
-                  if (!p) return null;
+                lines.map((line) => {
+                  const product = findProduct(line.productId);
+                  if (!product) return null;
+                  const unitPrice = priceFor(customer, product);
                   return (
-                    <div key={l.productId} className="flex items-center justify-between gap-2 text-[13px]">
-                      <span className="truncate font-semibold text-foreground">{p.name}</span>
-                      <span className="shrink-0 text-muted-foreground">
-                        {l.qty} × {formatPrice(priceFor(customer, p))}
-                      </span>
-                    </div>
+                    <Card key={line.productId} className="flex items-center gap-2.5">
+                      {productImage(product.id) ? (
+                        <img
+                          src={productImage(product.id)}
+                          alt={product.name}
+                          loading="lazy"
+                          className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"
+                        />
+                      ) : (
+                        <ProductPlaceholder className="size-[56px]" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[15px] font-bold text-foreground">{product.name}</div>
+                        <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                          קוד פריט: <span className="font-semibold text-foreground">{product.sku ?? product.id}</span>
+                        </div>
+                        <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                          {formatQty(line.qty, product.unit)} × {formatPrice(unitPrice)} ={" "}
+                          <span className="font-semibold text-foreground">{formatPrice(unitPrice * line.qty)}</span>
+                        </div>
+                      </div>
+                      <QuantityStepper
+                        product={product}
+                        qty={line.qty}
+                        compact
+                        onChange={(delta) => setQty(product.id, clampQty(product, line.qty + delta))}
+                        onSetQty={(qty) => setQty(product.id, qty)}
+                      />
+                    </Card>
                   );
                 })
               )}
-              <div className="mt-1 flex items-center justify-between border-t border-border pt-2 text-[13.5px]">
-                <span className="font-semibold text-muted-foreground">סה״כ</span>
-                <span className="font-bold text-heading">{formatPrice(total)}</span>
+            </div>
+
+            <Card className="mt-3 bg-card-muted">
+              <div className="flex items-center justify-between">
+                <span className="text-[13.5px] font-bold text-foreground">
+                  סה״כ <span className="text-[11px] font-normal text-muted-foreground">(לפני מע״מ)</span>
+                </span>
+                <span className="text-[19px] font-bold text-heading">{formatPrice(total)}</span>
               </div>
             </Card>
+          </>
+        )}
+      </Section>
 
+      <AlertDialog open={confirmCreate} onOpenChange={setConfirmCreate}>
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>ליצור הזמנה חדשה בשם הלקוח?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="block">
+                תיווצר הזמנה חדשה עבור {customer.name} לתאריך {formatLongDate(date)}.
+              </span>
+              <span className="mt-1.5 block">
+                {lines.length} פריטים · סה״כ {formatPrice(total)}
+              </span>
+              <span className="mt-1.5 block">ההזמנה תופיע גם אצל הלקוח.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:justify-start">
+            <AlertDialogCancel>חזרה</AlertDialogCancel>
+            <AlertDialogAction onClick={create}>יצירת ההזמנה</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {blocked ? null : (
+        <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
+          <div className="mx-auto flex max-w-5xl gap-2.5">
             <Button
+              size="lg"
+              className="flex-1"
               disabled={lines.length === 0 || !activeRound}
-              onClick={() => {
-                if (!activeRound) return;
-                const created = addAdminOrder({
-                  customerId: customer.id,
-                  date,
-                  round: activeRound,
-                  status: "approved",
-                  lines,
-                  createdFrom: "manual",
-                });
-                void navigate({ to: "/admin/orders/$orderId", params: { orderId: created.id } });
-              }}
+              onClick={() => setConfirmCreate(true)}
             >
               יצירת ההזמנה
             </Button>
           </div>
-        )}
-      </Section>
+        </div>
+      )}
     </AdminShell>
   );
 }
