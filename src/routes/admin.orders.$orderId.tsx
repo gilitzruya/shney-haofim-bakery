@@ -152,46 +152,8 @@ function AdminOrderDetailPage() {
           )}
         </div>
 
-        {editing && adding ? (
-          <Card className="mb-2 flex flex-col gap-2.5">
-            <div className="text-[12px] font-semibold text-muted-foreground">הוספת מוצר להזמנה</div>
-            <div className="relative">
-              <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <TextInput
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="חיפוש מוצר או קוד פריט"
-                aria-label="חיפוש מוצר"
-                className="pe-9"
-              />
-            </div>
-            <div className="flex max-h-[320px] flex-col gap-2 overflow-y-auto">
 
-            {searchResults.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card-muted px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <div className="truncate text-[13px] font-semibold text-foreground">{p.name}</div>
-                  <div className="text-[11px] text-muted-foreground">{formatPrice(priceFor(customer, p))}</div>
-                </div>
-                <QuantityStepper
-                  product={p}
-                  qty={quantities[p.id] ?? 0}
-                  compact
-                  onChange={(delta) => setQty(p.id, clampQty(p, (quantities[p.id] ?? 0) + delta))}
-                  onSetQty={(qty) => setQty(p.id, qty)}
-                />
-              </div>
-            ))}
-            {query.trim() && searchResults.length === 0 ? (
-              <div className="text-[12px] text-muted-foreground">לא נמצאו מוצרים מתאימים.</div>
-            ) : null}
-            </div>
-          </Card>
 
-        ) : null}
 
         <div className="flex flex-col gap-2">
           {currentLines.length === 0 ? (
