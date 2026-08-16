@@ -151,3 +151,21 @@
 .shimmer {
   animation: shimmer 1.3s ease-in-out infinite;
 }
+
+@media print {
+  header {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .baking-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: #fff !important;
+    padding: 16px;
+  }
+}

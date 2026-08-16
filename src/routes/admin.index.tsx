@@ -90,7 +90,7 @@ function AdminHomePage() {
 
         <div className="mt-3 grid grid-cols-2 gap-3">
           <ReportTile to="/admin/reports/distribution" icon={<Truck className="size-5" />} title="הפקת דוח חלוקה" />
-          <ReportTile to="/admin/reports/production" icon={<FileText className="size-5" />} title="הפקת דוח ייצור" />
+          <ReportTile to="/admin/reports/production" icon={<FileText className="size-5" />} title="הפקת דוח אפייה / ייצור" />
         </div>
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">

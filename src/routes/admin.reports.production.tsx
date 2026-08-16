@@ -3,6 +3,7 @@ import { Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { BakingSheet } from "@/components/admin/baking-sheet";
 import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
@@ -17,10 +18,10 @@ import { useStore } from "@/store/app-store";
 export const Route = createFileRoute("/admin/reports/production")({
   head: () => ({
     meta: [
-      { title: "דוח ייצור — ניהול המאפייה" },
-      { name: "description", content: "כמויות הייצור הנדרשות ליום האספקה, לפי מוצר וקטגוריה." },
-      { property: "og:title", content: "דוח ייצור — ניהול המאפייה" },
-      { property: "og:description", content: "כמויות הייצור הנדרשות ליום האספקה, לפי מוצר וקטגוריה." },
+      { title: "דוח אפייה / ייצור — ניהול המאפייה" },
+      { name: "description", content: "כמויות האפייה הנדרשות ליום האספקה, לפי מוצר, קטגוריה וסבב." },
+      { property: "og:title", content: "דוח אפייה / ייצור — ניהול המאפייה" },
+      { property: "og:description", content: "כמויות האפייה הנדרשות ליום האספקה, לפי מוצר, קטגוריה וסבב." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -45,18 +46,20 @@ function ProductionReportPage() {
 
   return (
     <AdminShell>
-      <Section className="pt-6 pb-10">
+      <BakingSheet date={date} groups={groups} />
+      <Section className="pt-6 pb-10 print:hidden">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h1 className="text-[19px] font-bold text-heading">דוח ייצור</h1>
+          <h1 className="text-[19px] font-bold text-heading">דוח אפייה / ייצור</h1>
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground print:hidden"
+            className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground print:hidden"
           >
             <Printer className="size-3.5" />
-            הדפסה
+            הדפסה / PDF
           </button>
         </div>
+
 
         <ReportDateNav date={date} onChange={setDate} />
 
