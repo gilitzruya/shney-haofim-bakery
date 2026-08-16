@@ -9,7 +9,7 @@ import { Card, EmptyState } from "@/components/app/card";
 import { TextInput } from "@/components/app/form-controls";
 import { QuantityStepper } from "@/components/app/product-card";
 import { Chip } from "@/components/app/status-chip";
-import { ALL_PRODUCTS, ROUNDS, findProduct } from "@/data/catalog";
+import { allProducts, ROUNDS, findProduct } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { hasOverride, priceFor } from "@/lib/admin/pricing";
@@ -51,7 +51,7 @@ function NewCustomerOrderPage() {
   const results = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
-    return ALL_PRODUCTS.filter((p) => p.name.includes(q)).slice(0, 8);
+    return allProducts().filter((p) => p.name.includes(q)).slice(0, 8);
   }, [query]);
 
   const lines = useMemo(

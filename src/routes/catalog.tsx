@@ -10,7 +10,6 @@ import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
 import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 
-import { CATEGORIES } from "@/data/catalog";
 import { formatPrice, linesTotal } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
 
@@ -38,8 +37,8 @@ function headerOffset() {
 function CatalogPage() {
   const navigate = useNavigate();
   const { copy } = Route.useSearch();
-  const { draft, orders, bumpQty, setQty, startOrderDraft } = useStore();
-  const [category, setCategory] = useState(CATEGORIES[0]!.id);
+  const { draft, orders, bumpQty, setQty, startOrderDraft, catalog: CATEGORIES } = useStore();
+  const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const lockRef = useRef(false);
@@ -92,7 +91,7 @@ function CatalogPage() {
     const q = query.trim();
     if (!q) return [];
     return CATEGORIES.flatMap((c) => c.products).filter((p) => p.name.includes(q));
-  }, [query]);
+  }, [query, CATEGORIES]);
 
   // Prevent background scrolling while the copy prompt is open.
   useEffect(() => {
@@ -110,7 +109,7 @@ function CatalogPage() {
     const onScroll = () => {
       if (lockRef.current) return;
       const anchor = headerOffset() + 12;
-      let current = CATEGORIES[0]!.id;
+      let current = CATEGORIES[0]?.id ?? "";
       for (const c of CATEGORIES) {
         const el = sectionRefs.current[c.id];
         if (!el) continue;
@@ -121,7 +120,7 @@ function CatalogPage() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [searching]);
+  }, [searching, CATEGORIES]);
 
   const goToCategory = (id: string) => {
     setCategory(id);

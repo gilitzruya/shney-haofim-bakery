@@ -169,10 +169,28 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-export const ALL_PRODUCTS: Product[] = CATEGORIES.flatMap((c) => c.products);
+/**
+ * הקטלוג הפעיל נשמר ב-store וניתן לעריכה מצד הניהול.
+ * כאן מוחזק עותק ריצה כדי ש-findProduct יחזיר תמיד את הנתונים המעודכנים.
+ */
+let runtimeCategories: Category[] = CATEGORIES;
+let productIndex = new Map(CATEGORIES.flatMap((c) => c.products).map((p) => [p.id, p]));
+
+export function applyRuntimeCatalog(categories: Category[]): void {
+  runtimeCategories = categories;
+  productIndex = new Map(categories.flatMap((c) => c.products).map((p) => [p.id, p]));
+}
+
+export function catalogCategories(): Category[] {
+  return runtimeCategories;
+}
+
+export function allProducts(): Product[] {
+  return runtimeCategories.flatMap((c) => c.products);
+}
 
 export function findProduct(id: string): Product | undefined {
-  return ALL_PRODUCTS.find((p) => p.id === id);
+  return productIndex.get(id);
 }
 
 export function roundLabel(id: RoundId | string): string {
