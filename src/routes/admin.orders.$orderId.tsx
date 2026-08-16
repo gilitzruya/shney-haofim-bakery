@@ -172,22 +172,31 @@ function AdminOrderDetailPage() {
             <button
               type="button"
               onClick={() => setAdding(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
+              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary"
             >
               <Plus className="size-3.5" />
               הוספת מוצרים
             </button>
           ) : isCancelled ? null : (
-            <button
-              type="button"
-              onClick={startEdit}
-              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
-            >
-              <Pencil className="size-3.5" />
-              עריכת ההזמנה
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={startEdit}
+                className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary"
+              >
+                <Pencil className="size-3.5" />
+                עריכה
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmCancel(true)}
+                className="inline-flex items-center gap-1 rounded-full border border-destructive bg-destructive-bg px-3 py-1.5 text-[12px] font-bold text-destructive"
+              >
+                <XCircle className="size-3.5" />
+                ביטול
+              </button>
+            </div>
           )}
-
         </div>
 
 
@@ -282,7 +291,7 @@ function AdminOrderDetailPage() {
           </div>
         )}
 
-        {editing ? null : isCancelled ? (
+        {editing || !isCancelled ? null : (
           <div className="mt-4 flex flex-col gap-2 rounded-[16px] border border-destructive bg-destructive-bg p-3.5">
             <span className="text-[13.5px] font-bold text-destructive">ההזמנה בוטלה</span>
             <span className="text-[11.5px] text-muted-foreground">
@@ -293,15 +302,6 @@ function AdminOrderDetailPage() {
               שחזור ההזמנה
             </Button>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setConfirmCancel(true)}
-            className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-[16px] border border-destructive bg-destructive-bg px-4 py-3 text-[13.5px] font-bold text-destructive"
-          >
-            <XCircle className="size-4" />
-            ביטול ההזמנה
-          </button>
         )}
       </Section>
 
