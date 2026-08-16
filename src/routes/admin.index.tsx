@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ClipboardList,
   FileText,
+  Printer,
   RefreshCw,
   Truck,
   Users,
@@ -14,12 +15,15 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { BakingSheet } from "@/components/admin/baking-sheet";
+import { PackingSheet } from "@/components/admin/packing-sheet";
 import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
 import { Chip } from "@/components/app/status-chip";
 import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
-import { intakeTime, tomorrowIso } from "@/lib/admin/dates";
-import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
+import { tomorrowIso } from "@/lib/admin/dates";
+import { ordersForDate } from "@/lib/admin/selectors";
+import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
 import { formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
