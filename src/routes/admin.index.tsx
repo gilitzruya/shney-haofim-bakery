@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, FileText, Truck } from "lucide-react";
+import { ChevronLeft, ClipboardList, FileText, Truck } from "lucide-react";
 import { useMemo } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -41,6 +41,21 @@ function AdminHomePage() {
       <Section className="pt-6 pb-10 md:pt-8">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, itemsCount: 0, total: 0 }} />
 
+        <Link
+          to="/admin/orders"
+          className="mt-4 flex items-center justify-between gap-3 rounded-[18px] border border-border bg-card px-4 py-4 no-underline"
+        >
+          <span className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-[12px] bg-primary-soft text-primary">
+              <ClipboardList className="size-5" />
+            </span>
+            <span>
+              <span className="block text-[15px] font-bold text-heading">פירוט הזמנות</span>
+              <span className="block text-[11.5px] text-muted-foreground">כל ההזמנות לאספקה של מחר</span>
+            </span>
+          </span>
+          <ChevronLeft className="size-4 text-primary" />
+        </Link>
 
         <h2 className="mt-8 mb-3 text-[16px] font-bold text-heading">פעולות מהירות</h2>
         <div className="grid gap-3 md:grid-cols-2">
