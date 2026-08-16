@@ -161,6 +161,19 @@ function CustomerDetailPage() {
               </Button>
             </div>
 
+            <Link
+              to="/admin/customers/$customerId/orders"
+              params={{ customerId: customer.id }}
+              className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-[13px] font-bold text-heading no-underline"
+            >
+              <span className="flex items-center gap-2">
+                <ClipboardList className="size-4 text-primary" />
+                ההזמנות של הלקוח
+              </span>
+              <ChevronLeft className="size-4 text-muted-foreground" />
+            </Link>
+
+
             {customer.blocked ? (
               <div className="rounded-[14px] border border-border bg-destructive-bg px-3.5 py-3 text-[12.5px] text-destructive">
                 הלקוח חסום — לא ניתן ליצור עבורו הזמנה חדשה.
