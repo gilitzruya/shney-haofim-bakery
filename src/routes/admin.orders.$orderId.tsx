@@ -1,19 +1,19 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { FileText, MapPin, Pencil, Phone, Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { FileText, MapPin, Pencil, Phone, Plus } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { TextInput } from "@/components/app/form-controls";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
-import { allProducts, findProduct, roundLabel } from "@/data/catalog";
+import { findProduct, roundLabel } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { useAdminOrderView } from "@/hooks/use-admin-orders";
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
+import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -39,18 +39,10 @@ function AdminOrderDetailPage() {
   const [issuing, setIssuing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
   const customer = view?.customer;
-
-  const searchResults = useMemo(() => {
-    const q = query.trim();
-    const list = allProducts();
-    if (!q) return list;
-    return list.filter((p) => p.name.includes(q) || (p.sku ?? "").includes(q));
-  }, [query]);
 
   if (!view) {
     return (
@@ -81,7 +73,6 @@ function AdminOrderDetailPage() {
     const map: Record<string, number> = {};
     for (const l of order.lines) map[l.productId] = l.qty;
     setQuantities(map);
-    setQuery("");
     setAdding(false);
     setEditing(true);
   };
@@ -99,6 +90,24 @@ function AdminOrderDetailPage() {
     setEditing(false);
     toast.success("ההזמנה עודכנה. הלקוח יראה את השינוי");
   };
+
+  if (editing && adding) {
+    return (
+      <AdminShell>
+        <OrderProductPicker
+          quantities={quantities}
+          total={total}
+          onSetQty={(id, qty) => setQty(id, qty)}
+          onBumpQty={(id, delta) => {
+            const product = findProduct(id);
+            if (!product) return;
+            setQty(id, clampQty(product, (quantities[id] ?? 0) + delta));
+          }}
+          onDone={() => setAdding(false)}
+        />
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell>
@@ -134,11 +143,11 @@ function AdminOrderDetailPage() {
           {editing ? (
             <button
               type="button"
-              onClick={() => setAdding((v) => !v)}
+              onClick={() => setAdding(true)}
               className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
             >
               <Plus className="size-3.5" />
-              {adding ? "סגירת הוספת מוצרים" : "הוספת מוצרים"}
+              הוספת מוצרים
             </button>
           ) : (
             <button
