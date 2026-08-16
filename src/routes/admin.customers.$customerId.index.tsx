@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ChevronRight, Mail, MapPin, Phone } from "lucide-react";
+import { ChevronLeft, ChevronRight, ClipboardList, Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
