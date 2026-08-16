@@ -6,6 +6,7 @@ import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import type { AdminDocument } from "@/lib/admin/accounting";
 import { StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
+import { intakeTime } from "@/lib/admin/dates";
 import type { AdminOrderView } from "@/lib/admin/selectors";
 import { formatPrice } from "@/lib/format";
 
