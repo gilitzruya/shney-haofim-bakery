@@ -18,7 +18,7 @@ import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
 import { Chip } from "@/components/app/status-chip";
 import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
-import { tomorrowIso } from "@/lib/admin/dates";
+import { intakeTime, tomorrowIso } from "@/lib/admin/dates";
 import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
 import { formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -39,14 +39,6 @@ export const Route = createFileRoute("/admin/")({
   }),
   component: AdminHomePage,
 });
-
-/** שעת קליטה דמו יציבה לכל הזמנה (נגזרת מהמזהה, כדי לא לשבור הידרציה). */
-function intakeTime(id: string): string {
-  let hash = 0;
-  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) % 100000;
-  const minutes = 8 * 60 + (hash % (9 * 60));
-  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-}
 
 function AdminHomePage() {
   const { hydrated, documents } = useStore();

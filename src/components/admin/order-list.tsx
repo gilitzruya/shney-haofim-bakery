@@ -6,6 +6,7 @@ import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import type { AdminDocument } from "@/lib/admin/accounting";
 import { StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
+import { intakeTime } from "@/lib/admin/dates";
 import type { AdminOrderView } from "@/lib/admin/selectors";
 import { formatPrice } from "@/lib/format";
 
@@ -73,26 +74,38 @@ function OrderRowCard({
   selection?: OrderSelection | undefined;
   document?: AdminDocument | undefined;
 }) {
+  const unitsCount = view.order.lines.reduce((sum, l) => sum + l.qty, 0);
   const card = (
     <Link
       to="/admin/orders/$orderId"
       params={{ orderId: view.order.id }}
-      className="no-underline"
+      className="block no-underline"
     >
-      <Card className="flex items-center gap-2.5">
+      <Card className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-[14px] font-bold text-heading">{view.customerName}</span>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="truncate text-[14.5px] font-bold text-heading">{view.customerName}</div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">{roundLabel(view.order.round)}</div>
+            </div>
             <StatusChip status={view.order.status} />
           </div>
-          <div className="mt-1 text-[11.5px] text-muted-foreground">
-            {roundLabel(view.order.round)} · {view.itemsCount} פריטים · {formatPrice(view.total)}
+          <div className="mt-2 flex items-end justify-between gap-2">
+            <div className="text-[11.5px] text-muted-foreground">
+              {view.itemsCount} מוצרים · {Math.round(unitsCount)} יח׳
+            </div>
+            <div className="text-end">
+              <div className="text-[15px] font-bold text-heading">{formatPrice(view.total)}</div>
+              <div className="text-[11px] text-muted-foreground">{intakeTime(view.order.id)}</div>
+            </div>
           </div>
+          <div className="mt-1.5 text-[11.5px] font-semibold text-primary">פירוט הזמנה</div>
         </div>
-        <ChevronLeft className="size-4 shrink-0 text-primary" />
+        <ChevronLeft className="mt-0.5 size-4 shrink-0 text-primary" />
       </Card>
     </Link>
   );
+
 
   if (!selection && !document) return card;
 
