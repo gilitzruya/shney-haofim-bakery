@@ -1,7 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { MapPin, Phone, Printer } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import { AdminPlaceholder } from "@/components/admin/admin-placeholder";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { ReportDateNav } from "@/components/admin/report-date-nav";
+import { Section } from "@/components/app/app-shell";
+import { EmptyState } from "@/components/app/card";
+import { roundLabel } from "@/data/catalog";
+import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
+import { tomorrowIso } from "@/lib/admin/dates";
+import { buildDistributionReport } from "@/lib/admin/reports";
+import { formatDate, formatPhone, formatPrice, formatQty, formatWeekday } from "@/lib/format";
+import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/reports/distribution")({
   head: () => ({
@@ -14,9 +24,109 @@ export const Route = createFileRoute("/admin/reports/distribution")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => (
-    <AdminShell>
-      <AdminPlaceholder title="דוח חלוקה" description="הדוח יופק בשלב מאוחר יותר בתוכנית." />
-    </AdminShell>
-  ),
+  component: DistributionReportPage,
 });
+
+function DistributionReportPage() {
+  const { hydrated } = useStore();
+  const [date, setDate] = useState(() => tomorrowIso());
+
+  const views = useAdminOrdersForDate(date);
+  const groups = useMemo(() => buildDistributionReport(views), [views]);
+  const stopsCount = groups.reduce((sum, g) => sum + g.stops.length, 0);
+
+  return (
+    <AdminShell>
+      <Section className="pt-6 pb-10">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h1 className="text-[19px] font-bold text-heading">דוח חלוקה</h1>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground print:hidden"
+          >
+            <Printer className="size-3.5" />
+            הדפסה
+          </button>
+        </div>
+
+        <ReportDateNav date={date} onChange={setDate} />
+
+        <div className="mt-3 flex items-center justify-between rounded-[14px] bg-card-muted px-3.5 py-2.5 text-[12px] text-muted-foreground">
+          <span>
+            {formatWeekday(date)}, {formatDate(date)}
+          </span>
+          <span className="font-bold text-heading">{stopsCount} תחנות חלוקה</span>
+        </div>
+
+        <div className="mt-3 flex flex-col gap-4">
+          {!hydrated ? null : groups.length === 0 ? (
+            <EmptyState title="אין חלוקה ליום זה" description="לא נמצאו הזמנות פעילות לתאריך שנבחר." />
+          ) : (
+            groups.map((group) => (
+              <section key={group.round} className="flex flex-col gap-2">
+                <div className="flex items-center justify-between px-1">
+                  <h2 className="text-[15px] font-bold text-heading">{roundLabel(group.round)}</h2>
+                  <span className="text-[11.5px] text-muted-foreground">
+                    {group.stops.length} תחנות · {formatPrice(group.total)}
+                  </span>
+                </div>
+
+                {group.stops.map((stop) => (
+                  <article
+                    key={stop.view.order.id}
+                    className="overflow-hidden rounded-[16px] border border-border bg-card"
+                  >
+                    <div className="border-b border-border px-3.5 py-2.5">
+                      <Link
+                        to="/admin/orders/$orderId"
+                        params={{ orderId: stop.view.order.id }}
+                        className="text-[14px] font-bold text-heading no-underline"
+                      >
+                        {stop.view.customerName}
+                      </Link>
+                      {stop.view.customer ? (
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="size-3.5" />
+                            {stop.view.customer.address}
+                          </span>
+                          {stop.view.customer.contacts[0]?.phone ? (
+                            <a
+                              href={`tel:${stop.view.customer.contacts[0].phone}`}
+                              className="flex items-center gap-1 text-muted-foreground no-underline"
+                            >
+                              <Phone className="size-3.5" />
+                              {formatPhone(stop.view.customer.contacts[0].phone)}
+                            </a>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                    <ul className="flex flex-col">
+                      {stop.lines.map((line) => (
+                        <li
+                          key={line.product.id}
+                          className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2 last:border-b-0"
+                        >
+                          <span className="truncate text-[13px] text-foreground">{line.product.name}</span>
+                          <span className="shrink-0 text-[13.5px] font-bold text-heading">
+                            {formatQty(line.qty, line.product.unit)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex items-center justify-between bg-card-muted px-3.5 py-2 text-[11.5px] text-muted-foreground">
+                      <span>{stop.lines.length} פריטים</span>
+                      <span className="font-bold text-heading">{formatPrice(stop.view.total)}</span>
+                    </div>
+                  </article>
+                ))}
+              </section>
+            ))
+          )}
+        </div>
+      </Section>
+    </AdminShell>
+  );
+}
