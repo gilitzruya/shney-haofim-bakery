@@ -1,7 +1,19 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { FileText, MapPin, Pencil, Phone, Plus } from "lucide-react";
+import { FileText, MapPin, Pencil, Phone, Plus, RotateCcw, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
