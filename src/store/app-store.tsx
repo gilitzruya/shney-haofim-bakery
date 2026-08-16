@@ -240,6 +240,9 @@ interface StoreValue extends PersistedState {
   issueDocuments: (orderIds: string[], type?: DocumentType) => Promise<void>;
   /** יצירת הזמנה בשם לקוח (צד המאפייה) */
   addAdminOrder: (order: Omit<Order, "id">) => Order;
+  /** עדכון הזמנה קיימת מצד המאפייה (גם הזמנות שהלקוח יצר) */
+  updateOrderAsAdmin: (id: string, patch: Partial<Omit<Order, "id">>) => void;
+
   resetDemoData: () => void;
 }
 
@@ -665,6 +668,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         update((s) => ({ ...s, adminOrders: [created, ...s.adminOrders] }));
         return created;
       },
+
+      updateOrderAsAdmin: (id, patch) =>
+        update((s) => ({
+          ...s,
+          orders: s.orders.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+          adminOrders: s.adminOrders.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+        })),
+
+
 
       resetDemoData: () => {
         try {
