@@ -71,7 +71,20 @@ function CustomerDetailPage() {
           {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
         </div>
 
-        {editing ? (
+        <div className="mb-3">
+          <Tabs<TabId>
+            tabs={[
+              { id: "details", label: "פרטי לקוח" },
+              { id: "prices", label: "מחירים מיוחדים" },
+            ]}
+            value={tab}
+            onChange={setTab}
+          />
+        </div>
+
+        {tab === "prices" ? (
+          <SpecialPricesPanel customer={customer} />
+        ) : editing ? (
           <CustomerForm
             initial={toFormValues(customer)}
             submitLabel="שמירת השינויים"
