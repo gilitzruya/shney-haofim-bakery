@@ -161,6 +161,18 @@
     background: #fff !important;
   }
 
+  .packing-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: #fff !important;
+    padding: 12px;
+  }
+
+  @page {
+    margin: 10mm;
+  }
+
   .baking-sheet {
     position: fixed;
     inset: 0;
