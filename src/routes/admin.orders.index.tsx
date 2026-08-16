@@ -83,42 +83,54 @@ function AdminOrdersPage() {
       <Section className="pt-6 pb-10">
         <h1 className="mb-3 text-[19px] font-bold text-heading">הזמנות לאספקה</h1>
 
-        <div className="flex items-center justify-between gap-2 rounded-[14px] border border-border bg-card px-2 py-2">
-          <button
-            type="button"
-            aria-label="יום קודם"
-            onClick={() => setDate((d) => shiftIso(d, -1))}
-            className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-          <div className="text-center">
-            <div className="text-[13.5px] font-bold text-heading">
-              {formatWeekday(date)}, {formatDate(date)}
+        {dateFilter === "tomorrow" ? (
+          <div className="flex items-center justify-between gap-2 rounded-[14px] border border-border bg-card px-2 py-2">
+            <button
+              type="button"
+              aria-label="יום קודם"
+              onClick={() => setDate((d) => shiftIso(d, -1))}
+              className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+            <div className="text-center">
+              <div className="text-[13.5px] font-bold text-heading">
+                {formatWeekday(date)}, {formatDate(date)}
+              </div>
+              <button
+                type="button"
+                onClick={() => setDate(tomorrowIso())}
+                className="text-[11px] font-semibold text-primary"
+              >
+                חזרה למחר
+              </button>
             </div>
             <button
               type="button"
-              onClick={() => setDate(tomorrowIso())}
-              className="text-[11px] font-semibold text-primary"
+              aria-label="יום הבא"
+              onClick={() => setDate((d) => shiftIso(d, 1))}
+              className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
             >
-              חזרה למחר
+              <ChevronLeft className="size-4" />
             </button>
           </div>
-          <button
-            type="button"
-            aria-label="יום הבא"
-            onClick={() => setDate((d) => shiftIso(d, 1))}
-            className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-[14px] border border-border bg-card px-2 py-3 text-[13.5px] font-bold text-heading">
+            כל התאריכים
+          </div>
+        )}
 
         <div className="mt-3">
-          <FilterChips<RoundFilter>
-            chips={[{ id: "all", label: "כל הסבבים" }, ...ROUNDS.map((r) => ({ id: r.id, label: r.label }))]}
-            value={round}
-            onChange={setRound}
+          <FilterChips<DateFilter>
+            chips={[
+              { id: "tomorrow", label: "הזמנות למחר" },
+              { id: "all", label: "כל ההזמנות" },
+            ]}
+            value={dateFilter}
+            onChange={(value) => {
+              setDateFilter(value);
+              if (value === "tomorrow") setDate(tomorrowIso());
+            }}
           />
         </div>
 
@@ -130,11 +142,18 @@ function AdminOrdersPage() {
         </div>
 
         <div className="mt-3">
-          {!hydrated ? null : filtered.length === 0 ? (
-            <EmptyState title="אין הזמנות ליום זה" description="אפשר לעבור ליום אחר או לשנות את סינון הסבב." />
+          {!hydrated ? null : views.length === 0 ? (
+            <EmptyState
+              title={dateFilter === "tomorrow" ? "אין הזמנות ליום זה" : "אין הזמנות במערכת"}
+              description={
+                dateFilter === "tomorrow"
+                  ? "אפשר לעבור ליום אחר או לבחור 'כל ההזמנות'."
+                  : "כל ההזמנות יופיעו כאן כשיתקבלו."
+              }
+            />
           ) : (
             <AdminOrderList
-              views={filtered}
+              views={views}
               selection={{ selected, onToggle: toggle }}
               documentFor={latestDocFor}
             />
