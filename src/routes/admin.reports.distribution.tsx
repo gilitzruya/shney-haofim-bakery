@@ -3,6 +3,7 @@ import { MapPin, Phone, Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { PackingSheet } from "@/components/admin/packing-sheet";
 import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
@@ -37,16 +38,17 @@ function DistributionReportPage() {
 
   return (
     <AdminShell>
-      <Section className="pt-6 pb-10">
+      <PackingSheet date={date} groups={groups} />
+      <Section className="pt-6 pb-10 print:hidden">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h1 className="text-[19px] font-bold text-heading">דוח חלוקה</h1>
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground print:hidden"
+            className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground print:hidden"
           >
             <Printer className="size-3.5" />
-            הדפסה
+            הדפסה / PDF
           </button>
         </div>
 
