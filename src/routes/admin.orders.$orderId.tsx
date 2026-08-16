@@ -163,7 +163,7 @@ function AdminOrderDetailPage() {
               <Plus className="size-3.5" />
               הוספת מוצרים
             </button>
-          ) : (
+          ) : isCancelled ? null : (
             <button
               type="button"
               onClick={startEdit}
@@ -173,6 +173,7 @@ function AdminOrderDetailPage() {
               עריכת ההזמנה
             </button>
           )}
+
         </div>
 
 
