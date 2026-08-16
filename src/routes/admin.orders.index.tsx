@@ -8,11 +8,9 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { FilterChips } from "@/components/app/tabs";
-import { ROUNDS } from "@/data/catalog";
-import type { RoundId } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
+import { useAdminOrdersForDate, useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
-import { summarizeDay } from "@/lib/admin/selectors";
+import { activeOrders, summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday, parseDate, toIso } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
