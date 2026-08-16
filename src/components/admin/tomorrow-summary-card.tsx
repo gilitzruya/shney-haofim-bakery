@@ -14,8 +14,9 @@ export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
         <div className="min-w-0">
           <div className="text-[13px] font-semibold text-primary-foreground/80">אספקה מחר</div>
           <div className="text-[20px] leading-tight font-bold text-primary-foreground md:text-[26px]">
-            יום {formatWeekday(summary.date)}, {formatDate(summary.date)}
+            {formatWeekday(summary.date)}, {formatDate(summary.date)}
           </div>
+
         </div>
       </div>
 
