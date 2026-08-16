@@ -172,22 +172,31 @@ function AdminOrderDetailPage() {
             <button
               type="button"
               onClick={() => setAdding(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
+              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary"
             >
               <Plus className="size-3.5" />
               הוספת מוצרים
             </button>
           ) : isCancelled ? null : (
-            <button
-              type="button"
-              onClick={startEdit}
-              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
-            >
-              <Pencil className="size-3.5" />
-              עריכת ההזמנה
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={startEdit}
+                className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary"
+              >
+                <Pencil className="size-3.5" />
+                עריכה
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmCancel(true)}
+                className="inline-flex items-center gap-1 rounded-full border border-destructive bg-destructive-bg px-3 py-1.5 text-[12px] font-bold text-destructive"
+              >
+                <XCircle className="size-3.5" />
+                ביטול
+              </button>
+            </div>
           )}
-
         </div>
 
 
