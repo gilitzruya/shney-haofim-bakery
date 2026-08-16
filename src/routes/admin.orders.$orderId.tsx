@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { FileText, MapPin, Pencil, Phone, Search } from "lucide-react";
+import { FileText, MapPin, Pencil, Phone, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -40,16 +40,16 @@ function AdminOrderDetailPage() {
   const [editing, setEditing] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
   const customer = view?.customer;
 
   const searchResults = useMemo(() => {
     const q = query.trim();
-    if (!q) return [];
-    return allProducts()
-      .filter((p) => p.name.includes(q) || (p.sku ?? "").includes(q))
-      .slice(0, 8);
+    const list = allProducts();
+    if (!q) return list;
+    return list.filter((p) => p.name.includes(q) || (p.sku ?? "").includes(q));
   }, [query]);
 
   if (!view) {
@@ -82,6 +82,7 @@ function AdminOrderDetailPage() {
     for (const l of order.lines) map[l.productId] = l.qty;
     setQuantities(map);
     setQuery("");
+    setAdding(false);
     setEditing(true);
   };
 
@@ -130,7 +131,16 @@ function AdminOrderDetailPage() {
 
         <div className="mt-4 mb-2 flex items-center justify-between gap-2">
           <h2 className="text-[15px] font-bold text-heading">מוצרים בהזמנה</h2>
-          {editing ? null : (
+          {editing ? (
+            <button
+              type="button"
+              onClick={() => setAdding((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary"
+            >
+              <Plus className="size-3.5" />
+              {adding ? "סגירת הוספת מוצרים" : "הוספת מוצרים"}
+            </button>
+          ) : (
             <button
               type="button"
               onClick={startEdit}
@@ -142,7 +152,7 @@ function AdminOrderDetailPage() {
           )}
         </div>
 
-        {editing ? (
+        {editing && adding ? (
           <Card className="mb-2 flex flex-col gap-2.5">
             <div className="text-[12px] font-semibold text-muted-foreground">הוספת מוצר להזמנה</div>
             <div className="relative">
@@ -155,6 +165,8 @@ function AdminOrderDetailPage() {
                 className="pe-9"
               />
             </div>
+            <div className="flex max-h-[320px] flex-col gap-2 overflow-y-auto">
+
             {searchResults.map((p) => (
               <div
                 key={p.id}
@@ -176,7 +188,9 @@ function AdminOrderDetailPage() {
             {query.trim() && searchResults.length === 0 ? (
               <div className="text-[12px] text-muted-foreground">לא נמצאו מוצרים מתאימים.</div>
             ) : null}
+            </div>
           </Card>
+
         ) : null}
 
         <div className="flex flex-col gap-2">
