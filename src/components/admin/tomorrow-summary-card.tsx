@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 
 import type { DaySummary } from "@/lib/admin/selectors";
 import { formatDate, formatWeekday } from "@/lib/format";
+import breadImage from "@/assets/products/חלה_רגילה.webp.asset.json";
 
 /** "₪8,740" — סכום קצר לתצוגת סיכום. */
 function formatShortPrice(value: number): string {
   const rounded = Math.round(value);
   return `₪${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
-import breadImage from "@/assets/products/חלה_רגילה.webp.asset.json";
 
 /** סיכום תפעולי גדול וברור של יום האספקה הקרוב. */
 export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
