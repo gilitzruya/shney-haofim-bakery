@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ClipboardList,
   FileText,
-  Printer,
   RefreshCw,
   Truck,
   Users,
