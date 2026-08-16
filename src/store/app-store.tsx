@@ -200,6 +200,11 @@ interface StoreValue extends PersistedState {
   discardDraft: () => void;
   /* business */
   saveBusiness: (patch: Partial<Business>) => void;
+  /* admin: customers */
+  getCustomer: (id: string) => Customer | undefined;
+  addCustomer: (customer: Omit<Customer, "id">) => Customer;
+  updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => void;
+  setCustomerBlocked: (id: string, blocked: boolean) => void;
   resetDemoData: () => void;
 }
 
