@@ -185,7 +185,7 @@ function AdminOrderDetailPage() {
                 className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary"
               >
                 <Pencil className="size-3.5" />
-                עריכה
+                עריכת ההזמנה
               </button>
               <button
                 type="button"
@@ -193,7 +193,7 @@ function AdminOrderDetailPage() {
                 className="inline-flex items-center gap-1 rounded-full border border-destructive bg-destructive-bg px-3 py-1.5 text-[12px] font-bold text-destructive"
               >
                 <XCircle className="size-3.5" />
-                ביטול
+                ביטול ההזמנה
               </button>
             </div>
           )}
