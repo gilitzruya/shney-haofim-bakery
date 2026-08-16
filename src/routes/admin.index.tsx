@@ -256,7 +256,7 @@ function ShortcutTile({
   return (
     <Link
       to={to}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 no-underline"
+      className="flex items-center justify-between gap-2 rounded-[18px] border border-accent/30 bg-accent-soft px-3 py-3.5 no-underline shadow-sm"
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2 text-right">
