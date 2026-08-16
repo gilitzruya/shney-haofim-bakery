@@ -14,11 +14,10 @@ import { useEffect, useMemo, useState } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
-import { Chip } from "@/components/app/status-chip";
 import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
-import { formatPrice } from "@/lib/format";
+import { formatDate, formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/")({
@@ -112,7 +111,7 @@ function AdminHomePage() {
             {!hydrated || todayIntake.length === 0 ? (
               <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות חדשות היום</div>
             ) : (
-              todayIntake.map(({ view, time }, index) => (
+              todayIntake.map(({ view }) => (
                 <Link
                   key={view.order.id}
                   to="/admin/orders/$orderId"
@@ -121,9 +120,8 @@ function AdminHomePage() {
                 >
                   <span className="flex min-w-0 flex-1 items-center gap-2">
                     <span className="truncate text-[13.5px] font-semibold text-foreground">{view.customerName}</span>
-                    {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
                   </span>
-                  <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{time}</span>
+                  <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{formatDate(view.order.date)}</span>
                   <span className="w-[74px] shrink-0 text-end text-[13px] font-bold text-heading tabular-nums">
                     {formatPrice(view.total)}
                   </span>
