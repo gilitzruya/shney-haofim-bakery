@@ -1,42 +1,60 @@
-import { CalendarDays, Package, Receipt, ShoppingBasket } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import type { DaySummary } from "@/lib/admin/selectors";
-import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
+import { formatDate, formatWeekday } from "@/lib/format";
+import breadImage from "@/assets/products/חלה_רגילה.webp.asset.json";
+
+/** "₪8,740" — סכום קצר לתצוגת סיכום. */
+function formatShortPrice(value: number): string {
+  const rounded = Math.round(value);
+  return `₪${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+}
 
 /** סיכום תפעולי גדול וברור של יום האספקה הקרוב. */
 export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
   return (
-    <div className="rounded-[26px] bg-primary p-5 shadow-[0_18px_40px_-18px_rgba(74,31,45,0.55)] md:p-7">
-      <div className="flex items-center gap-3">
-        <span className="flex size-[52px] shrink-0 items-center justify-center rounded-full bg-canvas text-primary md:size-[62px]">
-          <CalendarDays className="size-7 md:size-8" strokeWidth={1.8} />
-        </span>
-        <div className="min-w-0">
-          <div className="text-[13px] font-semibold text-primary-foreground/80">אספקה מחר</div>
-          <div className="text-[20px] leading-tight font-bold text-primary-foreground md:text-[26px]">
+    <div className="overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_16px_36px_-22px_rgba(74,31,45,0.45)]">
+      <div className="flex">
+        <div
+          aria-hidden
+          className="w-[34%] shrink-0 bg-primary-soft bg-cover bg-center md:w-[38%]"
+          style={{ backgroundImage: `url(${breadImage.url})` }}
+        />
+        <div className="min-w-0 flex-1 p-4 text-right md:p-5">
+          <h2 className="text-[21px] leading-tight font-bold text-primary md:text-[24px]">הזמנות למחר</h2>
+          <div className="mt-0.5 text-[12.5px] text-muted-foreground">
             {formatWeekday(summary.date)}, {formatDate(summary.date)}
           </div>
 
-        </div>
-      </div>
+          <div className="mt-3.5 flex items-stretch justify-between gap-1">
+            <Metric value={formatShortPrice(summary.total)} label="סכום כולל" />
+            <Divider />
+            <Metric value={String(summary.itemsCount)} label='יח׳/ק״ג' />
+            <Divider />
+            <Metric value={String(summary.ordersCount)} label="הזמנות" />
+          </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-2.5">
-        <Metric icon={<Receipt className="size-[15px]" />} label="הזמנות" value={String(summary.ordersCount)} />
-        <Metric icon={<ShoppingBasket className="size-[15px]" />} label="פריטים" value={String(summary.itemsCount)} />
-        <Metric icon={<Package className="size-[15px]" />} label="סה״כ" value={formatPrice(summary.total)} />
+          <Link
+            to="/admin/orders"
+            className="mt-4 flex items-center justify-center rounded-[14px] bg-primary px-4 py-3 text-[14px] font-bold text-primary-foreground no-underline"
+          >
+            פירוט הזמנות
+          </Link>
+        </div>
       </div>
     </div>
   );
 }
 
-function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Divider() {
+  return <span aria-hidden className="w-px shrink-0 self-stretch bg-border" />;
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-[16px] bg-canvas px-2.5 py-3 text-center">
-      <div className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-1 text-[17px] font-bold text-heading md:text-[20px]">{value}</div>
+    <div className="min-w-0 flex-1 text-center">
+      <div className="truncate text-[15.5px] font-bold text-primary md:text-[19px]">{value}</div>
+      <div className="mt-0.5 text-[10.5px] text-muted-foreground">{label}</div>
     </div>
   );
 }
