@@ -207,19 +207,20 @@ function AdminHomePage() {
   );
 }
 
-function ReportTile({
-  to,
+function PrintReportButton({
   icon,
   title,
+  onClick,
 }: {
-  to: "/admin/reports/production" | "/admin/reports/distribution";
   icon: React.ReactNode;
   title: string;
+  onClick: () => void;
 }) {
   return (
-    <Link
-      to={to}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 no-underline"
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 text-start"
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2">
@@ -228,7 +229,7 @@ function ReportTile({
           {icon}
         </span>
       </span>
-    </Link>
+    </button>
   );
 }
 
