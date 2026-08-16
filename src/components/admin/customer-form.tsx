@@ -8,6 +8,7 @@ import type { Customer } from "@/data/admin-seed";
 import { cn } from "@/lib/utils";
 
 export interface CustomerFormValues {
+  code: string;
   name: string;
   address: string;
   contactName: string;
@@ -19,6 +20,7 @@ export interface CustomerFormValues {
 export function toFormValues(customer?: Customer): CustomerFormValues {
   const contact = customer?.contacts[0];
   return {
+    code: customer?.code ?? "",
     name: customer?.name ?? "",
     address: customer?.address ?? "",
     contactName: contact?.name ?? "",
@@ -66,6 +68,15 @@ export function CustomerForm({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="grid gap-3.5 md:grid-cols-2">
+        <FormField label="קוד לקוח">
+          <TextInput
+            value={values.code}
+            onChange={(e) => set("code", e.target.value)}
+            placeholder="לדוגמה: 1001"
+            dir="ltr"
+            className="text-right"
+          />
+        </FormField>
         <FormField label="שם הלקוח">
           <TextInput value={values.name} onChange={(e) => set("name", e.target.value)} placeholder="לדוגמה: בית קפה אלמה" />
         </FormField>

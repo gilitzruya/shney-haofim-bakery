@@ -9,6 +9,8 @@ export interface CustomerContact {
 
 export interface Customer {
   id: string;
+  /** קוד לקוח לזיהוי במערכת החשבונות / חשבונית */
+  code?: string | undefined;
   /** שם העסק / הלקוח */
   name: string;
   address: string;
@@ -27,6 +29,7 @@ export const SELF_CUSTOMER_ID = "cust-self";
 export const SEED_CUSTOMERS: Customer[] = [
   {
     id: SELF_CUSTOMER_ID,
+    code: "1000",
     name: "מלון יהודה",
     address: "דרך חברון 122, ירושלים",
     contacts: [{ name: "רונית לוי", phone: "052-4471290", email: "orders@hotel-yehuda.co.il" }],
@@ -34,6 +37,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-2",
+    code: "1001",
     name: "בית קפה אלמה",
     address: "עמק רפאים 34, ירושלים",
     contacts: [{ name: "אלמה כהן", phone: "054-2213388", email: "alma@cafe-alma.co.il" }],
@@ -41,6 +45,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-3",
+    code: "1002",
     name: "גן הילדים שקד",
     address: "הפסגה 12, ירושלים",
     contacts: [{ name: "שירה בן דוד", phone: "050-7719042", email: "shaked.gan@gmail.com" }],
@@ -48,6 +53,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-4",
+    code: "1003",
     name: "דלי מרקט",
     address: "יפו 88, ירושלים",
     contacts: [{ name: "מאיר אזולאי", phone: "053-8820114", email: "meir@delimarket.co.il" }],
@@ -55,6 +61,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-5",
+    code: "1004",
     name: "המסעדה של יוסי",
     address: "המלך ג׳ורג׳ 21, ירושלים",
     contacts: [{ name: "יוסי מזרחי", phone: "052-9004471", email: "yossi@rest-yossi.co.il" }],
@@ -62,6 +69,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-6",
+    code: "1005",
     name: "מכולת השכונה",
     address: "בית הכרם 5, ירושלים",
     contacts: [{ name: "נעם פרץ", phone: "054-6612903", email: "noam@shchuna.co.il" }],
@@ -70,6 +78,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-7",
+    code: "1006",
     name: "קייטרינג רימון",
     address: "פייר קניג 30, ירושלים",
     contacts: [{ name: "תמר שגב", phone: "058-4412207", email: "tamar@rimon-catering.co.il" }],
@@ -77,6 +86,7 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
   {
     id: "cust-8",
+    code: "1007",
     name: "פיצריה סן מרקו",
     address: "אגריפס 44, ירושלים",
     contacts: [{ name: "דוד ביטון", phone: "050-3320988", email: "sanmarco@walla.com" }],
