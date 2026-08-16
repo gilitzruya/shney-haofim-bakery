@@ -17,7 +17,7 @@ export function TomorrowSummaryCard({ summary }: { summary: DaySummary }) {
       <div className="flex">
         <div
           aria-hidden
-          className="w-[34%] shrink-0 bg-cover bg-center md:w-[38%]"
+          className="w-[34%] shrink-0 bg-primary-soft bg-cover bg-center md:w-[38%]"
           style={{ backgroundImage: `url(${breadImage.url})` }}
         />
         <div className="min-w-0 flex-1 p-4 text-right md:p-5">
