@@ -41,6 +41,12 @@ export function formatDate(iso: string): string {
   return `${d.getDate()} ${HE_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+/** "3.8" */
+export function formatShortDateNumeric(iso: string): string {
+  const d = parseDate(iso);
+  return `${d.getDate()}.${d.getMonth() + 1}`;
+}
+
 /** "יום שני, 3 באוגוסט 2026" */
 export function formatLongDate(iso: string): string {
   const d = parseDate(iso);
