@@ -118,7 +118,7 @@ function AdminHomePage() {
           />
         </div>
 
-        <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
+        <div className="mt-3 rounded-[22px] border border-border bg-card-muted p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h2 className="text-[16px] font-bold text-primary">הזמנות שנכנסו היום</h2>
@@ -217,12 +217,12 @@ function PrintReportButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 text-start"
+      className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm"
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2">
         <span className="text-[12.5px] leading-tight font-bold text-heading">{title}</span>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-foreground">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
           {icon}
         </span>
       </span>
@@ -256,7 +256,7 @@ function ShortcutTile({
   return (
     <Link
       to={to}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-border bg-card px-3 py-3.5 no-underline"
+      className="flex items-center justify-between gap-2 rounded-[18px] border border-accent/30 bg-accent-soft px-3 py-3.5 no-underline shadow-sm"
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2 text-right">
