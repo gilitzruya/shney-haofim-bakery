@@ -669,6 +669,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         return created;
       },
 
+      updateOrderAsAdmin: (id, patch) =>
+        update((s) => ({
+          ...s,
+          orders: s.orders.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+          adminOrders: s.adminOrders.map((o) => (o.id === id ? { ...o, ...patch } : o)),
+        })),
+
+
+
       resetDemoData: () => {
         try {
           window.localStorage.removeItem(STORAGE_KEY);
