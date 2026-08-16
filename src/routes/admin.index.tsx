@@ -66,13 +66,12 @@ function AdminHomePage() {
   const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
 
   useEffect(() => {
-    if (pendingPrint) {
-      const id = window.setTimeout(() => {
-        window.print();
-        setPendingPrint(null);
-      }, 250);
-      return () => window.clearTimeout(id);
-    }
+    if (!pendingPrint) return undefined;
+    const id = window.setTimeout(() => {
+      window.print();
+      setPendingPrint(null);
+    }, 250);
+    return () => window.clearTimeout(id);
   }, [pendingPrint]);
 
   const todayIntake = useMemo(
