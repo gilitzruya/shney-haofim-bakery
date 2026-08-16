@@ -53,6 +53,7 @@ function AdminOrderDetailPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [adding, setAdding] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmSave, setConfirmSave] = useState(false);
 
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
