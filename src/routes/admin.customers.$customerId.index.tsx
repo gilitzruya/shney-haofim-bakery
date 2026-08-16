@@ -71,9 +71,16 @@ function CustomerDetailPage() {
           חזרה לרשימת הלקוחות
         </Link>
 
-        <div className="mb-4 flex items-center gap-2">
-          <h1 className="text-[19px] font-bold text-heading">{customer.name}</h1>
-          {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
+        <div className="mb-4 flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-[19px] font-bold text-heading">{customer.name}</h1>
+            {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
+          </div>
+          {customer.code ? (
+            <div className="text-[12px] font-semibold text-muted-foreground" dir="ltr">
+              קוד לקוח: <span className="text-foreground">{customer.code}</span>
+            </div>
+          ) : null}
         </div>
 
         <div className="mb-3">
@@ -96,6 +103,7 @@ function CustomerDetailPage() {
             onCancel={() => setEditing(false)}
             onSubmit={(v) => {
               updateCustomer(customer.id, {
+                code: v.code.trim() || undefined,
                 name: v.name,
                 address: v.address,
                 contacts: [{ name: v.contactName, phone: v.phone, email: v.email }],
