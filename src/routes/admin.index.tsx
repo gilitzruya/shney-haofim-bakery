@@ -4,7 +4,6 @@ import {
   Croissant,
   ChevronDown,
   ChevronLeft,
-  ClipboardList,
   FileText,
   RefreshCw,
   Truck,
@@ -46,7 +45,7 @@ export const Route = createFileRoute("/admin/")({
 type PrintTarget = "production" | "distribution" | null;
 
 function AdminHomePage() {
-  const { hydrated, documents } = useStore();
+  const { hydrated } = useStore();
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
@@ -87,15 +86,8 @@ function AdminHomePage() {
   const attention = useMemo(() => {
     const drafts = views.filter((v) => v.order.status === "draft").length;
     const flagged = views.filter((v) => v.order.status === "needs_update").length;
-    const missingNotes = views.filter(
-      (v) =>
-        v.order.date === date &&
-        v.order.status !== "cancelled" &&
-        v.order.status !== "draft" &&
-        !documents.some((d) => d.orderId === v.order.id && d.type === "delivery_note"),
-    ).length;
-    return { drafts: drafts || 3, flagged: flagged || 1, missingNotes: missingNotes || 2 };
-  }, [views, documents, date]);
+    return { drafts, flagged, missingNotes: 0 };
+  }, [views]);
 
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   useEffect(() => {
@@ -178,23 +170,28 @@ function AdminHomePage() {
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
           <h2 className="text-[16px] font-bold text-primary">דורש טיפול</h2>
-          <div className="mt-2">
-            <AttentionRow
-              icon={<AlertTriangle className="size-[18px] text-destructive" />}
-              text={`${attention.drafts} טיוטות עדיין לא אושרו`}
-              count={attention.drafts}
-            />
-            <AttentionRow
-              icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
-              text={attention.flagged === 1 ? "הזמנה אחת עם חריגה" : `${attention.flagged} הזמנות עם חריגה`}
-              count={attention.flagged}
-            />
-            <AttentionRow
-              icon={<ClipboardList className="size-[18px] text-muted-foreground" />}
-              text={`${attention.missingNotes} תעודות משלוח טרם הופקו`}
-              count={attention.missingNotes}
-            />
-          </div>
+          {hydrated && attention.drafts + attention.flagged + attention.missingNotes === 0 ? (
+            <div className="py-3 text-center text-[12.5px] text-muted-foreground">
+              אין כרגע משימות שדורשות טיפול 🎉
+            </div>
+          ) : (
+            <div className="mt-2">
+              {attention.drafts > 0 ? (
+                <AttentionRow
+                  icon={<AlertTriangle className="size-[18px] text-destructive" />}
+                  text={`${attention.drafts} טיוטות עדיין לא אושרו`}
+                  count={attention.drafts}
+                />
+              ) : null}
+              {attention.flagged > 0 ? (
+                <AttentionRow
+                  icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
+                  text={attention.flagged === 1 ? "הזמנה אחת עם חריגה" : `${attention.flagged} הזמנות עם חריגה`}
+                  count={attention.flagged}
+                />
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-3">
