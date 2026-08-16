@@ -59,6 +59,9 @@ function OrderRowCard({
             <div className="text-[11.5px] font-semibold text-primary">פירוט הזמנה</div>
             <div className="text-end">
               <div className="text-[15px] font-bold text-heading">{formatPrice(view.total)}</div>
+              <div className="text-[11px] text-muted-foreground">
+                {view.itemsCount} מוצרים · {Math.round(unitsCount)} יח׳
+              </div>
             </div>
           </div>
         </div>
