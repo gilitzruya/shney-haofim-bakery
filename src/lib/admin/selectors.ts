@@ -1,7 +1,8 @@
 import type { Customer } from "@/data/admin-seed";
 import { SELF_CUSTOMER_ID } from "@/data/admin-seed";
 import type { Order } from "@/data/seed";
-import { linesCount, linesTotal } from "@/lib/format";
+import { linesCount } from "@/lib/format";
+import { linesTotalFor } from "@/lib/admin/pricing";
 
 export interface AdminOrderView {
   order: Order;
