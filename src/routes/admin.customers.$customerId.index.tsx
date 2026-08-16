@@ -12,7 +12,7 @@ import { Modal } from "@/components/app/modal";
 import { roundLabel } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
 
-export const Route = createFileRoute("/admin/customers/$customerId")({
+export const Route = createFileRoute("/admin/customers/$customerId/")({
   head: () => ({
     meta: [
       { title: "כרטיס לקוח — ניהול המאפייה" },
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/admin/customers/$customerId")({
 });
 
 function CustomerDetailPage() {
-  const { customerId } = useParams({ from: "/admin/customers/$customerId" });
+  const { customerId } = useParams({ from: "/admin/customers/$customerId/" });
   const { customers, hydrated, updateCustomer, setCustomerBlocked } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
