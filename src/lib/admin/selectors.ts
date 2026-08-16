@@ -29,7 +29,7 @@ export function toOrderViews(orders: Order[], customers: Customer[]): AdminOrder
       customer,
       customerName: customer?.name ?? "לקוח לא ידוע",
       itemsCount: linesCount(o.lines),
-      total: linesTotal(o.lines),
+      total: linesTotalFor(o.lines, customer),
     };
   });
 }
