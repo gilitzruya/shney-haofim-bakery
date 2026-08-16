@@ -256,7 +256,7 @@ function ShortcutTile({
   return (
     <Link
       to={to}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-accent/30 bg-accent-soft px-3 py-3.5 no-underline shadow-sm"
+      className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 no-underline shadow-sm"
     >
       <ChevronLeft className="size-4 shrink-0 text-primary" />
       <span className="flex min-w-0 items-center gap-2 text-right">
@@ -264,7 +264,7 @@ function ShortcutTile({
           <span className="block truncate text-[14px] font-bold text-heading">{title}</span>
           <span className="block truncate text-[11px] text-muted-foreground">{subtitle}</span>
         </span>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
           {icon}
         </span>
       </span>
