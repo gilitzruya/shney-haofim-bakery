@@ -33,7 +33,7 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
   for (const stop of group.stops) {
     for (const line of stop.lines) {
       if (!productMap.has(line.product.id)) {
-        productMap.set(line.product.id, { name: line.product.name });
+        productMap.set(line.product.id, { name: line.product.name, code: line.product.sku });
       }
     }
   }
@@ -51,7 +51,6 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
       0,
     ),
   );
-  const grandTotal = columnTotals.reduce((a, b) => a + b, 0);
 
   const cell = "border border-black px-1.5 py-1 text-center text-[11px] tabular-nums";
   const head = "border border-black px-1.5 py-1 text-center text-[11px] font-bold";
@@ -64,6 +63,16 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
       <table className="w-full border-collapse text-black">
         <thead>
           <tr>
+            <th className={`${head} text-right`} colSpan={2} style={{ backgroundColor: "#d8d8d8" }}>
+              קוד מוצר
+            </th>
+            {products.map((p) => (
+              <th key={p.id} className={head} style={{ backgroundColor: "#d8d8d8" }}>
+                {p.code ?? ""}
+              </th>
+            ))}
+          </tr>
+          <tr>
             <th className={`${head} text-right`} style={{ backgroundColor: "#e8e8e8" }}>
               קוד
             </th>
@@ -75,14 +84,10 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
                 <span className="block leading-tight">{p.name}</span>
               </th>
             ))}
-            <th className={head} style={{ backgroundColor: "#e8e8e8" }}>
-              סה״כ
-            </th>
           </tr>
         </thead>
         <tbody>
           {group.stops.map((stop, i) => {
-            const rowTotal = stop.lines.reduce((sum, l) => sum + l.qty, 0);
             return (
               <tr key={stop.view.order.id}>
                 <td className={`${cell} font-bold`}>{stop.view.customer?.code ?? ""}</td>
@@ -95,7 +100,6 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
                     </td>
                   );
                 })}
-                <td className={`${cell} font-bold`}>{rowTotal}</td>
               </tr>
             );
           })}
@@ -112,9 +116,6 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
                 {total ? total : ""}
               </td>
             ))}
-            <td className={`${cell} font-bold`} style={{ backgroundColor: "#fbd9ef" }}>
-              {grandTotal}
-            </td>
           </tr>
         </tbody>
       </table>
