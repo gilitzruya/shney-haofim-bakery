@@ -6,7 +6,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { Chip } from "@/components/app/chip";
+import { Chip } from "@/components/app/status-chip";
 import { FormField, TextInput } from "@/components/app/form-controls";
 import type { Product, Unit } from "@/data/catalog";
 import { formatPrice, unitLabel } from "@/lib/format";
@@ -43,7 +43,7 @@ function AdminCategoryPage() {
   if (!hydrated) {
     return (
       <AdminShell>
-        <Section className="pt-6 pb-10" />
+        <Section className="pt-6 pb-10"> </Section>
       </AdminShell>
     );
   }
@@ -238,7 +238,7 @@ function NewProductForm({
           </div>
         </FormField>
       </div>
-      {error ? <div className="text-[12px] font-semibold text-error">{error}</div> : null}
+      {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
       <div className="flex items-center gap-2">
         <Button size="sm" onClick={submit}>
           הוספת מוצר
