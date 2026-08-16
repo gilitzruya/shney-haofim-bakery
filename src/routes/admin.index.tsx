@@ -112,7 +112,7 @@ function AdminHomePage() {
             {!hydrated || todayIntake.length === 0 ? (
               <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות חדשות היום</div>
             ) : (
-              todayIntake.map(({ view, time }, index) => (
+              todayIntake.map(({ view }) => (
                 <Link
                   key={view.order.id}
                   to="/admin/orders/$orderId"
@@ -121,9 +121,8 @@ function AdminHomePage() {
                 >
                   <span className="flex min-w-0 flex-1 items-center gap-2">
                     <span className="truncate text-[13.5px] font-semibold text-foreground">{view.customerName}</span>
-                    {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
                   </span>
-                  <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{time}</span>
+                  <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{formatDate(view.order.date)}</span>
                   <span className="w-[74px] shrink-0 text-end text-[13px] font-bold text-heading tabular-nums">
                     {formatPrice(view.total)}
                   </span>
