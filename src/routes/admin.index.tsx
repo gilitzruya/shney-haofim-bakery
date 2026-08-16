@@ -118,7 +118,7 @@ function AdminHomePage() {
           />
         </div>
 
-        <div className="mt-3 rounded-[22px] border border-border bg-card-muted p-4">
+        <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h2 className="text-[16px] font-bold text-primary">הזמנות שנכנסו היום</h2>
