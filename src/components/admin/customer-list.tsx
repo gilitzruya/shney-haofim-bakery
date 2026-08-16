@@ -35,13 +35,13 @@ function CustomerRowCard({ customer }: { customer: Customer }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-[14px] font-bold text-heading">{customer.name}</span>
+            {customer.code ? (
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground" dir="ltr">
+                {customer.code}
+              </span>
+            ) : null}
             {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
           </div>
-          {customer.code ? (
-            <div className="mt-0.5 text-[11px] font-semibold text-muted-foreground" dir="ltr">
-              קוד לקוח: {customer.code}
-            </div>
-          ) : null}
           <div className="mt-1 truncate text-[11.5px] text-muted-foreground">
             {contact ? `${contact.name} · ${contact.phone}` : customer.address}
           </div>
