@@ -22,7 +22,7 @@ import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { intakeTime, tomorrowIso } from "@/lib/admin/dates";
 import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
-import { formatPrice } from "@/lib/format";
+import { formatDate, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/")({
