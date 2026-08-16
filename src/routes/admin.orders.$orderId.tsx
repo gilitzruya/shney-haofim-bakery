@@ -114,11 +114,29 @@ function AdminOrderDetailPage() {
       return next;
     });
 
+  const saveSummary = () => {
+    const originalMap: Record<string, number> = {};
+    for (const l of order.lines) originalMap[l.productId] = l.qty;
+    const currentMap = quantities;
+
+    const added = Object.entries(currentMap).filter(([id, qty]) => qty > 0 && !(id in originalMap));
+    const removed = Object.entries(originalMap).filter(([id, qty]) => (currentMap[id] ?? 0) <= 0);
+    const changed = Object.entries(currentMap).filter(([id, qty]) => {
+      const originalQty = originalMap[id];
+      return qty > 0 && originalQty !== undefined && qty !== originalQty;
+    });
+
+    return { added, removed, changed, originalCount: order.lines.length, newCount: currentLines.length };
+  };
+
   const save = () => {
     updateOrderAsAdmin(order.id, { lines: currentLines });
     setEditing(false);
+    setConfirmSave(false);
     toast.success("ההזמנה עודכנה. הלקוח יראה את השינוי");
   };
+
+  const promptSave = () => setConfirmSave(true);
 
   if (editing && adding) {
     return (
