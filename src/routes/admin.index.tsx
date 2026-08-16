@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
-  Bread,
+  Croissant,
   ChevronLeft,
   ClipboardList,
   FileText,
@@ -165,7 +165,7 @@ function AdminHomePage() {
 
         <div className="mt-3 grid grid-cols-2 gap-3">
           <ShortcutTile to="/admin/customers" icon={<Users className="size-5" />} title="לקוחות" subtitle="ניהול לקוחות" />
-          <ShortcutTile to="/admin/products" icon={<Bread className="size-5" />} title="מוצרים" subtitle="ניהול מוצרים" />
+          <ShortcutTile to="/admin/products" icon={<Croissant className="size-5" />} title="מוצרים" subtitle="ניהול מוצרים" />
         </div>
       </Section>
     </AdminShell>
