@@ -34,7 +34,6 @@ type RoundFilter = RoundId | "all";
 
 function AdminOrdersPage() {
   const { hydrated, documents, issueDocuments } = useStore();
-  const [selected, setSelected] = useState<string[]>([]);
   const [issuing, setIssuing] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundFilter>("all");
@@ -70,19 +69,16 @@ function AdminOrdersPage() {
   const latestDocFor = (orderId: string) =>
     documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
-  const toggle = (orderId: string) =>
-    setSelected((prev) =>
-      prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId],
-    );
-
-  const targetIds = selected.length > 0 ? selected : filtered.map((v) => v.order.id);
+  /** הפקה לכל הזמנות היום שאין להן עדיין תעודת משלוח */
+  const pendingIds = filtered
+    .filter((v) => !latestDocFor(v.order.id))
+    .map((v) => v.order.id);
 
   const issueTargets = async () => {
-    if (targetIds.length === 0) return;
+    if (pendingIds.length === 0) return;
     setIssuing(true);
     try {
-      await issueDocuments(targetIds);
-      setSelected([]);
+      await issueDocuments(pendingIds);
     } finally {
       setIssuing(false);
     }
@@ -195,7 +191,6 @@ function AdminOrdersPage() {
           ) : (
             <AdminOrderList
               views={filtered}
-              selection={{ selected, onToggle: toggle }}
               documentFor={latestDocFor}
             />
           )}
@@ -216,9 +211,9 @@ function AdminOrdersPage() {
               <div className="text-[10.5px] text-muted-foreground">הזמנות</div>
             </div>
           </div>
-          <Button className="flex-1" onClick={issueTargets} loading={issuing} disabled={targetIds.length === 0}>
+          <Button className="flex-1" onClick={issueTargets} loading={issuing} disabled={pendingIds.length === 0}>
             <FileText className="size-4" />
-            {selected.length > 0 ? `הפקת תעודות (${selected.length})` : "הפקת תעודות משלוח"}
+            {pendingIds.length === 0 ? "כל התעודות הופקו" : `הפקת תעודות משלוח (${pendingIds.length})`}
           </Button>
         </div>
       </div>
