@@ -247,7 +247,7 @@ function AdminOrderDetailPage() {
           </div>
         </Card>
 
-        {editing ? null : (
+        {editing || isCancelled ? null : (
           <div className="mt-4 flex flex-col gap-2 rounded-[16px] border border-border bg-card p-3.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[13.5px] font-bold text-heading">תעודת משלוח</span>
