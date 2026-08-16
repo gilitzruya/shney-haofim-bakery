@@ -12,7 +12,7 @@ import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
 
-const STORAGE_KEY = "bakery-demo-state:v13";
+const STORAGE_KEY = "bakery-demo-state:v14";
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
@@ -96,6 +96,17 @@ function freshAdminOrders(persisted: Order[] | undefined): Order[] {
   return hasFuture ? persisted : seedAdminOrders();
 }
 
+/** Merge persisted customers with seed data so new fields (e.g. code) are backfilled without losing user edits. */
+function mergeCustomersWithSeed(persisted: Customer[] | undefined): Customer[] {
+  if (!persisted || persisted.length === 0) return SEED_CUSTOMERS;
+  const seedById = new Map(SEED_CUSTOMERS.map((c) => [c.id, c]));
+  return persisted.map((c) => {
+    const seed = seedById.get(c.id);
+    if (!seed) return c;
+    return { ...c, code: c.code ?? seed.code };
+  });
+}
+
 function loadState(): PersistedState {
 
   if (typeof window === "undefined") return initialState;
@@ -108,7 +119,7 @@ function loadState(): PersistedState {
       recurring: parsed.recurring ?? SEED_RECURRING,
       business: parsed.business ?? BUSINESS,
       draft: parsed.draft ?? null,
-      customers: parsed.customers ?? SEED_CUSTOMERS,
+      customers: mergeCustomersWithSeed(parsed.customers),
       adminOrders: freshAdminOrders(parsed.adminOrders),
       catalog: parsed.catalog?.length ? parsed.catalog : CATEGORIES,
       documents: parsed.documents ?? [],
