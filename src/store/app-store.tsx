@@ -205,6 +205,9 @@ interface StoreValue extends PersistedState {
   addCustomer: (customer: Omit<Customer, "id">) => Customer;
   updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => void;
   setCustomerBlocked: (id: string, blocked: boolean) => void;
+  setCustomerPriceOverride: (id: string, productId: string, price: number | null) => void;
+  /** יצירת הזמנה בשם לקוח (צד המאפייה) */
+  addAdminOrder: (order: Omit<Order, "id">) => Order;
   resetDemoData: () => void;
 }
 
@@ -501,6 +504,24 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           ...s,
           customers: s.customers.map((c) => (c.id === id ? { ...c, blocked } : c)),
         })),
+
+      setCustomerPriceOverride: (id, productId, price) =>
+        update((s) => ({
+          ...s,
+          customers: s.customers.map((c) => {
+            if (c.id !== id) return c;
+            const next = { ...(c.priceOverrides ?? {}) };
+            if (price === null) delete next[productId];
+            else next[productId] = price;
+            return { ...c, priceOverrides: next };
+          }),
+        })),
+
+      addAdminOrder: (order) => {
+        const created: Order = { ...order, id: `ao-${Date.now()}` };
+        update((s) => ({ ...s, adminOrders: [created, ...s.adminOrders] }));
+        return created;
+      },
 
       resetDemoData: () => {
         try {
