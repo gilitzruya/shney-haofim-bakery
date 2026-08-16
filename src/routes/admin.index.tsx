@@ -87,15 +87,8 @@ function AdminHomePage() {
   const attention = useMemo(() => {
     const drafts = views.filter((v) => v.order.status === "draft").length;
     const flagged = views.filter((v) => v.order.status === "needs_update").length;
-    const missingNotes = views.filter(
-      (v) =>
-        v.order.date === date &&
-        v.order.status !== "cancelled" &&
-        v.order.status !== "draft" &&
-        !documents.some((d) => d.orderId === v.order.id && d.type === "delivery_note"),
-    ).length;
-    return { drafts, flagged, missingNotes };
-  }, [views, documents, date]);
+    return { drafts, flagged, missingNotes: 0 };
+  }, [views]);
 
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   useEffect(() => {
