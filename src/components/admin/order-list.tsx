@@ -55,16 +55,13 @@ function OrderRowCard({
             </div>
             <StatusChip status={view.order.status} />
           </div>
-          <div className="mt-2 flex items-end justify-between gap-2">
-            <div className="text-[11.5px] text-muted-foreground">
-              {view.itemsCount} מוצרים · {Math.round(unitsCount)} יח׳
-            </div>
+          <div className="mt-1.5 flex items-end justify-between gap-2">
+            <div className="text-[11.5px] font-semibold text-primary">פירוט הזמנה</div>
             <div className="text-end">
               <div className="text-[15px] font-bold text-heading">{formatPrice(view.total)}</div>
-              <div className="text-[11px] text-muted-foreground">{intakeTime(view.order.id)}</div>
             </div>
           </div>
-          <div className="mt-1.5 text-[11.5px] font-semibold text-primary">פירוט הזמנה</div>
+        </div>
         </div>
         <ChevronLeft className="mt-0.5 size-4 shrink-0 text-primary" />
       </Card>
