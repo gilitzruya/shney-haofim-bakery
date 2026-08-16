@@ -12,7 +12,7 @@ import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
 
-const STORAGE_KEY = "bakery-demo-state:v14";
+const STORAGE_KEY = "bakery-demo-state:v15";
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
