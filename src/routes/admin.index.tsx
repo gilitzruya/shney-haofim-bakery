@@ -90,7 +90,7 @@ function AdminHomePage() {
   return (
     <AdminShell>
       <Section className="pt-4 pb-10 md:pt-6">
-        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, itemsCount: 0, total: 0 }} />
+        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">
           <ReportTile to="/admin/reports/distribution" icon={<Truck className="size-5" />} title="הפקת דוח חלוקה" />
