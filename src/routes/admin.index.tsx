@@ -61,10 +61,12 @@ function AdminHomePage() {
       views
         .filter((v) => v.order.status !== "cancelled" && v.order.status !== "draft")
         .map((v) => ({ view: v, time: intakeTime(v.order.id) }))
-        .sort((a, b) => b.time.localeCompare(a.time))
-        .slice(0, 4),
+        .sort((a, b) => b.time.localeCompare(a.time)),
     [views],
   );
+  const [expanded, setExpanded] = useState(false);
+  const visibleIntake = expanded ? todayIntake : todayIntake.slice(0, 4);
+
 
   const attention = useMemo(() => {
     const drafts = views.filter((v) => v.order.status === "draft").length;
