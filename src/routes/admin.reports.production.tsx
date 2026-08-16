@@ -92,33 +92,53 @@ function ProductionReportPage() {
                   {group.categoryName}
                 </h2>
                 <ul className="flex flex-col">
-                  {group.rows.map((row) => (
-                    <li
-                      key={row.product.id}
-                      className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5 last:border-b-0"
-                    >
-                      <div className="min-w-0">
-                        <div className="truncate text-[13.5px] font-semibold text-heading">
-                          {row.product.name}
-                        </div>
-                        {round === "all" ? (
-                          <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {ROUNDS.filter((r) => (row.byRound[r.id] ?? 0) > 0)
-                              .map((r) => `${roundLabel(r.id)}: ${formatQty(row.byRound[r.id] ?? 0, row.product.unit)}`)
-                              .join(" · ")}
+                  {group.rows.map((row) => {
+                    const img = productImage(row.product.id);
+                    return (
+                      <li
+                        key={row.product.id}
+                        className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5 last:border-b-0"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-muted">
+                            {img ? (
+                              <img
+                                src={img}
+                                alt={row.product.name}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <span className="text-[10px] font-bold text-muted-foreground">?</span>
+                            )}
                           </div>
-                        ) : null}
-                      </div>
-                      <div className="shrink-0 text-left">
-                        <span className="text-[15px] font-bold text-heading">
-                          {formatQty(row.qty, row.product.unit)}
-                        </span>
-                        <span className="ms-1 text-[11px] text-muted-foreground">
-                          {unitLabel(row.product.unit)}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
+                          <div className="min-w-0">
+                            <div className="truncate text-[13.5px] font-semibold text-heading">
+                              {row.product.name}
+                            </div>
+                            {row.product.sku ? (
+                              <div className="text-[11px] text-muted-foreground">קוד {row.product.sku}</div>
+                            ) : null}
+                            {round === "all" ? (
+                              <div className="mt-0.5 text-[11px] text-muted-foreground">
+                                {ROUNDS.filter((r) => (row.byRound[r.id] ?? 0) > 0)
+                                  .map((r) => roundLabel(r.id))
+                                  .join(" · ")}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="shrink-0 text-left">
+                          <span className="text-[15px] font-bold text-heading">
+                            {formatQty(row.qty, row.product.unit)}
+                          </span>
+                          <span className="ms-1 text-[11px] text-muted-foreground">
+                            {unitLabel(row.product.unit)}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ))
