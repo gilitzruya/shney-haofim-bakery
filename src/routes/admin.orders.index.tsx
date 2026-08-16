@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, ClipboardList, FileText, Search, SlidersHorizontal, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { AdminOrderList } from "@/components/admin/order-list";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -39,6 +39,20 @@ function AdminOrdersPage() {
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundFilter>("all");
   const [query, setQuery] = useState("");
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const openDatePicker = () => {
+    const input = dateInputRef.current;
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  };
 
   const views = useAdminOrdersForDate(date);
   const filtered = useMemo(
@@ -96,17 +110,23 @@ function AdminOrdersPage() {
             <CalendarDays className="size-4" />
             מחר
           </button>
-          <label className="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5 text-[12.5px] font-bold text-foreground">
+          <button
+            type="button"
+            onClick={openDatePicker}
+            className="relative flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5 text-[12.5px] font-bold text-foreground"
+          >
             <CalendarDays className="size-4 text-foreground" />
             <span className="shrink-0">בחירת תאריך</span>
             <input
+              ref={dateInputRef}
               type="date"
               value={date}
               onChange={(e) => e.target.value && setDate(e.target.value)}
               aria-label="בחירת תאריך אספקה"
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              tabIndex={-1}
+              className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
             />
-          </label>
+          </button>
         </div>
 
         <label className="mt-2.5 flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2.5">
