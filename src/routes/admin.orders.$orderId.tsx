@@ -187,7 +187,9 @@ function AdminOrderDetailPage() {
             {query.trim() && searchResults.length === 0 ? (
               <div className="text-[12px] text-muted-foreground">לא נמצאו מוצרים מתאימים.</div>
             ) : null}
+            </div>
           </Card>
+
         ) : null}
 
         <div className="flex flex-col gap-2">
