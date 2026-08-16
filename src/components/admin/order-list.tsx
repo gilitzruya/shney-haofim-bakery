@@ -42,9 +42,11 @@ export function AdminOrderList({
 function OrderRowCard({
   view,
   document,
+  showDate = false,
 }: {
   view: AdminOrderView;
   document?: AdminDocument | undefined;
+  showDate?: boolean;
 }) {
   const unitsCount = view.order.lines.reduce((sum, l) => sum + l.qty, 0);
   const card = (
@@ -58,7 +60,12 @@ function OrderRowCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="truncate text-[14.5px] font-bold text-heading">{view.customerName}</div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">{roundLabel(view.order.round)}</div>
+              <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                {showDate ? (
+                  <span className="font-medium text-foreground">{formatDate(view.order.date)}</span>
+                ) : null}
+                <span>{roundLabel(view.order.round)}</span>
+              </div>
             </div>
             <StatusChip status={view.order.status} />
           </div>
