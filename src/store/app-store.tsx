@@ -482,6 +482,26 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
       saveBusiness: (patch) => update((s) => ({ ...s, business: { ...s.business, ...patch } })),
 
+      getCustomer: (id) => state.customers.find((c) => c.id === id),
+
+      addCustomer: (customer) => {
+        const created: Customer = { ...customer, id: `cust-${Date.now()}` };
+        update((s) => ({ ...s, customers: [...s.customers, created] }));
+        return created;
+      },
+
+      updateCustomer: (id, patch) =>
+        update((s) => ({
+          ...s,
+          customers: s.customers.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        })),
+
+      setCustomerBlocked: (id, blocked) =>
+        update((s) => ({
+          ...s,
+          customers: s.customers.map((c) => (c.id === id ? { ...c, blocked } : c)),
+        })),
+
       resetDemoData: () => {
         try {
           window.localStorage.removeItem(STORAGE_KEY);
