@@ -62,7 +62,6 @@ function OrderRowCard({
             </div>
           </div>
         </div>
-        </div>
         <ChevronLeft className="mt-0.5 size-4 shrink-0 text-primary" />
       </Card>
     </Link>
