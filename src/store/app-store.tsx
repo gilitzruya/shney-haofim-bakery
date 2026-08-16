@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { BUSINESS } from "@/data/catalog";
-import type { RoundId } from "@/data/catalog";
+import { applyRuntimeCatalog, BUSINESS, CATEGORIES } from "@/data/catalog";
+import type { Category, Product, RoundId } from "@/data/catalog";
 import { SEED_ORDERS, SEED_RECURRING } from "@/data/seed";
 import type { Order, OrderLine, RecurringOrder } from "@/data/seed";
 import { nextOccurrence, roundQty } from "@/lib/format";
@@ -11,7 +11,7 @@ import { buildAdminOrders, SEED_CUSTOMERS } from "@/data/admin-seed";
 import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 
-const STORAGE_KEY = "bakery-demo-state:v11";
+const STORAGE_KEY = "bakery-demo-state:v12";
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
@@ -50,6 +50,8 @@ interface PersistedState {
   customers: Customer[];
   /** admin side: orders placed by the other customers */
   adminOrders: Order[];
+  /** admin side: editable catalog (categories order, products) */
+  catalog: Category[];
 }
 
 const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
@@ -67,6 +69,7 @@ const initialState: PersistedState = {
   draft: null,
   customers: SEED_CUSTOMERS,
   adminOrders: seedAdminOrders(),
+  catalog: CATEGORIES,
 };
 
 /**
@@ -103,6 +106,7 @@ function loadState(): PersistedState {
       draft: parsed.draft ?? null,
       customers: parsed.customers ?? SEED_CUSTOMERS,
       adminOrders: freshAdminOrders(parsed.adminOrders),
+      catalog: parsed.catalog?.length ? parsed.catalog : CATEGORIES,
     });
 
   } catch {
@@ -206,6 +210,14 @@ interface StoreValue extends PersistedState {
   updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => void;
   setCustomerBlocked: (id: string, blocked: boolean) => void;
   setCustomerPriceOverride: (id: string, productId: string, price: number | null) => void;
+  /* admin: catalog */
+  moveCategory: (id: string, direction: -1 | 1) => void;
+  renameCategory: (id: string, name: string) => void;
+  addCategory: (name: string) => void;
+  removeCategory: (id: string) => void;
+  addProduct: (categoryId: string, product: Omit<Product, "id">) => void;
+  updateProduct: (productId: string, patch: Partial<Omit<Product, "id">>) => void;
+  removeProduct: (productId: string) => void;
   /** יצירת הזמנה בשם לקוח (צד המאפייה) */
   addAdminOrder: (order: Omit<Order, "id">) => Order;
   resetDemoData: () => void;
@@ -218,7 +230,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setState(loadState());
+    const loaded = loadState();
+    applyRuntimeCatalog(loaded.catalog);
+    setState(loaded);
     setHydrated(true);
   }, []);
 
@@ -233,7 +247,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
 
   const update = useCallback((fn: (s: PersistedState) => PersistedState) => {
-    setState((s) => fn(s));
+    setState((s) => {
+      const next = fn(s);
+      if (next.catalog !== s.catalog) applyRuntimeCatalog(next.catalog);
+      return next;
+    });
   }, []);
 
   const value = useMemo<StoreValue>(() => {
@@ -515,6 +533,63 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             else next[productId] = price;
             return { ...c, priceOverrides: next };
           }),
+        })),
+
+      moveCategory: (id, direction) =>
+        update((s) => {
+          const index = s.catalog.findIndex((c) => c.id === id);
+          const target = index + direction;
+          if (index < 0 || target < 0 || target >= s.catalog.length) return s;
+          const catalog = [...s.catalog];
+          const [moved] = catalog.splice(index, 1);
+          catalog.splice(target, 0, moved!);
+          return { ...s, catalog };
+        }),
+
+      renameCategory: (id, name) =>
+        update((s) => ({
+          ...s,
+          catalog: s.catalog.map((c) => (c.id === id ? { ...c, name } : c)),
+        })),
+
+      addCategory: (name) =>
+        update((s) => ({
+          ...s,
+          catalog: [...s.catalog, { id: `cat-${Date.now()}`, name, products: [] }],
+        })),
+
+      removeCategory: (id) =>
+        update((s) => ({
+          ...s,
+          catalog: s.catalog.filter((c) => !(c.id === id && c.products.length === 0)),
+        })),
+
+      addProduct: (categoryId, product) =>
+        update((s) => ({
+          ...s,
+          catalog: s.catalog.map((c) =>
+            c.id === categoryId
+              ? { ...c, products: [...c.products, { ...product, id: `p-${Date.now()}` }] }
+              : c,
+          ),
+        })),
+
+      updateProduct: (productId, patch) =>
+        update((s) => ({
+          ...s,
+          catalog: s.catalog.map((c) => ({
+            ...c,
+            products: c.products.map((p) => (p.id === productId ? { ...p, ...patch } : p)),
+          })),
+        })),
+
+      removeProduct: (productId) =>
+        update((s) => ({
+          ...s,
+          catalog: s.catalog.map((c) => ({
+            ...c,
+            products: c.products.filter((p) => p.id !== productId),
+          })),
         })),
 
       addAdminOrder: (order) => {
