@@ -35,7 +35,7 @@ function CustomerRowCard({ customer }: { customer: Customer }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-[14px] font-bold text-heading">{customer.name}</span>
-            {customer.blocked ? <Chip tone="danger">חסום</Chip> : null}
+            {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
           </div>
           <div className="mt-1 truncate text-[11.5px] text-muted-foreground">
             {contact ? `${contact.name} · ${contact.phone}` : customer.address}
@@ -72,7 +72,7 @@ function CustomersTable({ customers }: { customers: Customer[] }) {
               <td className="px-4 py-2.5 text-muted-foreground">{c.address}</td>
               <td className="px-4 py-2.5 text-muted-foreground">{roundsLabel(c)}</td>
               <td className="px-4 py-2.5">
-                {c.blocked ? <Chip tone="danger">חסום</Chip> : <Chip tone="success">פעיל</Chip>}
+                {c.blocked ? <Chip tone="error">חסום</Chip> : <Chip tone="muted">פעיל</Chip>}
               </td>
               <td className="px-4 py-2.5 text-start">
                 <Link
