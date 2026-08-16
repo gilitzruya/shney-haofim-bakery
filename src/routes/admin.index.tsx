@@ -4,7 +4,6 @@ import {
   Croissant,
   ChevronDown,
   ChevronLeft,
-  ClipboardList,
   FileText,
   RefreshCw,
   Truck,
@@ -46,7 +45,7 @@ export const Route = createFileRoute("/admin/")({
 type PrintTarget = "production" | "distribution" | null;
 
 function AdminHomePage() {
-  const { hydrated, documents } = useStore();
+  const { hydrated } = useStore();
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
