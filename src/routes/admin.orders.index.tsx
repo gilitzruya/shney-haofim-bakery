@@ -229,8 +229,8 @@ function AdminOrdersPage() {
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div className="px-1">
-      <div className="text-[17px] font-bold text-heading">{value}</div>
-      <div className="mt-0.5 text-[11px] text-muted-foreground">{label}</div>
+      <div className="text-[19px] font-extrabold text-primary md:text-[22px]">{value}</div>
+      <div className="mt-0.5 text-[11px] font-semibold text-muted-foreground">{label}</div>
     </div>
   );
 }
