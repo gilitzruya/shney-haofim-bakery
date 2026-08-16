@@ -100,9 +100,11 @@ function OrderRowCard({
 function OrdersTable({
   views,
   documentFor,
+  showDate = false,
 }: {
   views: AdminOrderView[];
   documentFor?: ((orderId: string) => AdminDocument | undefined) | undefined;
+  showDate?: boolean;
 }) {
   return (
     <div className="overflow-hidden rounded-[14px] border border-border bg-card">
@@ -110,6 +112,7 @@ function OrdersTable({
         <thead>
           <tr className="border-b border-border bg-card-muted text-[11.5px] text-muted-foreground">
             <th className="px-4 py-2.5 font-semibold">לקוח</th>
+            {showDate ? <th className="px-4 py-2.5 font-semibold">תאריך</th> : null}
             <th className="px-4 py-2.5 font-semibold">סבב</th>
             <th className="px-4 py-2.5 font-semibold">פריטים</th>
             <th className="px-4 py-2.5 font-semibold">סה״כ</th>
