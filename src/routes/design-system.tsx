@@ -10,7 +10,7 @@ import { FilterChips, Tabs } from "@/components/app/tabs";
 import { Modal } from "@/components/app/modal";
 import { ProductCard, ProductPlaceholder } from "@/components/app/product-card";
 import { FormField, ProgressSteps, TextInput, WeekdayChips } from "@/components/app/form-controls";
-import { ALL_PRODUCTS } from "@/data/catalog";
+import { allProducts } from "@/data/catalog";
 import type { OrderStatus } from "@/data/seed";
 
 export const Route = createFileRoute("/design-system")({
@@ -44,7 +44,7 @@ function DesignSystemPage() {
   const [qty, setQty] = useState(2);
   const [days, setDays] = useState<number[]>([0, 2]);
   const [modal, setModal] = useState(false);
-  const demoProduct = ALL_PRODUCTS[0]!;
+  const demoProduct = allProducts()[0]!;
 
   return (
     <AppShell>

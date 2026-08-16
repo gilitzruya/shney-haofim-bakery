@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { TextInput } from "@/components/app/form-controls";
-import { ALL_PRODUCTS } from "@/data/catalog";
+import { allProducts } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { overrideEntries } from "@/lib/admin/pricing";
 import { formatPrice, unitLabel } from "@/lib/format";
@@ -21,7 +21,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const results = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
-    return ALL_PRODUCTS.filter(
+    return allProducts().filter(
       (p) => p.name.includes(q) && typeof customer.priceOverrides?.[p.id] !== "number",
     ).slice(0, 6);
   }, [query, customer.priceOverrides]);
