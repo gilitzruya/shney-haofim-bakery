@@ -44,15 +44,36 @@ export const Route = createFileRoute("/admin/")({
   component: AdminHomePage,
 });
 
+type PrintTarget = "production" | "distribution" | null;
+
 function AdminHomePage() {
   const { hydrated, documents } = useStore();
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
+  const [pendingPrint, setPendingPrint] = useState<PrintTarget>(null);
+
   const summary = useMemo(() => {
     const forDate = views.filter((v) => ordersForDate([v.order], date).length > 0);
     return summarizeDay(forDate, date);
   }, [views, date]);
+
+  const tomorrowViews = useMemo(
+    () => views.filter((v) => v.order.date === date && v.order.status !== "cancelled" && v.order.status !== "draft"),
+    [views, date],
+  );
+  const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
+  const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
+
+  useEffect(() => {
+    if (pendingPrint) {
+      const id = window.setTimeout(() => {
+        window.print();
+        setPendingPrint(null);
+      }, 250);
+      return () => window.clearTimeout(id);
+    }
+  }, [pendingPrint]);
 
   const todayIntake = useMemo(
     () =>
@@ -64,7 +85,6 @@ function AdminHomePage() {
   );
   const [expanded, setExpanded] = useState(false);
   const visibleIntake = expanded ? todayIntake : todayIntake.slice(0, 4);
-
 
   const attention = useMemo(() => {
     const drafts = views.filter((v) => v.order.status === "draft").length;
@@ -89,7 +109,10 @@ function AdminHomePage() {
 
   return (
     <AdminShell>
-      <Section className="pt-4 pb-10 md:pt-6">
+      {pendingPrint === "production" ? <BakingSheet date={date} groups={productionGroups} /> : null}
+      {pendingPrint === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
+
+      <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">
