@@ -13,6 +13,7 @@ export const ADMIN_NAV = [
   { to: "/admin/customers", label: "לקוחות" },
   { to: "/admin/products", label: "מוצרים" },
   { to: "/admin/reports/production", label: "דוחות" },
+  { to: "/admin/documents", label: "מסמכים" },
 ] as const;
 
 /** מעטפת מסכי הניהול — נשענת על אותו קנבס ושפה ויזואלית של צד הלקוח. */

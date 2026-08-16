@@ -10,8 +10,9 @@ import { findProduct } from "@/data/catalog";
 import { buildAdminOrders, SEED_CUSTOMERS } from "@/data/admin-seed";
 import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
+import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
 
-const STORAGE_KEY = "bakery-demo-state:v12";
+const STORAGE_KEY = "bakery-demo-state:v13";
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
@@ -52,6 +53,8 @@ interface PersistedState {
   adminOrders: Order[];
   /** admin side: editable catalog (categories order, products) */
   catalog: Category[];
+  /** admin side: issued accounting documents */
+  documents: AdminDocument[];
 }
 
 const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
@@ -70,6 +73,7 @@ const initialState: PersistedState = {
   customers: SEED_CUSTOMERS,
   adminOrders: seedAdminOrders(),
   catalog: CATEGORIES,
+  documents: [],
 };
 
 /**
@@ -107,6 +111,7 @@ function loadState(): PersistedState {
       customers: parsed.customers ?? SEED_CUSTOMERS,
       adminOrders: freshAdminOrders(parsed.adminOrders),
       catalog: parsed.catalog?.length ? parsed.catalog : CATEGORIES,
+      documents: parsed.documents ?? [],
     });
 
   } catch {
@@ -218,6 +223,10 @@ interface StoreValue extends PersistedState {
   addProduct: (categoryId: string, product: Omit<Product, "id">) => void;
   updateProduct: (productId: string, patch: Partial<Omit<Product, "id">>) => void;
   removeProduct: (productId: string) => void;
+  /* admin: documents */
+  documentsForOrder: (orderId: string) => AdminDocument[];
+  issueDocument: (orderId: string, type?: DocumentType) => Promise<void>;
+  issueDocuments: (orderIds: string[], type?: DocumentType) => Promise<void>;
   /** יצירת הזמנה בשם לקוח (צד המאפייה) */
   addAdminOrder: (order: Omit<Order, "id">) => Order;
   resetDemoData: () => void;
@@ -253,6 +262,48 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       return next;
     });
   }, []);
+
+  /** הפקת מסמכים דרך שכבת החשבונות — יוצרת רשומות "בהפקה" ואז מעדכנת תוצאה. */
+  const issueMany = useCallback(
+    async (orderIds: string[], type: DocumentType) => {
+      if (!orderIds.length) return;
+      const createdAt = new Date().toISOString();
+      const pending: AdminDocument[] = orderIds.map((orderId, i) => ({
+        id: `doc-${Date.now()}-${i}`,
+        orderId,
+        type,
+        status: "pending",
+        createdAt,
+      }));
+      update((s) => ({ ...s, documents: [...pending, ...s.documents] }));
+
+      const adapter = accountingAdapter();
+      const results = await Promise.all(
+        pending.map(async (doc) => {
+          try {
+            const res = await adapter.issueDocument({ orderId: doc.orderId, type });
+            return { id: doc.id, ...res };
+          } catch (err) {
+            return {
+              id: doc.id,
+              status: "error" as const,
+              number: undefined,
+              error: err instanceof Error ? err.message : "ההפקה נכשלה",
+            };
+          }
+        }),
+      );
+
+      update((s) => ({
+        ...s,
+        documents: s.documents.map((d) => {
+          const res = results.find((r) => r.id === d.id);
+          return res ? { ...d, status: res.status, number: res.number, error: res.error } : d;
+        }),
+      }));
+    },
+    [update],
+  );
 
   const value = useMemo<StoreValue>(() => {
     const getOrder = (id: string) => state.orders.find((o) => o.id === id);
@@ -591,6 +642,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             products: c.products.filter((p) => p.id !== productId),
           })),
         })),
+
+      documentsForOrder: (orderId) => state.documents.filter((d) => d.orderId === orderId),
+
+      issueDocument: (orderId, type = "delivery_note") => issueMany([orderId], type),
+
+      issueDocuments: (orderIds, type = "delivery_note") => issueMany(orderIds, type),
 
       addAdminOrder: (order) => {
         const created: Order = { ...order, id: `ao-${Date.now()}` };

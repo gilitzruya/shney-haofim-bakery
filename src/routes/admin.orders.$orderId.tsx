@@ -1,5 +1,6 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { FileText, MapPin, Phone } from "lucide-react";
+import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
@@ -8,7 +9,9 @@ import { Card, EmptyState } from "@/components/app/card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct, roundLabel } from "@/data/catalog";
 import { useAdminOrderView } from "@/hooks/use-admin-orders";
+import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
+import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/orders/$orderId")({
   head: () => ({
@@ -27,6 +30,9 @@ export const Route = createFileRoute("/admin/orders/$orderId")({
 function AdminOrderDetailPage() {
   const { orderId } = useParams({ from: "/admin/orders/$orderId" });
   const view = useAdminOrderView(orderId);
+  const { documents, issueDocument } = useStore();
+  const [issuing, setIssuing] = useState(false);
+  const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
   if (!view) {
     return (
@@ -101,13 +107,38 @@ function AdminOrderDetailPage() {
           </div>
         </Card>
 
-        <div className="mt-4 flex flex-col gap-2 md:flex-row">
-          <Button variant="secondary" size="lg" className="w-full md:w-auto" disabled>
-            <FileText className="size-4" />
-            הפקת תעודת משלוח
-          </Button>
-          <span className="self-center text-[11.5px] text-muted-foreground">
-            הפקת מסמכים תתווסף בשלב המסמכים.
+        <div className="mt-4 flex flex-col gap-2 rounded-[16px] border border-border bg-card p-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[13.5px] font-bold text-heading">תעודת משלוח</span>
+            <DocumentStatusChip document={doc} />
+          </div>
+          {doc?.error ? (
+            <span className="text-[11.5px] text-destructive">{doc.error}</span>
+          ) : null}
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full md:w-auto"
+              loading={issuing}
+              onClick={async () => {
+                setIssuing(true);
+                try {
+                  await issueDocument(orderId);
+                } finally {
+                  setIssuing(false);
+                }
+              }}
+            >
+              <FileText className="size-4" />
+              {doc?.status === "issued" ? "הפקה מחדש" : "הפקת תעודת משלוח"}
+            </Button>
+            <Link to="/admin/documents" className="text-[12px] font-semibold text-primary no-underline">
+              ליומן המסמכים
+            </Link>
+          </div>
+          <span className="text-[11px] text-muted-foreground">
+            המסמך נשמר במערכת בלבד. החיבור לריווחית יופעל בהמשך.
           </span>
         </div>
       </Section>
