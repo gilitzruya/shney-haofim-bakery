@@ -240,6 +240,9 @@ interface StoreValue extends PersistedState {
   issueDocuments: (orderIds: string[], type?: DocumentType) => Promise<void>;
   /** יצירת הזמנה בשם לקוח (צד המאפייה) */
   addAdminOrder: (order: Omit<Order, "id">) => Order;
+  /** עדכון הזמנה קיימת מצד המאפייה (גם הזמנות שהלקוח יצר) */
+  updateOrderAsAdmin: (id: string, patch: Partial<Omit<Order, "id">>) => void;
+
   resetDemoData: () => void;
 }
 
