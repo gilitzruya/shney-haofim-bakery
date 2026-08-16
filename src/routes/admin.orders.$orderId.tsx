@@ -326,6 +326,34 @@ function AdminOrderDetailPage() {
         )}
       </Section>
 
+      <AlertDialog open={confirmSave} onOpenChange={setConfirmSave}>
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>לאשר את השינויים בהזמנה?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="block">ההזמנה של {view.customerName} לתאריך {formatLongDate(order.date)} תעודכן.</span>
+              {(() => {
+                const summary = saveSummary();
+                const parts = [];
+                if (summary.added.length) parts.push(`${summary.added.length} פריטים חדשים`);
+                if (summary.removed.length) parts.push(`${summary.removed.length} פריטים הוסרו`);
+                if (summary.changed.length) parts.push(`${summary.changed.length} פריטים שונו בכמות`);
+                if (parts.length === 0) parts.push("לא זוהו שינויים בכמויות");
+                return (
+                  <span className="mt-1.5 block">
+                    {parts.join(" · ")} ({summary.originalCount} פריטים → {summary.newCount} פריטים)
+                  </span>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:justify-start">
+            <AlertDialogCancel>חזרה</AlertDialogCancel>
+            <AlertDialogAction onClick={save}>אישור השינויים</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
         <AlertDialogContent dir="rtl" className="text-right">
           <AlertDialogHeader>
