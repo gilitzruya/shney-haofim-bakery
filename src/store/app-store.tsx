@@ -603,47 +603,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
       documentsForOrder: (orderId) => state.documents.filter((d) => d.orderId === orderId),
 
-      issueDocument: async (orderId, type = "delivery_note") => {
-        await issueMany([orderId], type);
-      },
+      issueDocument: (orderId, type = "delivery_note") => issueMany([orderId], type),
 
-      issueDocuments: async (orderIds, type = "delivery_note") => {
-        await issueMany(orderIds, type);
-      },
-        const createdAt = new Date().toISOString();
-        const pending: AdminDocument[] = orderIds.map((orderId, i) => ({
-          id: `doc-${Date.now()}-${i}`,
-          orderId,
-          type,
-          status: "pending",
-          createdAt,
-        }));
-        update((s) => ({ ...s, documents: [...pending, ...s.documents] }));
-
-        const adapter = accountingAdapter();
-        const results = await Promise.all(
-          pending.map(async (doc) => {
-            try {
-              const res = await adapter.issueDocument({ orderId: doc.orderId, type });
-              return { id: doc.id, ...res };
-            } catch (err) {
-              return {
-                id: doc.id,
-                status: "error" as const,
-                error: err instanceof Error ? err.message : "ההפקה נכשלה",
-              };
-            }
-          }),
-        );
-
-        update((s) => ({
-          ...s,
-          documents: s.documents.map((d) => {
-            const res = results.find((r) => r.id === d.id);
-            return res ? { ...d, status: res.status, number: res.number, error: res.error } : d;
-          }),
-        }));
-      },
+      issueDocuments: (orderIds, type = "delivery_note") => issueMany(orderIds, type),
 
       addAdminOrder: (order) => {
         const created: Order = { ...order, id: `ao-${Date.now()}` };
