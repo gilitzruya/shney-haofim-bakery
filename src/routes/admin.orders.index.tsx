@@ -8,11 +8,9 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { FilterChips } from "@/components/app/tabs";
-import { ROUNDS } from "@/data/catalog";
-import type { RoundId } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
+import { useAdminOrdersForDate, useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
-import { summarizeDay } from "@/lib/admin/selectors";
+import { activeOrders, summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday, parseDate, toIso } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -30,7 +28,7 @@ export const Route = createFileRoute("/admin/orders/")({
   component: AdminOrdersPage,
 });
 
-type RoundFilter = RoundId | "all";
+type DateFilter = "tomorrow" | "all";
 
 function shiftIso(iso: string, days: number): string {
   const d = parseDate(iso);
@@ -43,14 +41,24 @@ function AdminOrdersPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [issuing, setIssuing] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
-  const [round, setRound] = useState<RoundFilter>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("tomorrow");
 
-  const views = useAdminOrdersForDate(date);
-  const filtered = useMemo(
-    () => views.filter((v) => round === "all" || v.order.round === round),
-    [views, round],
+  const dateViews = useAdminOrdersForDate(date);
+  const allViews = useAllAdminOrderViews();
+  const allActiveViews = useMemo(
+    () => allViews.filter((v) => activeOrders([v.order]).length > 0),
+    [allViews],
   );
-  const summary = summarizeDay(filtered, date);
+  const views = dateFilter === "tomorrow" ? dateViews : allActiveViews;
+  const summary =
+    dateFilter === "tomorrow"
+      ? summarizeDay(views, date)
+      : {
+          date: "all",
+          ordersCount: views.length,
+          productsCount: new Set(views.flatMap((v) => v.order.lines.map((l) => l.productId))).size,
+          total: views.reduce((sum, v) => sum + v.total, 0),
+        };
 
   const latestDocFor = (orderId: string) =>
     documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
@@ -75,42 +83,54 @@ function AdminOrdersPage() {
       <Section className="pt-6 pb-10">
         <h1 className="mb-3 text-[19px] font-bold text-heading">הזמנות לאספקה</h1>
 
-        <div className="flex items-center justify-between gap-2 rounded-[14px] border border-border bg-card px-2 py-2">
-          <button
-            type="button"
-            aria-label="יום קודם"
-            onClick={() => setDate((d) => shiftIso(d, -1))}
-            className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-          <div className="text-center">
-            <div className="text-[13.5px] font-bold text-heading">
-              {formatWeekday(date)}, {formatDate(date)}
+        {dateFilter === "tomorrow" ? (
+          <div className="flex items-center justify-between gap-2 rounded-[14px] border border-border bg-card px-2 py-2">
+            <button
+              type="button"
+              aria-label="יום קודם"
+              onClick={() => setDate((d) => shiftIso(d, -1))}
+              className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+            <div className="text-center">
+              <div className="text-[13.5px] font-bold text-heading">
+                {formatWeekday(date)}, {formatDate(date)}
+              </div>
+              <button
+                type="button"
+                onClick={() => setDate(tomorrowIso())}
+                className="text-[11px] font-semibold text-primary"
+              >
+                חזרה למחר
+              </button>
             </div>
             <button
               type="button"
-              onClick={() => setDate(tomorrowIso())}
-              className="text-[11px] font-semibold text-primary"
+              aria-label="יום הבא"
+              onClick={() => setDate((d) => shiftIso(d, 1))}
+              className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
             >
-              חזרה למחר
+              <ChevronLeft className="size-4" />
             </button>
           </div>
-          <button
-            type="button"
-            aria-label="יום הבא"
-            onClick={() => setDate((d) => shiftIso(d, 1))}
-            className="flex size-8 items-center justify-center rounded-[10px] border border-border text-foreground"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-[14px] border border-border bg-card px-2 py-3 text-[13.5px] font-bold text-heading">
+            כל התאריכים
+          </div>
+        )}
 
         <div className="mt-3">
-          <FilterChips<RoundFilter>
-            chips={[{ id: "all", label: "כל הסבבים" }, ...ROUNDS.map((r) => ({ id: r.id, label: r.label }))]}
-            value={round}
-            onChange={setRound}
+          <FilterChips<DateFilter>
+            chips={[
+              { id: "tomorrow", label: "הזמנות למחר" },
+              { id: "all", label: "כל ההזמנות" },
+            ]}
+            value={dateFilter}
+            onChange={(value) => {
+              setDateFilter(value);
+              if (value === "tomorrow") setDate(tomorrowIso());
+            }}
           />
         </div>
 
@@ -122,11 +142,18 @@ function AdminOrdersPage() {
         </div>
 
         <div className="mt-3">
-          {!hydrated ? null : filtered.length === 0 ? (
-            <EmptyState title="אין הזמנות ליום זה" description="אפשר לעבור ליום אחר או לשנות את סינון הסבב." />
+          {!hydrated ? null : views.length === 0 ? (
+            <EmptyState
+              title={dateFilter === "tomorrow" ? "אין הזמנות ליום זה" : "אין הזמנות במערכת"}
+              description={
+                dateFilter === "tomorrow"
+                  ? "אפשר לעבור ליום אחר או לבחור 'כל ההזמנות'."
+                  : "כל ההזמנות יופיעו כאן כשיתקבלו."
+              }
+            />
           ) : (
             <AdminOrderList
-              views={filtered}
+              views={views}
               selection={{ selected, onToggle: toggle }}
               documentFor={latestDocFor}
             />
