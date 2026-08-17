@@ -112,20 +112,7 @@ function CustomerDetailPage() {
           </div>
         </div>
 
-        <div className="mb-4">
-          <Tabs<TabId>
-            tabs={[
-              { id: "details", label: "פרטי לקוח" },
-              { id: "prices", label: "מחירים מיוחדים" },
-            ]}
-            value={tab}
-            onChange={setTab}
-          />
-        </div>
-
-        {tab === "prices" ? (
-          <SpecialPricesPanel customer={customer} />
-        ) : editing ? (
+        {editing ? (
           <CustomerForm
             initial={toFormValues(customer)}
             submitLabel="שמירת השינויים"
