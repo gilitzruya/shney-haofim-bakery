@@ -247,11 +247,11 @@ function PrintReportButton({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="flex flex-col items-center justify-between rounded-[18px] border border-border bg-white px-1 py-3 shadow-sm active:scale-95 transition-transform duration-75 disabled:opacity-60"
+      className="flex flex-col items-center rounded-[18px] border border-primary/20 bg-primary-soft px-1 py-3 shadow-sm active:scale-95 transition-transform duration-75 disabled:opacity-60"
     >
-      <span className="text-[10px] leading-none font-bold text-primary text-center">{title}</span>
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-        {loading ? <Spinner className="border-primary/40 border-t-primary" /> : icon}
+      <span className="text-[12px] leading-tight font-bold text-primary text-center">{title}</span>
+      <span className="mt-3 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+        {loading ? <Spinner className="border-primary-foreground/40 border-t-primary-foreground" /> : icon}
       </span>
     </button>
   );
