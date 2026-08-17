@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import {
   CalendarClock,
-  Tag,
   ChevronRight,
   ClipboardList,
   Mail,
@@ -61,7 +60,6 @@ function CustomerDetailPage() {
   const { customers, hydrated, updateCustomer, setCustomerBlocked, adminRecurring, removeAdminRecurring } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
-  const [showPrices, setShowPrices] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
 
   if (!customer) {
@@ -221,31 +219,15 @@ function CustomerDetailPage() {
                   </span>
                 </Link>
 
-                <button
-                  type="button"
-                  onClick={() => setShowPrices((s) => !s)}
-                  className={`flex flex-row-reverse items-center justify-between rounded-[14px] border p-3 text-start ${
-                    showPrices ? "border-primary bg-primary-soft" : "border-border bg-card"
-                  }`}
-                >
-                  <span className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
-                    showPrices ? "bg-primary text-primary-foreground" : "bg-card-muted text-muted-foreground"
-                  }`}>
-                    <Tag className="size-3.5" />
-                  </span>
-                  <span className="text-start">
-                    <span className="block text-[13px] font-bold text-heading">מחירים מיוחדים</span>
-                    <span className="block text-[11px] text-muted-foreground">מחירון ייעודי ללקוח</span>
-                  </span>
-                </button>
               </div>
-
-              {showPrices ? (
-                <div className="rounded-[16px] border border-border bg-card p-3">
-                  <SpecialPricesPanel customer={customer} />
-                </div>
-              ) : null}
             </section>
+
+            {/* מחירון מיוחד ללקוח */}
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[13px] font-bold text-heading">מחירים מיוחדים</h2>
+              <SpecialPricesPanel customer={customer} />
+            </section>
+
 
 
             {/* הזמנות קבועות קיימות */}
