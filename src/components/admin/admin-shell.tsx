@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X, ArrowLeftRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
@@ -111,14 +111,6 @@ function AdminSideMenu({ onClose }: { onClose: () => void }) {
             </Link>
           ))}
         </div>
-        <Link
-          to="/catalog"
-          onClick={onClose}
-          className="mt-auto flex items-center justify-center gap-2 rounded-xl border border-border bg-transparent px-3.5 py-3 text-[12.5px] font-semibold text-muted-foreground no-underline"
-        >
-          <ArrowLeftRight className="size-4" />
-          מעבר לממשק הלקוח
-        </Link>
       </nav>
     </div>
   );
