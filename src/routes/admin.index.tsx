@@ -46,11 +46,12 @@ export const Route = createFileRoute("/admin/")({
 type PrintTarget = "production" | "distribution" | null;
 
 function AdminHomePage() {
-  const { hydrated } = useStore();
+  const { hydrated, issueDocuments, documentsForOrder } = useStore();
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
   const [pendingPrint, setPendingPrint] = useState<PrintTarget>(null);
+  const [issuingDocs, setIssuingDocs] = useState(false);
 
   const summary = useMemo(() => {
     const forDate = views.filter((v) => ordersForDate([v.order], date).length > 0);
