@@ -293,13 +293,22 @@ function CustomerDetailPage() {
                 >
                   {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
                 </Button>
+              </div>
+            </section>
 
+            {/* שליחת פרטי התחברות בוואטסאפ */}
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[13px] font-bold text-heading">פרטי התחברות</h2>
+              <div className="rounded-[14px] border border-border bg-card px-4 py-3.5">
+                <div className="text-[12.5px] text-muted-foreground">
+                  שליחת הודעת וואטסאפ ללקוח עם שם משתמש, סיסמה זמנית וקישור לאפליקציה.
+                </div>
                 <button
                   type="button"
                   onClick={() => setInviteOpen(true)}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#25D366]/10 px-3 py-2.5 text-[12.5px] font-semibold text-[#25D366] transition-colors hover:bg-[#25D366]/15"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#25D366] px-3 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#1ebe57]"
                 >
-                  <MessageCircle className="size-4" />
+                  <WhatsAppIcon className="size-4" />
                   שליחת פרטי התחברות בוואטסאפ
                 </button>
               </div>
