@@ -19,6 +19,8 @@ export interface Product {
   weightGrams?: number;
   /** Optional product note shown on the card. */
   note?: string;
+  /** Optional uploaded product photo (data URL or remote URL). */
+  imageUrl?: string;
 }
 
 export interface Category {

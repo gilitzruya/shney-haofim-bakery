@@ -32,3 +32,8 @@ export const PRODUCT_IMAGES: Record<string, string> = {
 export function productImage(id: string): string | undefined {
   return PRODUCT_IMAGES[id];
 }
+
+/** Photo for a product: uploaded image wins over the bundled catalog photo. */
+export function productPhoto(product: { id: string; imageUrl?: string }): string | undefined {
+  return product.imageUrl || PRODUCT_IMAGES[product.id];
+}
