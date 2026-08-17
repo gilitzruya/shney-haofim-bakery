@@ -306,6 +306,14 @@ function CustomerDetailPage() {
         }}
         onClose={() => setConfirmBlock(false)}
       />
+
+      <CustomerInviteModal
+        open={inviteOpen}
+        customerName={customer.name}
+        phone={customer.contacts[0]?.phone ?? ""}
+        appUrl={appUrl}
+        onClose={() => setInviteOpen(false)}
+      />
     </AdminShell>
   );
 }
