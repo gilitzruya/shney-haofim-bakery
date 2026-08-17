@@ -1,10 +1,11 @@
-import { Copy, MessageCircle } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/app/button";
 import { TextArea, TextInput } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 
 /** מנקה מספר טלפון ישראלי לפורמט בינלאומי לוואטסאפ. */
 export function waPhone(raw: string): string {
