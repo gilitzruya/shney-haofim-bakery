@@ -137,21 +137,12 @@ function AdminHomePage() {
             title="דוח אפייה"
             onClick={() => setPendingPrint("production")}
           />
-          <button
-            type="button"
-            disabled={issuingDocs}
+          <PrintReportButton
+            icon={<Receipt className="size-5" />}
+            title="תעודות משלוח"
+            loading={issuingDocs}
             onClick={handleIssueDeliveryNotes}
-            className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm disabled:opacity-60"
-          >
-            <ChevronLeft className="size-4 shrink-0 text-primary" />
-            <span className="flex min-w-0 flex-col items-end gap-0.5">
-              <span className="text-[12px] leading-tight font-bold text-heading">תעודות משלוח</span>
-              <span className="text-[10px] font-medium text-muted-foreground">{issuingDocs ? "מפיק..." : "הפקה"}</span>
-            </span>
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Receipt className="size-5" />
-            </span>
-          </button>
+          />
         </div>
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
