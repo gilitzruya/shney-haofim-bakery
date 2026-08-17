@@ -63,6 +63,8 @@ function CustomerDetailPage() {
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [appUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
 
   if (!customer) {
     return (
