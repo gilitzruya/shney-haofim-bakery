@@ -74,6 +74,24 @@ function AdminHomePage() {
     return () => window.clearTimeout(id);
   }, [pendingPrint]);
 
+  const handleIssueDeliveryNotes = async () => {
+    if (issuingDocs) return;
+    const pendingOrderIds = tomorrowViews
+      .filter((v) => {
+        if (v.order.status === "cancelled" || v.order.status === "draft") return false;
+        const existing = documentsForOrder(v.order.id).find((d) => d.type === "delivery_note");
+        return !existing;
+      })
+      .map((v) => v.order.id);
+    if (pendingOrderIds.length === 0) return;
+    setIssuingDocs(true);
+    try {
+      await issueDocuments(pendingOrderIds, "delivery_note");
+    } finally {
+      setIssuingDocs(false);
+    }
+  };
+
   const todayIntake = useMemo(
     () =>
       views
