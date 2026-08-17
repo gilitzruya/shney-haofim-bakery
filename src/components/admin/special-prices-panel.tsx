@@ -1,8 +1,10 @@
 import { ChevronDown, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/app/button";
 import { TextInput } from "@/components/app/form-controls";
+import { Modal } from "@/components/app/modal";
 import { allProducts, catalogCategories, type Product } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { overrideEntries } from "@/lib/admin/pricing";
@@ -43,6 +45,8 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState<Product | null>(null);
+  const [pendingPrice, setPendingPrice] = useState("");
 
   const categories = useMemo(() => catalogCategories(), []);
   const entries = overrideEntries(customer);
@@ -68,10 +72,24 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
     });
   };
 
-  const addProduct = (productId: string, price: number) => {
-    setCustomerPriceOverride(customer.id, productId, price);
-    setDraft(productId, price.toFixed(2));
+  const startAdd = (product: Product) => {
+    setPending(product);
+    setPendingPrice(product.price.toFixed(2));
+  };
+
+  const confirmAdd = () => {
+    if (!pending) return;
+    const parsed = Number(pendingPrice);
+    if (pendingPrice === "" || Number.isNaN(parsed) || parsed <= 0) return;
+    const price = Math.round(parsed * 100) / 100;
+    setCustomerPriceOverride(customer.id, pending.id, price);
+    setDraft(pending.id, price.toFixed(2));
+    toast.success(`נוסף מחיר מיוחד ל${pending.name}`, {
+      description: `${formatPrice(price)} ל${unitLabel(pending.unit)} (במקום ${formatPrice(pending.price)})`,
+    });
+    setPending(null);
     setQuery("");
+    setAdding(false);
     setExpanded(true);
   };
 
@@ -141,7 +159,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
             results.length ? (
               <div className="flex flex-col gap-1.5">
                 {results.map((p) => (
-                  <ProductAddRow key={p.id} product={p} onAdd={() => addProduct(p.id, p.price)} />
+                  <ProductAddRow key={p.id} product={p} onAdd={() => startAdd(p)} />
                 ))}
               </div>
             ) : (
@@ -177,7 +195,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                         <div className="divide-y divide-border border-t border-border">
                           {items.map((p) => (
                             <div key={p.id} className="px-3 py-2">
-                              <ProductAddRow product={p} bare onAdd={() => addProduct(p.id, p.price)} />
+                              <ProductAddRow product={p} bare onAdd={() => startAdd(p)} />
                             </div>
                           ))}
                         </div>
@@ -281,6 +299,32 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
           ) : null}
         </div>
       )}
+
+      <Modal
+        open={pending !== null}
+        title="הוספת מחיר מיוחד"
+        description={pending ? `${pending.name} — מחיר קטלוג ${formatPrice(pending.price)} ל${unitLabel(pending.unit)}` : undefined}
+        confirmLabel="הוספה"
+        cancelLabel="ביטול"
+        onClose={() => setPending(null)}
+        onConfirm={confirmAdd}
+      >
+        <label className="flex flex-col gap-1.5 text-[12.5px] font-semibold text-foreground">
+          מחיר מיוחד ללקוח
+          <span className="relative block">
+            <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-muted-foreground">
+              ₪
+            </span>
+            <TextInput
+              value={pendingPrice}
+              onChange={(e) => setPendingPrice(e.target.value)}
+              inputMode="decimal"
+              autoFocus
+              className="h-11 w-full ps-8 text-[15px] font-bold"
+            />
+          </span>
+        </label>
+      </Modal>
     </div>
   );
 }
