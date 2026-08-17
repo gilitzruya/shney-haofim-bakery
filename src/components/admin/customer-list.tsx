@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Store } from "lucide-react";
 
 import { Card } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
