@@ -47,6 +47,8 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<Product | null>(null);
   const [pendingPrice, setPendingPrice] = useState("");
+  const [deletePending, setDeletePending] = useState<{ id: string; name: string } | null>(null);
+
 
   const categories = useMemo(() => catalogCategories(), []);
   const entries = overrideEntries(customer);
@@ -261,11 +263,12 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                     <button
                       type="button"
                       aria-label={`הסרת המחיר המיוחד ל${product.name}`}
-                      onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
+                      onClick={() => setDeletePending({ id: product.id, name: product.name })}
                       className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
+
                   </div>
                   {isDirty && draftValid ? (
                     <Button
@@ -325,6 +328,24 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
           </span>
         </label>
       </Modal>
+
+      <Modal
+        open={deletePending !== null}
+        title="אישור מחיקה"
+        description={deletePending ? `להסיר את המחיר המיוחד של ${deletePending.name}?` : undefined}
+        confirmLabel="מחק"
+        cancelLabel="ביטול"
+        onClose={() => setDeletePending(null)}
+        onConfirm={() => {
+          if (!deletePending) return;
+          setCustomerPriceOverride(customer.id, deletePending.id, null);
+          toast.success("המחיר המיוחד הוסר");
+          setDeletePending(null);
+        }}
+        destructive
+      />
     </div>
   );
 }
+
+
