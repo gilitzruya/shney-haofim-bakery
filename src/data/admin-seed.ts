@@ -106,19 +106,21 @@ export const SEED_CUSTOMERS: Customer[] = [
   },
 ];
 
-interface SeedSpec {
+interface CustomerPlan {
   customerId: string;
   round: RoundId;
+  /** ימי השבוע שבהם הלקוח מקבל אספקה (0 = ראשון … 6 = שבת) */
+  weekdays: number[];
+  /** תבנית הזמנה בסיסית — הכמויות משתנות מעט מיום ליום */
   lines: { productId: string; qty: number }[];
-  status?: Order["status"];
-  /** 0 = מחר, 1 = מחרתיים */
-  dayOffset?: number;
 }
 
-const SPECS: SeedSpec[] = [
+/** תוכניות אספקה קבועות ללקוחות הדמו — מייצרות הזמנות לשבועיים קדימה. */
+const PLANS: CustomerPlan[] = [
   {
     customerId: "cust-2",
     round: "morning",
+    weekdays: [0, 1, 2, 3, 4, 5],
     lines: [
       { productId: "c1_2", qty: 12 },
       { productId: "c2_1", qty: 60 },
@@ -128,31 +130,38 @@ const SPECS: SeedSpec[] = [
   {
     customerId: "cust-3",
     round: "morning",
+    weekdays: [0, 1, 2, 3, 4],
     lines: [
       { productId: "c2_1", qty: 90 },
       { productId: "c4_1", qty: 40 },
+      { productId: "c3_1", qty: 20 },
     ],
   },
   {
     customerId: "cust-4",
     round: "morning",
+    weekdays: [0, 2, 4],
     lines: [
       { productId: "c1_8", qty: 20 },
       { productId: "c1_14", qty: 15 },
       { productId: "c3_1", qty: 30 },
+      { productId: "c4_5", qty: 12 },
     ],
   },
   {
     customerId: "cust-5",
     round: "noon",
+    weekdays: [0, 1, 2, 3, 4],
     lines: [
       { productId: "c1_1", qty: 40 },
       { productId: "c2_2", qty: 48 },
+      { productId: "c4_11", qty: 16 },
     ],
   },
   {
     customerId: "cust-7",
     round: "noon",
+    weekdays: [1, 3, 5],
     lines: [
       { productId: "c6_1", qty: 6 },
       { productId: "c5_1", qty: 25 },
@@ -162,32 +171,61 @@ const SPECS: SeedSpec[] = [
   {
     customerId: "cust-8",
     round: "noon",
+    weekdays: [0, 2, 4],
     lines: [
       { productId: "c1_12", qty: 18 },
       { productId: "c1_11", qty: 10 },
+      { productId: "c2_13", qty: 24 },
     ],
-    dayOffset: 1,
   },
   {
-    customerId: "cust-2",
+    customerId: SELF_CUSTOMER_ID,
     round: "morning",
+    weekdays: [0, 1, 2, 3, 4],
     lines: [
-      { productId: "c2_1", qty: 55 },
-      { productId: "c5_2", qty: 12 },
+      { productId: "c1_9", qty: 8 },
+      { productId: "c2_4", qty: 60 },
+      { productId: "c4_1", qty: 50 },
     ],
-    dayOffset: 1,
   },
 ];
 
-/** הזמנות דמו של שאר הלקוחות, נבנות ביחס לתאריך "מחר". */
+/** וריאציה יציבה (ללא רנדום) כדי שההידרציה והדוחות יישארו עקביים. */
+function variation(seed: string, base: number): number {
+  let hash = 0;
+  for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) % 9973;
+  const delta = Math.round(base * 0.2 * (((hash % 7) - 3) / 3));
+  return Math.max(1, base + delta);
+}
+
+const DAYS_AHEAD = 14;
+
+/**
+ * הזמנות דמו לשבועיים הקרובים, נבנות ביחס ל"מחר".
+ * offset 0 = מחר. שבת (6) מדולגת — אין אספקה.
+ */
 export function buildAdminOrders(dateForOffset: (offset: number) => string): Order[] {
-  return SPECS.map((spec, i) => ({
-    id: `ao-${i + 1}`,
-    customerId: spec.customerId,
-    date: dateForOffset(spec.dayOffset ?? 0),
-    round: spec.round,
-    status: spec.status ?? "approved",
-    lines: spec.lines,
-    createdFrom: "manual" as const,
-  }));
+  const orders: Order[] = [];
+  for (let offset = 0; offset < DAYS_AHEAD; offset += 1) {
+    const date = dateForOffset(offset);
+    const weekday = new Date(`${date}T00:00:00`).getDay();
+    if (weekday === 6) continue;
+    for (const plan of PLANS) {
+      if (!plan.weekdays.includes(weekday)) continue;
+      const id = `ao-${date}-${plan.customerId}-${plan.round}`;
+      orders.push({
+        id,
+        customerId: plan.customerId,
+        date,
+        round: plan.round,
+        status: "approved",
+        lines: plan.lines.map((l) => ({
+          productId: l.productId,
+          qty: variation(`${id}-${l.productId}`, l.qty),
+        })),
+        createdFrom: "manual" as const,
+      });
+    }
+  }
+  return orders;
 }
