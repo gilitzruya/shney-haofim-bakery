@@ -21,7 +21,6 @@ import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
-import { Tabs } from "@/components/app/tabs";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { roundLabel, WEEKDAY_LABELS } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
@@ -40,7 +39,7 @@ export const Route = createFileRoute("/admin/customers/$customerId/")({
   component: CustomerDetailPage,
 });
 
-type TabId = "details" | "prices";
+
 
 /** שורת מידע אחידה בכרטיס הלקוח. */
 function InfoRow({ icon, label, value, ltr }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean }) {
@@ -62,7 +61,7 @@ function CustomerDetailPage() {
   const { customers, hydrated, updateCustomer, setCustomerBlocked, adminRecurring, removeAdminRecurring } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
-  const [tab, setTab] = useState<TabId>("details");
+  const [showPrices, setShowPrices] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
 
   if (!customer) {
@@ -113,20 +112,7 @@ function CustomerDetailPage() {
           </div>
         </div>
 
-        <div className="mb-4">
-          <Tabs<TabId>
-            tabs={[
-              { id: "details", label: "פרטי לקוח" },
-              { id: "prices", label: "מחירים מיוחדים" },
-            ]}
-            value={tab}
-            onChange={setTab}
-          />
-        </div>
-
-        {tab === "prices" ? (
-          <SpecialPricesPanel customer={customer} />
-        ) : editing ? (
+        {editing ? (
           <CustomerForm
             initial={toFormValues(customer)}
             submitLabel="שמירת השינויים"
@@ -242,10 +228,14 @@ function CustomerDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => setTab("prices")}
-                  className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 text-start"
+                  onClick={() => setShowPrices((s) => !s)}
+                  className={`flex aspect-square flex-col justify-between rounded-[16px] border p-3.5 text-start ${
+                    showPrices ? "border-primary bg-primary-soft" : "border-border bg-card"
+                  }`}
                 >
-                  <span className="flex size-9 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                  <span className={`flex size-9 items-center justify-center rounded-full ${
+                    showPrices ? "bg-primary text-primary-foreground" : "bg-card-muted text-muted-foreground"
+                  }`}>
                     <Tag className="size-4" />
                   </span>
                   <span>
@@ -254,6 +244,12 @@ function CustomerDetailPage() {
                   </span>
                 </button>
               </div>
+
+              {showPrices ? (
+                <div className="rounded-[16px] border border-border bg-card p-3">
+                  <SpecialPricesPanel customer={customer} />
+                </div>
+              ) : null}
             </section>
 
 
