@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronRight, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
-import { FormField, TextInput } from "@/components/app/form-controls";
+import { ProductPlaceholder } from "@/components/app/product-card";
+import { fileToCompressedDataUrl } from "@/lib/image-upload";
+import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
 import type { Product, Unit } from "@/data/catalog";
 import { formatPrice, unitLabel } from "@/lib/format";
 import { useStore } from "@/store/app-store";
