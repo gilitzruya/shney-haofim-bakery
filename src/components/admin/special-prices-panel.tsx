@@ -263,11 +263,12 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                     <button
                       type="button"
                       aria-label={`הסרת המחיר המיוחד ל${product.name}`}
-                      onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
+                      onClick={() => setDeletePending({ id: product.id, name: product.name })}
                       className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
+
                   </div>
                   {isDirty && draftValid ? (
                     <Button
