@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/app/button";
 import { FormField, TextInput } from "@/components/app/form-controls";
@@ -107,34 +106,9 @@ export function CustomerForm({
         </FormField>
       </div>
 
-      <button
-        type="button"
-        onClick={() => toggleRound("noon")}
-        className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 text-start transition-colors active:bg-muted"
-        aria-pressed={values.allowedRounds.includes("noon")}
-      >
-        <span
-          className={cn(
-            "relative flex h-7 w-[3.25rem] shrink-0 items-center rounded-full p-1 transition-colors duration-200",
-            values.allowedRounds.includes("noon") ? "bg-primary" : "bg-muted-foreground/40",
-          )}
-        >
-          <span
-            className={cn(
-              "flex size-5 items-center justify-center rounded-full bg-background shadow transition-transform duration-200 ease-out",
-              values.allowedRounds.includes("noon") ? "translate-x-6" : "translate-x-0",
-            )}
-          >
-            {values.allowedRounds.includes("noon") ? (
-              <Check className="size-3 text-primary" strokeWidth={3} />
-            ) : (
-              <X className="size-3 text-muted-foreground" strokeWidth={3} />
-            )}
-          </span>
-        </span>
-
-        <span className="flex flex-col items-end gap-0.5">
-          <span className="text-[15px] font-bold text-foreground">סבב שני</span>
+      <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5">
+        <div className="flex flex-col items-start gap-0.5">
+          <span className="text-[15px] font-bold text-foreground">מאושר לסבב שני</span>
           <span
             className={cn(
               "text-[12px] font-semibold",
@@ -143,8 +117,43 @@ export function CustomerForm({
           >
             {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
           </span>
-        </span>
-      </button>
+        </div>
+
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-muted p-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (!values.allowedRounds.includes("noon")) {
+                toggleRound("noon");
+              }
+            }}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-[13px] font-bold transition-colors",
+              values.allowedRounds.includes("noon")
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            כן
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (values.allowedRounds.includes("noon")) {
+                toggleRound("noon");
+              }
+            }}
+            className={cn(
+              "rounded-md px-4 py-1.5 text-[13px] font-bold transition-colors",
+              !values.allowedRounds.includes("noon")
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            לא
+          </button>
+        </div>
+      </div>
 
       {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
 
