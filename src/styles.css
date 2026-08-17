@@ -161,6 +161,30 @@
     background: #fff !important;
   }
 
+  /* מונע עמוד ריק נוסף: אין גבהי מסך מלאים בהדפסה */
+  html,
+  body,
+  #root,
+  body * {
+    min-height: 0 !important;
+  }
+
+  html,
+  body {
+    height: auto !important;
+  }
+
+  .packing-sheet,
+  .baking-sheet {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  .packing-sheet table,
+  .baking-sheet table {
+    page-break-after: avoid;
+  }
+
   @page {
     margin: 10mm;
   }

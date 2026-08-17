@@ -67,14 +67,21 @@ function AdminHomePage() {
   const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
   const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
 
-  const printReport = (target: Exclude<PrintTarget, null>) => {
-    const cls = target === "production" ? "print-only-production" : "print-only-distribution";
-    document.body.classList.add(cls);
-    window.setTimeout(() => {
-      window.print();
-      document.body.classList.remove(cls);
-    }, 120);
-  };
+  const [printTarget, setPrintTarget] = useState<PrintTarget>(null);
+
+  useEffect(() => {
+    if (!printTarget) return;
+    const done = () => setPrintTarget(null);
+    window.addEventListener("afterprint", done);
+    // ממתינים לרינדור הגיליון לפני פתיחת חלון ההדפסה
+    const timer = window.setTimeout(() => window.print(), 200);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("afterprint", done);
+    };
+  }, [printTarget]);
+
+  const printReport = (target: Exclude<PrintTarget, null>) => setPrintTarget(target);
 
   const handleIssueDeliveryNotes = async () => {
     if (issuingDocs) return;
@@ -132,8 +139,8 @@ function AdminHomePage() {
 
   return (
     <AdminShell>
-      <BakingSheet date={date} groups={productionGroups} />
-      <PackingSheet date={date} groups={distributionGroups} />
+      {printTarget === "production" ? <BakingSheet date={date} groups={productionGroups} /> : null}
+      {printTarget === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? tomorrowViews : []} />
