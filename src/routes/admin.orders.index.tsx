@@ -94,7 +94,7 @@ function AdminOrdersPage() {
 
         <div className="sticky top-[58px] z-10 -mx-3.5 mt-3 bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
           <div className="overflow-hidden rounded-[16px] border border-primary/20 bg-primary-soft shadow-sm">
-            <div className="flex items-center justify-between border-b border-primary/10 px-2 py-2">
+            <div className="flex items-center justify-between border-b border-primary/10 px-2 py-2.5">
               <button
                 type="button"
                 aria-label="יום קודם"
@@ -104,9 +104,9 @@ function AdminOrdersPage() {
                 <ChevronRight className="size-5" />
               </button>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-1.5 text-[13px] font-bold text-primary">
-                  <CalendarDays className="size-4" />
-                  {formatLongDate(date)}
+                <div className="flex items-center justify-center gap-1.5 text-[13.5px] font-bold text-heading">
+                  <CalendarDays className="size-4 text-primary" />
+                  {formatWeekday(date)}, {formatDate(date)}
                 </div>
                 {date !== tomorrowIso() ? (
                   <button
@@ -116,11 +116,7 @@ function AdminOrdersPage() {
                   >
                     חזרה למחר
                   </button>
-                ) : (
-                  <div className="text-[11px] font-semibold text-primary/70">
-                    {formatWeekday(date)}, {formatDate(date)}
-                  </div>
-                )}
+                ) : null}
               </div>
               <button
                 type="button"
