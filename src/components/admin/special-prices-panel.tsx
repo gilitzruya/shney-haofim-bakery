@@ -1,4 +1,4 @@
-import { ChevronDown, Pencil, Plus, Search, Tag, Trash2, X } from "lucide-react";
+import { ChevronDown, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/app/button";
@@ -7,6 +7,7 @@ import { allProducts } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { overrideEntries } from "@/lib/admin/pricing";
 import { formatPrice, unitLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
 
 const COLLAPSED_COUNT = 3;
