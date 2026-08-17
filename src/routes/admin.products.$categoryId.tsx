@@ -227,10 +227,6 @@ function ProductRow({
               <span className="text-[13.5px] font-bold text-heading">{product.name}</span>
               {product.available ? null : <Chip tone="error">לא זמין</Chip>}
             </span>
-            <span className="mt-0.5 block text-[12px] text-muted-foreground">
-              {product.sku ? `קוד ${product.sku} · ` : ""}
-              {formatPrice(product.price)} ל{unitLabel(product.unit)}
-            </span>
           </span>
         </div>
         <Button size="sm" variant="ghost" onClick={() => onUpdate({ available: !product.available })}>
