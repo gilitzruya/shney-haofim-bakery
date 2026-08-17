@@ -376,7 +376,7 @@ function ProductRow({
           ) : null}
 
           <div className="flex items-center gap-2 border-t border-border pt-3">
-            <Button size="sm" onClick={save} className="flex-1">
+            <Button size="sm" onClick={save} className="flex-1 md:flex-initial md:w-auto">
               שמירת השינויים
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
@@ -581,7 +581,7 @@ function NewProductForm({
         ) : null}
 
         <div className="flex items-center gap-2 border-t border-border pt-3.5">
-          <Button size="sm" onClick={submit} className="flex-1">
+          <Button size="sm" onClick={submit} className="flex-1 md:flex-initial md:w-auto">
             שמירת המוצר
           </Button>
           <Button size="sm" variant="ghost" onClick={onCancel}>
