@@ -1,18 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, ClipboardList, FileText, Search, X } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, FileText, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AdminOrderList } from "@/components/admin/order-list";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Button } from "@/components/app/button";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
-import { tomorrowIso } from "@/lib/admin/dates";
+import { shiftIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
-import { formatLongDate, formatPrice } from "@/lib/format";
+import { formatDate, formatLongDate, formatPrice, formatWeekday } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/orders/")({
