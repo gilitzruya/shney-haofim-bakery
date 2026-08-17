@@ -9,7 +9,7 @@ import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
-import { shiftIso } from "@/lib/admin/dates";
+import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatLongDate, formatPrice, formatWeekday } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -76,9 +76,7 @@ function AdminOrdersPage() {
           הזמנות
         </h1>
 
-        <ReportDateNav date={date} onChange={setDate} />
-
-        <label className="mt-2.5 flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2.5">
+        <label className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2.5">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
@@ -96,14 +94,42 @@ function AdminOrdersPage() {
 
         <div className="sticky top-[58px] z-10 -mx-3.5 mt-3 bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
           <div className="overflow-hidden rounded-[16px] border border-primary/20 bg-primary-soft shadow-sm">
-            <div className="flex items-center justify-between border-b border-primary/10 px-3.5 py-2">
-              <div className="flex items-center gap-1.5 text-[13px] font-bold text-primary">
-                <CalendarDays className="size-4" />
-                {formatLongDate(date)}
+            <div className="flex items-center justify-between border-b border-primary/10 px-2 py-2">
+              <button
+                type="button"
+                aria-label="יום קודם"
+                onClick={() => setDate(shiftIso(date, -1))}
+                className="flex size-9 items-center justify-center rounded-[10px] border border-primary/20 text-primary"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1.5 text-[13px] font-bold text-primary">
+                  <CalendarDays className="size-4" />
+                  {formatLongDate(date)}
+                </div>
+                {date !== tomorrowIso() ? (
+                  <button
+                    type="button"
+                    onClick={() => setDate(tomorrowIso())}
+                    className="text-[11px] font-semibold text-primary"
+                  >
+                    חזרה למחר
+                  </button>
+                ) : (
+                  <div className="text-[11px] font-semibold text-primary/70">
+                    {formatWeekday(date)}, {formatDate(date)}
+                  </div>
+                )}
               </div>
-              <div className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                סיכום יום
-              </div>
+              <button
+                type="button"
+                aria-label="יום הבא"
+                onClick={() => setDate(shiftIso(date, 1))}
+                className="flex size-9 items-center justify-center rounded-[10px] border border-primary/20 text-primary"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
             </div>
             <div className="grid grid-cols-3 divide-x divide-x-reverse divide-primary/10 px-1 py-3 text-center">
               <Metric value={hydrated ? String(summary.ordersCount) : "—"} label="הזמנות" />
