@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Mail,
   MapPin,
+  MessageCircle,
   Pencil,
   Phone,
   Plus,
@@ -15,6 +16,7 @@ import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
+import { CustomerInviteModal } from "@/components/admin/customer-invite-modal";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
@@ -61,6 +63,8 @@ function CustomerDetailPage() {
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [appUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
 
   if (!customer) {
     return (
@@ -274,6 +278,15 @@ function CustomerDetailPage() {
                 >
                   {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
                 </Button>
+
+                <button
+                  type="button"
+                  onClick={() => setInviteOpen(true)}
+                  className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#25D366]/10 px-3 py-2.5 text-[12.5px] font-semibold text-[#25D366] transition-colors hover:bg-[#25D366]/15"
+                >
+                  <MessageCircle className="size-4" />
+                  שליחת פרטי התחברות בוואטסאפ
+                </button>
               </div>
             </section>
 
@@ -292,6 +305,14 @@ function CustomerDetailPage() {
           setConfirmBlock(false);
         }}
         onClose={() => setConfirmBlock(false)}
+      />
+
+      <CustomerInviteModal
+        open={inviteOpen}
+        customerName={customer.name}
+        phone={customer.contacts[0]?.phone ?? ""}
+        appUrl={appUrl}
+        onClose={() => setInviteOpen(false)}
       />
     </AdminShell>
   );
