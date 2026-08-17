@@ -234,24 +234,24 @@ function AdminHomePage() {
 function PrintReportButton({
   icon,
   title,
+  loading,
   onClick,
 }: {
   icon: React.ReactNode;
   title: string;
+  loading?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm"
+      disabled={loading}
+      className="flex flex-col items-center justify-between rounded-[18px] border border-border bg-white px-1 py-3 shadow-sm active:scale-95 transition-transform duration-75 disabled:opacity-60"
     >
-      <ChevronLeft className="size-4 shrink-0 text-primary" />
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="text-[12.5px] leading-tight font-bold text-heading">{title}</span>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          {icon}
-        </span>
+      <span className="text-[10px] leading-none font-bold text-primary text-center">{title}</span>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+        {loading ? <Spinner className="border-primary/40 border-t-primary" /> : icon}
       </span>
     </button>
   );
