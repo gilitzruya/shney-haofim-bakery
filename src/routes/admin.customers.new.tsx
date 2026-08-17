@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
+import { CustomerInviteModal } from "@/components/admin/customer-invite-modal";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { Section } from "@/components/app/app-shell";
 import { useStore } from "@/store/app-store";
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/admin/customers/new")({
 function NewCustomerPage() {
   const { addCustomer } = useStore();
   const navigate = useNavigate();
+  const [invite, setInvite] = useState<{ customerId: string; name: string; phone: string } | null>(null);
+  const [appUrl, setAppUrl] = useState("");
   const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
 
   const setDraftOverride = (productId: string, price: number | null) =>
@@ -60,7 +63,8 @@ function NewCustomerPage() {
               allowedRounds: v.allowedRounds,
               ...(Object.keys(priceOverrides).length ? { priceOverrides } : {}),
             });
-            void navigate({ to: "/admin/customers/$customerId", params: { customerId: created.id } });
+            setAppUrl(typeof window === "undefined" ? "" : window.location.origin);
+            setInvite({ customerId: created.id, name: created.name, phone: v.phone.trim() });
           }}
           extra={
             <div className="flex flex-col gap-2">
@@ -72,6 +76,18 @@ function NewCustomerPage() {
           }
         />
       </Section>
+
+      <CustomerInviteModal
+        open={invite !== null}
+        customerName={invite?.name ?? ""}
+        phone={invite?.phone ?? ""}
+        appUrl={appUrl}
+        onClose={() => {
+          const id = invite?.customerId;
+          setInvite(null);
+          if (id) void navigate({ to: "/admin/customers/$customerId", params: { customerId: id } });
+        }}
+      />
     </AdminShell>
   );
 }
