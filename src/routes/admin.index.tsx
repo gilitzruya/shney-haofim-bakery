@@ -125,17 +125,32 @@ function AdminHomePage() {
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={tomorrowViews} />
 
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-3 gap-3">
           <PrintReportButton
             icon={<Truck className="size-5" />}
-            title="הדפסת דוח חלוקה"
+            title="דוח חלוקה"
             onClick={() => setPendingPrint("distribution")}
           />
           <PrintReportButton
             icon={<FileText className="size-5" />}
-            title="הדפסת דוח אפייה / ייצור"
+            title="דוח אפייה"
             onClick={() => setPendingPrint("production")}
           />
+          <button
+            type="button"
+            disabled={issuingDocs}
+            onClick={handleIssueDeliveryNotes}
+            className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm disabled:opacity-60"
+          >
+            <ChevronLeft className="size-4 shrink-0 text-primary" />
+            <span className="flex min-w-0 flex-col items-end gap-0.5">
+              <span className="text-[12px] leading-tight font-bold text-heading">תעודות משלוח</span>
+              <span className="text-[10px] font-medium text-muted-foreground">{issuingDocs ? "מפיק..." : "הפקה"}</span>
+            </span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Receipt className="size-5" />
+            </span>
+          </button>
         </div>
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
