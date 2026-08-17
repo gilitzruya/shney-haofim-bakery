@@ -11,7 +11,7 @@ import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
-import { formatDate, formatLongDate, formatPrice, formatWeekday } from "@/lib/format";
+import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/orders/")({
