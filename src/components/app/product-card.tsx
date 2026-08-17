@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
-import { productImage } from "@/data/product-images";
+import { productPhoto } from "@/data/product-images";
 import {
   clampQty,
   formatPrice,
@@ -216,9 +216,9 @@ export function ProductCard({
       )}
     >
       <div className="flex items-center gap-2.5">
-        {productImage(product.id) ? (
+        {productPhoto(product) ? (
           <img
-            src={productImage(product.id)}
+            src={productPhoto(product)}
             alt={product.name}
             loading="lazy"
             width={1024}
