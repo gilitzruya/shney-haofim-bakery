@@ -299,6 +299,32 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
           ) : null}
         </div>
       )}
+
+      <Modal
+        open={pending !== null}
+        title="הוספת מחיר מיוחד"
+        description={pending ? `${pending.name} — מחיר קטלוג ${formatPrice(pending.price)} ל${unitLabel(pending.unit)}` : undefined}
+        confirmLabel="הוספה"
+        cancelLabel="ביטול"
+        onClose={() => setPending(null)}
+        onConfirm={confirmAdd}
+      >
+        <label className="flex flex-col gap-1.5 text-[12.5px] font-semibold text-foreground">
+          מחיר מיוחד ללקוח
+          <span className="relative block">
+            <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-muted-foreground">
+              ₪
+            </span>
+            <TextInput
+              value={pendingPrice}
+              onChange={(e) => setPendingPrice(e.target.value)}
+              inputMode="decimal"
+              autoFocus
+              className="h-11 w-full ps-8 text-[15px] font-bold"
+            />
+          </span>
+        </label>
+      </Modal>
     </div>
   );
 }
