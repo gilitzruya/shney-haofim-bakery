@@ -142,17 +142,20 @@ function AdminHomePage() {
         <div className="mt-3 grid grid-cols-3 gap-3">
           <PrintReportButton
             icon={<Truck className="size-5" />}
-            title="דוח חלוקה"
+            top="הדפסת"
+            bottom="דוח חלוקה"
             onClick={() => setPendingPrint("distribution")}
           />
           <PrintReportButton
             icon={<FileText className="size-5" />}
-            title="דוח אפייה"
+            top="הדפסת"
+            bottom="דוח אפייה"
             onClick={() => setPendingPrint("production")}
           />
           <PrintReportButton
             icon={<Receipt className="size-5" />}
-            title="תעודות משלוח"
+            top="הפקת"
+            bottom="תעודות משלוח"
             loading={issuingDocs}
             onClick={handleIssueDeliveryNotes}
           />
