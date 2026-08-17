@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/app/button";
 import { FormField, TextInput } from "@/components/app/form-controls";
