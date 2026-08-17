@@ -128,6 +128,7 @@ function AdminProductsPage() {
 }
 
 function SortableCategoryCard({
+  index,
   category,
   isEditing,
   editName,
@@ -136,6 +137,7 @@ function SortableCategoryCard({
   onStartEdit,
   onRemove,
 }: {
+  index: number;
   category: Category;
   isEditing: boolean;
   editName: string;
@@ -160,9 +162,12 @@ function SortableCategoryCard({
     zIndex: isDragging ? 10 : undefined,
   };
 
+  const pairIndex = Math.floor(index / 2);
+  const cardBg = pairIndex % 2 === 0 ? "bg-card" : "bg-accent-soft";
+
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card className="flex flex-col gap-2">
+      <Card className={`flex flex-col gap-2 ${cardBg}`}>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -191,9 +196,9 @@ function SortableCategoryCard({
                 className="flex flex-1 items-center justify-between gap-2 no-underline"
               >
                 <span className="text-[14px] font-bold text-heading">{category.name}</span>
-                <span className="flex items-center gap-1 text-[12px] text-muted-foreground">
+                <span className="flex items-center gap-1 text-[12px] text-black">
                   {category.products.length} מוצרים
-                  <ChevronLeft className="size-4" />
+                  <ChevronLeft className="size-4 text-muted-foreground" />
                 </span>
               </Link>
             </>
@@ -203,7 +208,7 @@ function SortableCategoryCard({
         {isEditing ? null : (
           <div className="flex items-center gap-2 border-t border-border pt-2">
             <Button variant="ghost" size="sm" onClick={onStartEdit}>
-              שינוי שם
+              שינוי שם קטגוריה
             </Button>
             {category.products.length === 0 ? (
               <Button variant="ghost" size="sm" onClick={onRemove}>
