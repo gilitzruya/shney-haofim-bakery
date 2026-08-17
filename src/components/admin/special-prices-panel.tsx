@@ -342,9 +342,10 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
           toast.success("המחיר המיוחד הוסר");
           setDeletePending(null);
         }}
-        confirmVariant="destructive"
+        destructive
       />
     </div>
   );
 }
+
 
