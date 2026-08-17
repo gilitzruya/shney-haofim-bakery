@@ -1,10 +1,11 @@
-import { Copy, MessageCircle } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/app/button";
 import { TextArea, TextInput } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 
 /** מנקה מספר טלפון ישראלי לפורמט בינלאומי לוואטסאפ. */
 export function waPhone(raw: string): string {
@@ -109,8 +110,8 @@ export function CustomerInviteModal({
             <Copy className="size-4" />
             העתקה
           </Button>
-          <Button className="flex-1" onClick={send}>
-            <MessageCircle className="size-4" />
+          <Button className="flex-1 bg-[#25D366] hover:bg-[#1ebe57] text-white" onClick={send}>
+            <WhatsAppIcon className="size-4" />
             שליחה ללקוח
           </Button>
         </div>
