@@ -292,7 +292,7 @@ function ProductRow({
               {product.note}
             </div>
           ) : null}
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex items-center gap-2 pt-0.5 md:justify-center">
             <Button size="sm" onClick={startEdit}>
               <Pencil className="size-4" />
               עריכת המוצר
