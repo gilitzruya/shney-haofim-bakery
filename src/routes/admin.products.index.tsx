@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronLeft, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, GripVertical, Package, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -41,25 +41,13 @@ export const Route = createFileRoute("/admin/products/")({
 });
 
 function AdminProductsPage() {
-  const { catalog, hydrated, reorderCategories, renameCategory, addCategory, removeCategory } = useStore();
+  const { catalog, hydrated, reorderCategories, addCategory, removeCategory } = useStore();
   const [newName, setNewName] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
-
-  const startEdit = (id: string, name: string) => {
-    setEditingId(id);
-    setEditName(name);
-  };
-
-  const saveEdit = () => {
-    if (editingId && editName.trim()) renameCategory(editingId, editName.trim());
-    setEditingId(null);
-  };
 
   const create = () => {
     const name = newName.trim();
@@ -82,7 +70,7 @@ function AdminProductsPage() {
       <Section className="pt-6 pb-10">
         <h1 className="text-[19px] font-bold text-heading">מוצרים וקטגוריות</h1>
         <p className="mt-1 text-[12.5px] text-muted-foreground">
-          סדר הקטגוריות כאן הוא הסדר שהלקוחות רואים בקטלוג. אפשר לגרור קטגוריה כדי לשנות את מיקומה.
+          לחיצה על קטגוריה פותחת את המוצרים שלה לעריכה. גרירה בידית מימין משנה את סדר התצוגה בקטלוג הלקוח.
         </p>
 
         <Card className="mt-4 flex flex-col gap-2">
@@ -105,16 +93,10 @@ function AdminProductsPage() {
           {!hydrated ? null : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={catalog.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-                {catalog.map((c, index) => (
+                {catalog.map((c) => (
                   <SortableCategoryCard
                     key={c.id}
-                    index={index}
                     category={c}
-                    isEditing={editingId === c.id}
-                    editName={editName}
-                    onEditNameChange={setEditName}
-                    onSaveEdit={saveEdit}
-                    onStartEdit={() => startEdit(c.id, c.name)}
                     onRemove={() => removeCategory(c.id)}
                   />
                 ))}
@@ -128,22 +110,10 @@ function AdminProductsPage() {
 }
 
 function SortableCategoryCard({
-  index,
   category,
-  isEditing,
-  editName,
-  onEditNameChange,
-  onSaveEdit,
-  onStartEdit,
   onRemove,
 }: {
-  index: number;
   category: Category;
-  isEditing: boolean;
-  editName: string;
-  onEditNameChange: (value: string) => void;
-  onSaveEdit: () => void;
-  onStartEdit: () => void;
   onRemove: () => void;
 }) {
   const {
@@ -158,63 +128,54 @@ function SortableCategoryCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.55 : 1,
+    opacity: isDragging ? 0.6 : 1,
     zIndex: isDragging ? 10 : undefined,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card className="flex flex-col gap-2 bg-card">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="גרירה לשינוי סדר"
-            className="rounded-md p-1 text-muted-foreground"
-          >
-            <GripVertical className="size-5" />
-          </button>
-
-          {isEditing ? (
-            <div className="flex flex-1 items-center gap-2">
-              <TextInput
-                value={editName}
-                onChange={(e) => onEditNameChange(e.target.value)}
-                aria-label="שם הקטגוריה"
-              />
-              <Button size="sm" onClick={onSaveEdit}>
-                שמירה
-              </Button>
-            </div>
-          ) : (
-            <>
-              <Link
-                to="/admin/products/$categoryId"
-                params={{ categoryId: category.id }}
-                className="flex flex-1 items-center justify-between gap-2 no-underline"
-              >
-                <span className="text-[14px] font-bold text-heading">{category.name}</span>
-                <span className="flex items-center gap-1 text-[12px] text-black">
-                  {category.products.length} מוצרים
-                  <ChevronLeft className="size-4 text-muted-foreground" />
-                </span>
-              </Link>
-            </>
-          )}
+    <div ref={setNodeRef} style={style}>
+      <Card
+        className={`flex items-stretch gap-2 p-0 transition-shadow ${
+          isDragging ? "shadow-lg" : ""
+        }`}
+      >
+        <div
+          {...attributes}
+          {...listeners}
+          role="button"
+          aria-label={`גרירה לשינוי סדר: ${category.name}`}
+          className="flex touch-none items-center justify-center rounded-s-xl bg-muted/50 px-2 text-muted-foreground"
+        >
+          <GripVertical className="size-5" />
         </div>
 
-        {isEditing ? null : (
-          <div className="flex items-center gap-2 border-t border-border pt-2">
-            <Button variant="ghost" size="sm" onClick={onStartEdit}>
-              שינוי שם קטגוריה
-            </Button>
-            {category.products.length === 0 ? (
-              <Button variant="ghost" size="sm" onClick={onRemove}>
-                <Trash2 className="size-4" />
-                מחיקה
-              </Button>
-            ) : null}
-          </div>
-        )}
+        <Link
+          to="/admin/products/$categoryId"
+          params={{ categoryId: category.id }}
+          className="flex flex-1 items-center gap-3 py-3 pe-3 no-underline"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+            <Package className="size-4" />
+          </span>
+          <span className="flex flex-1 flex-col">
+            <span className="text-[14.5px] font-bold text-heading">{category.name}</span>
+            <span className="text-[11.5px] text-muted-foreground">
+              {category.products.length} מוצרים · לצפייה ועריכה
+            </span>
+          </span>
+          <ChevronLeft className="size-5 text-primary" />
+        </Link>
+
+        {category.products.length === 0 ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`מחיקת הקטגוריה ${category.name}`}
+            className="flex items-center px-2 text-muted-foreground"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        ) : null}
       </Card>
     </div>
   );

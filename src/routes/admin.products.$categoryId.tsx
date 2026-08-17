@@ -31,9 +31,11 @@ export const Route = createFileRoute("/admin/products/$categoryId")({
 
 function AdminCategoryPage() {
   const { categoryId } = Route.useParams();
-  const { catalog, hydrated, updateProduct, addProduct, removeProduct } = useStore();
+  const { catalog, hydrated, updateProduct, addProduct, removeProduct, renameCategory } = useStore();
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
 
   const category = catalog.find((c) => c.id === categoryId);
 
@@ -72,13 +74,53 @@ function AdminCategoryPage() {
           חזרה לקטגוריות
         </Link>
 
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <h1 className="text-[19px] font-bold text-heading">{category.name}</h1>
-          <Button size="sm" variant={adding ? "ghost" : "primary"} onClick={() => setAdding((a) => !a)}>
-            <Plus className="size-4" />
-            {adding ? "ביטול" : "מוצר חדש"}
-          </Button>
-        </div>
+        {renaming ? (
+          <Card className="mt-2 flex flex-col gap-2">
+            <div className="text-[12px] font-semibold text-primary">שינוי שם הקטגוריה</div>
+            <TextInput
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              aria-label="שם הקטגוריה"
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                disabled={!categoryName.trim()}
+                onClick={() => {
+                  const name = categoryName.trim();
+                  if (name) renameCategory(category.id, name);
+                  setRenaming(false);
+                }}
+              >
+                שמירה
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setRenaming(false)}>
+                ביטול
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <h1 className="truncate text-[19px] font-bold text-heading">{category.name}</h1>
+              <button
+                type="button"
+                aria-label="שינוי שם הקטגוריה"
+                onClick={() => {
+                  setCategoryName(category.name);
+                  setRenaming(true);
+                }}
+                className="rounded-md p-1 text-primary"
+              >
+                <Pencil className="size-4" />
+              </button>
+            </div>
+            <Button size="sm" variant={adding ? "ghost" : "primary"} onClick={() => setAdding((a) => !a)}>
+              <Plus className="size-4" />
+              {adding ? "ביטול" : "מוצר חדש"}
+            </Button>
+          </div>
+        )}
 
         {adding ? (
           <NewProductForm
