@@ -12,7 +12,7 @@ import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
 
-const STORAGE_KEY = "bakery-demo-state:v16";
+const STORAGE_KEY = "bakery-demo-state:v17";
 
 /** הזמנה קבועה שנוצרה על ידי המאפייה בשם לקוח מסוים. */
 export interface AdminRecurringOrder {

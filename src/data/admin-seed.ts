@@ -42,6 +42,18 @@ export const SEED_CUSTOMERS: Customer[] = [
     address: "עמק רפאים 34, ירושלים",
     contacts: [{ name: "אלמה כהן", phone: "054-2213388", email: "alma@cafe-alma.co.il" }],
     allowedRounds: ["morning"],
+    priceOverrides: {
+      c1_2: 5.5,
+      c1_9: 13.9,
+      c1_12: 8.5,
+      c2_1: 1.1,
+      c2_2: 1.45,
+      c3_2: 3.2,
+      c4_1: 0.95,
+      c5_1: 7.9,
+      c6_3: 33.0,
+      c7_1: 31.5,
+    },
   },
   {
     id: "cust-3",
