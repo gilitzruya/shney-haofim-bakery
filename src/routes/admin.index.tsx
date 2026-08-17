@@ -53,7 +53,6 @@ function AdminHomePage() {
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
-  const [pendingPrint, setPendingPrint] = useState<PrintTarget>(null);
   const [issuingDocs, setIssuingDocs] = useState(false);
 
   const summary = useMemo(() => {
@@ -71,11 +70,9 @@ function AdminHomePage() {
   const printReport = (target: Exclude<PrintTarget, null>) => {
     const cls = target === "production" ? "print-only-production" : "print-only-distribution";
     document.body.classList.add(cls);
-    setPendingPrint(target);
     window.setTimeout(() => {
       window.print();
       document.body.classList.remove(cls);
-      setPendingPrint(null);
     }, 120);
   };
 
