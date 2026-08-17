@@ -1,8 +1,10 @@
 import { ChevronDown, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/app/button";
 import { TextInput } from "@/components/app/form-controls";
+import { Modal } from "@/components/app/modal";
 import { allProducts, catalogCategories, type Product } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { overrideEntries } from "@/lib/admin/pricing";
