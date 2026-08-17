@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import { Button } from "@/components/app/button";
 import { FormField, TextInput } from "@/components/app/form-controls";
-import { ROUNDS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { cn } from "@/lib/utils";
