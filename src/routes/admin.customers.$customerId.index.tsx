@@ -228,10 +228,14 @@ function CustomerDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => setShowPrices(true)}
-                  className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 text-start"
+                  onClick={() => setShowPrices((s) => !s)}
+                  className={`flex aspect-square flex-col justify-between rounded-[16px] border p-3.5 text-start ${
+                    showPrices ? "border-primary bg-primary-soft" : "border-border bg-card"
+                  }`}
                 >
-                  <span className="flex size-9 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                  <span className={`flex size-9 items-center justify-center rounded-full ${
+                    showPrices ? "bg-primary text-primary-foreground" : "bg-card-muted text-muted-foreground"
+                  }`}>
                     <Tag className="size-4" />
                   </span>
                   <span>
@@ -240,6 +244,12 @@ function CustomerDetailPage() {
                   </span>
                 </button>
               </div>
+
+              {showPrices ? (
+                <div className="rounded-[16px] border border-border bg-card p-3">
+                  <SpecialPricesPanel customer={customer} />
+                </div>
+              ) : null}
             </section>
 
 
