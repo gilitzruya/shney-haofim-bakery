@@ -1,5 +1,12 @@
 import { israelNow } from "@/lib/cutoff";
-import { toIso } from "@/lib/format";
+import { parseDate, toIso } from "@/lib/format";
+
+/** מזיז תאריך ISO במספר ימים. */
+export function shiftIso(iso: string, days: number): string {
+  const d = parseDate(iso);
+  d.setDate(d.getDate() + days);
+  return toIso(d);
+}
 
 /** תאריך יחסי להיום (לפי שעון ישראל) בפורמט ISO. */
 export function isoFromToday(offsetDays: number): string {
