@@ -9,6 +9,7 @@ import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { ProductPlaceholder } from "@/components/app/product-card";
 import { fileToCompressedDataUrl } from "@/lib/image-upload";
+import { productPhoto } from "@/data/product-images";
 import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
 import type { Product, Unit } from "@/data/catalog";
 import { formatPrice, unitLabel } from "@/lib/format";
