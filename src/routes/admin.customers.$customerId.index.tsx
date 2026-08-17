@@ -184,12 +184,12 @@ function CustomerDetailPage() {
                       to="/admin/customers/$customerId/new-order"
                       params={{ customerId: customer.id }}
                       search={{ type: "onetime" as const }}
-                      className="flex aspect-square flex-col justify-between rounded-[14px] border border-border bg-card p-3 no-underline"
+                      className="flex flex-row-reverse items-center justify-between rounded-[14px] border border-border bg-card p-3 no-underline"
                     >
-                      <span className="flex size-8 items-center justify-center rounded-full bg-primary-soft text-primary">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
                         <Plus className="size-3.5" />
                       </span>
-                      <span>
+                      <span className="text-start">
                         <span className="block text-[13px] font-bold text-heading">הזמנה חד-פעמית</span>
                         <span className="block text-[11px] text-muted-foreground">יצירה עבור הלקוח</span>
                       </span>
@@ -199,12 +199,12 @@ function CustomerDetailPage() {
                       to="/admin/customers/$customerId/new-order"
                       params={{ customerId: customer.id }}
                       search={{ type: "recurring" as const }}
-                      className="flex aspect-square flex-col justify-between rounded-[14px] border border-border bg-card p-3 no-underline"
+                      className="flex flex-row-reverse items-center justify-between rounded-[14px] border border-border bg-card p-3 no-underline"
                     >
-                      <span className="flex size-8 items-center justify-center rounded-full bg-primary-soft text-primary">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
                         <CalendarClock className="size-3.5" />
                       </span>
-                      <span>
+                      <span className="text-start">
                         <span className="block text-[13px] font-bold text-heading">הזמנה קבועה</span>
                         <span className="block text-[11px] text-muted-foreground">ימים קבועים בשבוע</span>
                       </span>
@@ -215,12 +215,12 @@ function CustomerDetailPage() {
                 <Link
                   to="/admin/customers/$customerId/orders"
                   params={{ customerId: customer.id }}
-                  className="flex aspect-square flex-col justify-between rounded-[14px] border border-border bg-card p-3 no-underline"
+                  className="flex flex-row-reverse items-center justify-between rounded-[14px] border border-border bg-card p-3 no-underline"
                 >
-                  <span className="flex size-8 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
                     <ClipboardList className="size-3.5" />
                   </span>
-                  <span>
+                  <span className="text-start">
                     <span className="block text-[13px] font-bold text-heading">עריכת הזמנה קיימת</span>
                     <span className="block text-[11px] text-muted-foreground">כל ההזמנות של הלקוח</span>
                   </span>
@@ -229,16 +229,16 @@ function CustomerDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowPrices((s) => !s)}
-                  className={`flex aspect-square flex-col justify-between rounded-[14px] border p-3 text-start ${
+                  className={`flex flex-row-reverse items-center justify-between rounded-[14px] border p-3 text-start ${
                     showPrices ? "border-primary bg-primary-soft" : "border-border bg-card"
                   }`}
                 >
-                  <span className={`flex size-8 items-center justify-center rounded-full ${
+                  <span className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
                     showPrices ? "bg-primary text-primary-foreground" : "bg-card-muted text-muted-foreground"
                   }`}>
                     <Tag className="size-3.5" />
                   </span>
-                  <span>
+                  <span className="text-start">
                     <span className="block text-[13px] font-bold text-heading">מחירים מיוחדים</span>
                     <span className="block text-[11px] text-muted-foreground">מחירון ייעודי ללקוח</span>
                   </span>
