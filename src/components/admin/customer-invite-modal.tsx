@@ -110,8 +110,8 @@ export function CustomerInviteModal({
             <Copy className="size-4" />
             העתקה
           </Button>
-          <Button className="flex-1" onClick={send}>
-            <MessageCircle className="size-4" />
+          <Button className="flex-1 bg-[#25D366] hover:bg-[#1ebe57] text-white" onClick={send}>
+            <WhatsAppIcon className="size-4" />
             שליחה ללקוח
           </Button>
         </div>
