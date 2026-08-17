@@ -207,7 +207,6 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                     </span>
                   ) : null}
                 </div>
-                </div>
               </div>
             );
           })}
