@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/app/button";
 import { TextInput } from "@/components/app/form-controls";
-import { allProducts } from "@/data/catalog";
+import { allProducts, catalogCategories, type Product } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { overrideEntries } from "@/lib/admin/pricing";
 import { formatPrice, unitLabel } from "@/lib/format";
@@ -12,18 +12,43 @@ import { useStore } from "@/store/app-store";
 
 const COLLAPSED_COUNT = 3;
 
+/** שורת מוצר זמין להוספה למחירון המיוחד. */
+function ProductAddRow({ product, onAdd, bare }: { product: Product; onAdd: () => void; bare?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between gap-2",
+        !bare && "rounded-xl border border-border bg-card px-3 py-2",
+      )}
+    >
+      <div className="min-w-0">
+        <div className="truncate text-[13px] font-semibold text-foreground">{product.name}</div>
+        <div className="text-[11px] text-muted-foreground">
+          מחיר קטלוג {formatPrice(product.price)} ל{unitLabel(product.unit)}
+        </div>
+      </div>
+      <Button size="sm" variant="outline" onClick={onAdd}>
+        הוספה
+      </Button>
+    </div>
+  );
+}
+
 /** מחירון מיוחד ללקוח — הצגה, הוספה, עריכה ומחיקה של חריגות מחיר. */
 export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const { setCustomerPriceOverride } = useStore();
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
+  const categories = useMemo(() => catalogCategories(), []);
   const entries = overrideEntries(customer);
   const visible = expanded ? entries : entries.slice(0, COLLAPSED_COUNT);
   const hidden = entries.length - visible.length;
+
 
   const results = useMemo(() => {
     const q = query.trim();
