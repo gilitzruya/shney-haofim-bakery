@@ -511,7 +511,7 @@ function NewProductForm({
 
         {/* Optional */}
         <div className="flex flex-col gap-3 border-t border-border pt-3.5">
-          <div className="text-[11.5px] font-bold text-muted-foreground">פרטים נוספים (רשות)</div>
+          <div className="text-[11.5px] font-bold text-primary">פרטים נוספים (רשות)</div>
           <div className="grid gap-3 md:grid-cols-2">
             <FormField label="כמות מינימום להזמנה" hint={unit === "kg" ? "ברירת מחדל: 0.5 ק״ג" : "ברירת מחדל: יחידה אחת"}>
               <TextInput
