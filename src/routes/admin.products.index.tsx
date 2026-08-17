@@ -54,6 +54,22 @@ function AdminProductsPage() {
           סדר הקטגוריות כאן הוא הסדר שהלקוחות רואים בקטלוג.
         </p>
 
+        <Card className="mt-4 flex flex-col gap-2">
+          <div className="text-[12px] font-semibold text-muted-foreground">הוספת קטגוריה חדשה</div>
+          <div className="flex items-center gap-2">
+            <TextInput
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="לדוגמה: מאפי בוקר"
+              aria-label="שם קטגוריה חדשה"
+            />
+            <Button size="sm" onClick={create} disabled={!newName.trim()}>
+              <Plus className="size-4" />
+              הוספה
+            </Button>
+          </div>
+        </Card>
+
         <div className="mt-4 flex flex-col gap-2">
           {!hydrated
             ? null
@@ -125,22 +141,6 @@ function AdminProductsPage() {
                 </Card>
               ))}
         </div>
-
-        <Card className="mt-4 flex flex-col gap-2">
-          <div className="text-[12px] font-semibold text-muted-foreground">קטגוריה חדשה</div>
-          <div className="flex items-center gap-2">
-            <TextInput
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="לדוגמה: מאפי בוקר"
-              aria-label="שם קטגוריה חדשה"
-            />
-            <Button size="sm" onClick={create} disabled={!newName.trim()}>
-              <Plus className="size-4" />
-              הוספה
-            </Button>
-          </div>
-        </Card>
       </Section>
     </AdminShell>
   );
