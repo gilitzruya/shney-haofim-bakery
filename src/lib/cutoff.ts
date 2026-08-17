@@ -1,19 +1,21 @@
 import { parseDate } from "@/lib/format";
+import { cutoffRuleFor, formatTime } from "@/lib/admin/cutoff-rules";
 
-/** שעת סגירת ההזמנות */
+/** שעת סגירת ההזמנות (ברירת מחדל) */
 export const CUTOFF_HOUR = 12;
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 /**
- * מועד סגירת ההזמנות עבור תאריך אספקה:
- * יום לפני האספקה בשעה 12:00, ולאספקה ביום ראשון — יום חמישי בשעה 12:00.
+ * מועד סגירת ההזמנות עבור תאריך אספקה — לפי כללי הסגירה שהוגדרו בניהול
+ * (ברירת מחדל: יום לפני האספקה ב-12:00, ולאספקה ביום ראשון — יום חמישי ב-12:00).
  */
 export function cutoffFor(deliveryIso: string): Date {
   const delivery = parseDate(deliveryIso);
+  const rule = cutoffRuleFor(delivery.getDay());
   const cutoff = new Date(delivery);
-  cutoff.setDate(delivery.getDate() - (delivery.getDay() === 0 ? 3 : 1));
-  cutoff.setHours(CUTOFF_HOUR, 0, 0, 0);
+  cutoff.setDate(delivery.getDate() - rule.offsetDays);
+  cutoff.setHours(rule.hour, rule.minute, 0, 0);
   return cutoff;
 }
 
@@ -24,8 +26,9 @@ export function isCutoffPassed(deliveryIso: string, now = israelNow()): boolean 
 /** "יום חמישי, 6.8 בשעה 12:00" */
 export function formatCutoff(deliveryIso: string): string {
   const c = cutoffFor(deliveryIso);
-  return `יום ${HE_DAYS[c.getDay()]}, ${c.getDate()}.${c.getMonth() + 1} בשעה ${CUTOFF_HOUR}:00`;
+  return `יום ${HE_DAYS[c.getDay()]}, ${c.getDate()}.${c.getMonth() + 1} בשעה ${formatTime(c.getHours(), c.getMinutes())}`;
 }
+
 
 /** השעה הנוכחית לפי שעון ישראל (כאובייקט Date בשעון מקומי-וירטואלי) */
 export function israelNow(): Date {
