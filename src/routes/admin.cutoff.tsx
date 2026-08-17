@@ -230,7 +230,7 @@ function DayCard({
         </>
       ) : null}
 
-      <Button onClick={save}>
+      <Button onClick={save} className="w-full md:w-auto md:self-center">
         <Check className="size-4" />
         שמירה
       </Button>
