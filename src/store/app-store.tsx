@@ -12,7 +12,19 @@ import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
 
-const STORAGE_KEY = "bakery-demo-state:v15";
+const STORAGE_KEY = "bakery-demo-state:v16";
+
+/** הזמנה קבועה שנוצרה על ידי המאפייה בשם לקוח מסוים. */
+export interface AdminRecurringOrder {
+  id: string;
+  customerId: string;
+  name: string;
+  /** 0 = ראשון … 5 = שישי */
+  weekdays: number[];
+  round: RoundId;
+  lines: OrderLine[];
+  startDate?: string | undefined;
+}
 
 export type CartMode = "order" | "recurring_create" | "recurring_edit" | "onetime";
 
@@ -55,6 +67,8 @@ interface PersistedState {
   catalog: Category[];
   /** admin side: issued accounting documents */
   documents: AdminDocument[];
+  /** admin side: recurring orders created on behalf of customers */
+  adminRecurring: AdminRecurringOrder[];
 }
 
 const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
@@ -74,6 +88,7 @@ const initialState: PersistedState = {
   adminOrders: seedAdminOrders(),
   catalog: CATEGORIES,
   documents: [],
+  adminRecurring: [],
 };
 
 /**
@@ -123,6 +138,7 @@ function loadState(): PersistedState {
       adminOrders: freshAdminOrders(parsed.adminOrders),
       catalog: parsed.catalog?.length ? parsed.catalog : CATEGORIES,
       documents: parsed.documents ?? [],
+      adminRecurring: parsed.adminRecurring ?? [],
     });
 
   } catch {
@@ -239,6 +255,12 @@ interface StoreValue extends PersistedState {
   documentsForOrder: (orderId: string) => AdminDocument[];
   issueDocument: (orderId: string, type?: DocumentType) => Promise<void>;
   issueDocuments: (orderIds: string[], type?: DocumentType) => Promise<void>;
+  /** הזמנות קבועות שנוצרו בשם לקוח */
+  adminRecurring: AdminRecurringOrder[];
+  /** יצירת הזמנה קבועה בשם לקוח */
+  addAdminRecurring: (rec: Omit<AdminRecurringOrder, "id">) => AdminRecurringOrder;
+  /** מחיקת הזמנה קבועה שנוצרה בשם לקוח */
+  removeAdminRecurring: (id: string) => void;
   /** יצירת הזמנה בשם לקוח (צד המאפייה) */
   addAdminOrder: (order: Omit<Order, "id">) => Order;
   /** עדכון הזמנה קיימת מצד המאפייה (גם הזמנות שהלקוח יצר) */
@@ -669,6 +691,17 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       issueDocument: (orderId, type = "delivery_note") => issueMany([orderId], type),
 
       issueDocuments: (orderIds, type = "delivery_note") => issueMany(orderIds, type),
+
+      adminRecurring: state.adminRecurring,
+
+      addAdminRecurring: (rec) => {
+        const created: AdminRecurringOrder = { ...rec, id: `ar-${Date.now()}` };
+        update((s) => ({ ...s, adminRecurring: [created, ...s.adminRecurring] }));
+        return created;
+      },
+
+      removeAdminRecurring: (id) =>
+        update((s) => ({ ...s, adminRecurring: s.adminRecurring.filter((r) => r.id !== id) })),
 
       addAdminOrder: (order) => {
         const created: Order = { ...order, id: `ao-${Date.now()}` };
