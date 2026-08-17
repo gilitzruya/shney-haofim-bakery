@@ -123,7 +123,7 @@ function AdminHomePage() {
       {pendingPrint === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
-        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={tomorrowViews} />
+        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? tomorrowViews : []} />
 
         <div className="mt-3 grid grid-cols-3 gap-3">
           <PrintReportButton
