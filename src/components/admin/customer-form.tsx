@@ -114,7 +114,7 @@ export function CustomerForm({
           "flex items-center justify-between rounded-xl border px-4 py-3.5 text-start transition-colors",
           values.allowedRounds.includes("noon")
             ? "border-primary bg-primary text-primary-foreground"
-            : "border-border bg-card text-foreground",
+            : "border-foreground/25 bg-card text-foreground shadow-sm",
         )}
       >
         <span className="flex items-center gap-2">
@@ -123,14 +123,18 @@ export function CustomerForm({
               "flex size-6 items-center justify-center rounded-full border",
               values.allowedRounds.includes("noon")
                 ? "border-primary-foreground/60 bg-primary-foreground text-primary"
-                : "border-border bg-background text-muted-foreground",
+                : "border-transparent bg-foreground text-background",
             )}
           >
-            <Check className="size-3.5" />
+            {values.allowedRounds.includes("noon") ? (
+              <Check className="size-3.5" />
+            ) : (
+              <X className="size-3.5" strokeWidth={2.5} />
+            )}
           </span>
           <span className="text-[14px] font-bold">מאושר לסבב שני</span>
         </span>
-        <span className={cn("text-[13px] font-semibold", values.allowedRounds.includes("noon") ? "text-primary-foreground" : "text-muted-foreground")}>
+        <span className={cn("text-[13px] font-semibold", values.allowedRounds.includes("noon") ? "text-primary-foreground" : "text-foreground")}>
           {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
         </span>
       </button>
