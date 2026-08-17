@@ -143,24 +143,19 @@ function CustomerDetailPage() {
                   עריכה
                 </button>
               </div>
-              <div className="divide-y divide-border overflow-hidden rounded-[14px] border border-border bg-card">
-                <InfoRow icon={<User className="size-4" />} label="איש קשר" value={contact?.name || "לא הוזן"} />
-                <InfoRow icon={<Phone className="size-4" />} label="טלפון" value={contact?.phone || "לא הוזן"} ltr />
-                <InfoRow icon={<Mail className="size-4" />} label="דוא״ל" value={contact?.email || "לא הוזן"} ltr />
-                <InfoRow icon={<MapPin className="size-4" />} label="כתובת לאספקה" value={customer.address || "לא הוזנה"} />
-                <div className="flex items-start gap-3 px-4 py-3">
-                  <span className="mt-0.5 text-muted-foreground">
-                    <CalendarClock className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11.5px] text-muted-foreground">הרשאות סבבים</div>
-                    <div className="text-[13.5px] font-semibold text-foreground">
-                      {customer.allowedRounds.length
-                        ? customer.allowedRounds.map((r) => roundLabel(r)).join(" · ")
-                        : "ללא הרשאות"}
-                    </div>
+              <div className="divide-y divide-border overflow-hidden rounded-[12px] border border-border bg-card">
+                <InfoRow icon={<User className="size-3.5" />} label="איש קשר" value={contact?.name || "לא הוזן"} />
+                <InfoRow icon={<Phone className="size-3.5" />} label="טלפון" value={contact?.phone || "לא הוזן"} ltr />
+                <InfoRow icon={<Mail className="size-3.5" />} label="דוא״ל" value={contact?.email || "לא הוזן"} ltr />
+                <InfoRow icon={<MapPin className="size-3.5" />} label="כתובת לאספקה" value={customer.address || "לא הוזנה"} />
+                {customer.allowedRounds.includes("round-2") ? (
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <span className="text-muted-foreground">
+                      <CalendarClock className="size-3.5" />
+                    </span>
+                    <span className="text-[12.5px] font-semibold text-foreground">מאושר לסבב שני</span>
                   </div>
-                </div>
+                ) : null}
               </div>
             </section>
 
