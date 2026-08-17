@@ -113,30 +113,35 @@ export function CustomerForm({
         className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 text-start transition-colors active:bg-muted"
         aria-pressed={values.allowedRounds.includes("noon")}
       >
-        <span className="flex flex-col items-start gap-0.5">
-          <span className="text-[14px] font-bold text-foreground">מאושר לסבב שני</span>
-          <span className="text-[12px] font-medium text-muted-foreground">
-            {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
-          </span>
-        </span>
-
         <span
           className={cn(
-            "relative flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-200",
-            values.allowedRounds.includes("noon") ? "bg-primary" : "bg-foreground/30",
+            "relative flex h-7 w-[3.25rem] shrink-0 items-center rounded-full p-1 transition-colors duration-200",
+            values.allowedRounds.includes("noon") ? "bg-primary" : "bg-muted-foreground/40",
           )}
         >
           <span
             className={cn(
-              "flex size-5 items-center justify-center rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
-              values.allowedRounds.includes("noon") ? "translate-x-5" : "translate-x-0",
+              "flex size-5 items-center justify-center rounded-full bg-background shadow transition-transform duration-200 ease-out",
+              values.allowedRounds.includes("noon") ? "translate-x-6" : "translate-x-0",
             )}
           >
             {values.allowedRounds.includes("noon") ? (
               <Check className="size-3 text-primary" strokeWidth={3} />
             ) : (
-              <X className="size-3 text-foreground" strokeWidth={3} />
+              <X className="size-3 text-muted-foreground" strokeWidth={3} />
             )}
+          </span>
+        </span>
+
+        <span className="flex flex-col items-end gap-0.5">
+          <span className="text-[15px] font-bold text-foreground">סבב שני</span>
+          <span
+            className={cn(
+              "text-[12px] font-semibold",
+              values.allowedRounds.includes("noon") ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
           </span>
         </span>
       </button>
