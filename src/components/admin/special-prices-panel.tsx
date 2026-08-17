@@ -45,6 +45,8 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState<Product | null>(null);
+  const [pendingPrice, setPendingPrice] = useState("");
 
   const categories = useMemo(() => catalogCategories(), []);
   const entries = overrideEntries(customer);
@@ -157,7 +159,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
             results.length ? (
               <div className="flex flex-col gap-1.5">
                 {results.map((p) => (
-                  <ProductAddRow key={p.id} product={p} onAdd={() => addProduct(p.id, p.price)} />
+                  <ProductAddRow key={p.id} product={p} onAdd={() => startAdd(p)} />
                 ))}
               </div>
             ) : (
@@ -193,7 +195,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                         <div className="divide-y divide-border border-t border-border">
                           {items.map((p) => (
                             <div key={p.id} className="px-3 py-2">
-                              <ProductAddRow product={p} bare onAdd={() => addProduct(p.id, p.price)} />
+                              <ProductAddRow product={p} bare onAdd={() => startAdd(p)} />
                             </div>
                           ))}
                         </div>
