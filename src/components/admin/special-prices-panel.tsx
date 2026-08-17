@@ -68,6 +68,15 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
     });
   };
 
+  const addProduct = (productId: string, price: number) => {
+    setCustomerPriceOverride(customer.id, productId, price);
+    setDraft(productId, price.toFixed(2));
+    setQuery("");
+    setExpanded(true);
+  };
+
+
+
   const save = (productId: string, raw: string, fallback: number) => {
     const parsed = Number(raw);
     if (raw === "" || Number.isNaN(parsed) || parsed <= 0) {
