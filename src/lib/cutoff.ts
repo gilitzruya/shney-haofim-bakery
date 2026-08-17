@@ -1,5 +1,5 @@
 import { parseDate } from "@/lib/format";
-import { cutoffRuleFor, formatTime } from "@/lib/admin/cutoff-rules";
+import { cutoffExceptionFor, cutoffRuleFor, formatTime } from "@/lib/admin/cutoff-rules";
 
 /** שעת סגירת ההזמנות (ברירת מחדל) */
 export const CUTOFF_HOUR = 12;
@@ -12,6 +12,17 @@ const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי
  */
 export function cutoffFor(deliveryIso: string): Date {
   const delivery = parseDate(deliveryIso);
+  const exception = cutoffExceptionFor(deliveryIso);
+  if (exception) {
+    // תאריך סגור להזמנות — מועד הסגירה כבר מאחורינו תמיד.
+    if (!exception.open) return new Date(1970, 0, 1);
+    if (exception.cutoffDate) {
+      const custom = parseDate(exception.cutoffDate);
+      const [h, m] = (exception.cutoffTime ?? "12:00").split(":");
+      custom.setHours(Number(h ?? 12), Number(m ?? 0), 0, 0);
+      return custom;
+    }
+  }
   const rule = cutoffRuleFor(delivery.getDay());
   const cutoff = new Date(delivery);
   cutoff.setDate(delivery.getDate() - rule.offsetDays);

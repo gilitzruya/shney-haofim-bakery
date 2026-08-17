@@ -12,13 +12,15 @@ import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
 import {
+  applyRuntimeCutoffExceptions,
   applyRuntimeCutoffRules,
   DEFAULT_CUTOFF_RULES,
   normalizeCutoffRules,
+  type CutoffException,
   type CutoffRule,
 } from "@/lib/admin/cutoff-rules";
 
-const STORAGE_KEY = "bakery-demo-state:v18";
+const STORAGE_KEY = "bakery-demo-state:v19";
 
 /** הזמנה קבועה שנוצרה על ידי המאפייה בשם לקוח מסוים. */
 export interface AdminRecurringOrder {
@@ -77,6 +79,8 @@ interface PersistedState {
   adminRecurring: AdminRecurringOrder[];
   /** admin side: per-weekday ordering cutoff rules */
   cutoffRules: CutoffRule[];
+  /** admin side: one-off exceptions (holidays, closed days, early cutoffs) */
+  cutoffExceptions: CutoffException[];
 }
 
 const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
@@ -98,6 +102,7 @@ const initialState: PersistedState = {
   documents: [],
   adminRecurring: [],
   cutoffRules: DEFAULT_CUTOFF_RULES,
+  cutoffExceptions: [],
 };
 
 /**
@@ -149,6 +154,7 @@ function loadState(): PersistedState {
       documents: parsed.documents ?? [],
       adminRecurring: parsed.adminRecurring ?? [],
       cutoffRules: normalizeCutoffRules(parsed.cutoffRules),
+      cutoffExceptions: parsed.cutoffExceptions ?? [],
     });
 
   } catch {
@@ -278,6 +284,10 @@ interface StoreValue extends PersistedState {
   /* admin: cutoff rules */
   updateCutoffRule: (weekday: number, patch: Partial<Omit<CutoffRule, "weekday">>) => void;
   resetCutoffRules: () => void;
+  /** הוספה או עדכון של חריגה לתאריך מסוים */
+  saveCutoffException: (exception: CutoffException) => void;
+  /** מחיקת חריגה לתאריך */
+  removeCutoffException: (date: string) => void;
 
   resetDemoData: () => void;
 }
@@ -292,6 +302,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     const loaded = loadState();
     applyRuntimeCatalog(loaded.catalog);
     applyRuntimeCutoffRules(loaded.cutoffRules);
+    applyRuntimeCutoffExceptions(loaded.cutoffExceptions);
     setState(loaded);
     setHydrated(true);
   }, []);
@@ -311,6 +322,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       const next = fn(s);
       if (next.catalog !== s.catalog) applyRuntimeCatalog(next.catalog);
       if (next.cutoffRules !== s.cutoffRules) applyRuntimeCutoffRules(next.cutoffRules);
+      if (next.cutoffExceptions !== s.cutoffExceptions) applyRuntimeCutoffExceptions(next.cutoffExceptions);
       return next;
     });
   }, []);
@@ -739,6 +751,21 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           cutoffRules: normalizeCutoffRules(
             s.cutoffRules.map((r) => (r.weekday === weekday ? { ...r, ...patch } : r)),
           ),
+        })),
+
+      saveCutoffException: (exception) =>
+        update((s) => ({
+          ...s,
+          cutoffExceptions: [
+            ...s.cutoffExceptions.filter((e) => e.date !== exception.date),
+            exception,
+          ].sort((a, b) => a.date.localeCompare(b.date)),
+        })),
+
+      removeCutoffException: (date) =>
+        update((s) => ({
+          ...s,
+          cutoffExceptions: s.cutoffExceptions.filter((e) => e.date !== date),
         })),
 
       resetCutoffRules: () => update((s) => ({ ...s, cutoffRules: DEFAULT_CUTOFF_RULES })),
