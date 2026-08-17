@@ -1,4 +1,4 @@
-import { ChevronDown, Plus, Search, Tag, Trash2, X } from "lucide-react";
+import { ChevronDown, Pencil, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/app/button";
@@ -129,31 +129,52 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
       ) : (
         <div className="divide-y divide-border border-t border-border">
           {visible.map(({ product, price }) => (
-            <div key={product.id} className="flex items-center gap-2 px-3.5 py-2.5">
+            <div key={product.id} className="flex items-center gap-2.5 px-3.5 py-3">
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-semibold text-heading">{product.name}</div>
-                <div className="text-[11px] text-muted-foreground">
-                  קטלוג {formatPrice(product.price)} ל{unitLabel(product.unit)}
+                <div className="mt-0.5 flex items-center gap-1.5 text-[11.5px]">
+                  <span className="text-muted-foreground line-through">{formatPrice(product.price)}</span>
+                  <span className="font-bold text-primary">{formatPrice(price)}</span>
+                  <span className="text-muted-foreground">ל{unitLabel(product.unit)}</span>
                 </div>
               </div>
-              <TextInput
-                value={drafts[product.id] ?? price.toFixed(2)}
-                onChange={(e) => setDraft(product.id, e.target.value)}
-                onBlur={(e) => commit(product.id, e.target.value, price)}
-                inputMode="decimal"
-                aria-label={`מחיר מיוחד ל${product.name}`}
-                className="h-8 w-[74px] shrink-0 text-center text-[12.5px]"
-              />
+
+              <label className="shrink-0" aria-label={`מחיר מיוחד ל${product.name}`}>
+                <span className="mb-0.5 flex items-center justify-center gap-1 text-[10px] font-semibold text-primary">
+                  <Pencil className="size-3" />
+                  עריכת מחיר
+                </span>
+                <span className="relative block">
+                  <span className="pointer-events-none absolute start-2 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-muted-foreground">
+                    ₪
+                  </span>
+                  <TextInput
+                    value={drafts[product.id] ?? price.toFixed(2)}
+                    onChange={(e) => {
+                      setDraft(product.id, e.target.value);
+                      const parsed = Number(e.target.value);
+                      if (e.target.value !== "" && !Number.isNaN(parsed) && parsed > 0) {
+                        setCustomerPriceOverride(customer.id, product.id, Math.round(parsed * 100) / 100);
+                      }
+                    }}
+                    onBlur={(e) => commit(product.id, e.target.value, price)}
+                    inputMode="decimal"
+                    className="h-9 w-[86px] border-primary bg-primary-soft/40 ps-6 text-center text-[13.5px] font-bold text-primary"
+                  />
+                </span>
+              </label>
+
               <button
                 type="button"
                 aria-label={`הסרת המחיר המיוחד ל${product.name}`}
                 onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
-                className="flex size-8 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
+                className="mt-3.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
               >
                 <Trash2 className="size-3.5" />
               </button>
             </div>
           ))}
+
 
           {entries.length > COLLAPSED_COUNT ? (
             <button
