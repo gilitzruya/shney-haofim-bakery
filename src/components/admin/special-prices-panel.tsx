@@ -7,7 +7,7 @@ import { TextInput } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { allProducts, catalogCategories, type Product } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
-import { overrideEntries } from "@/lib/admin/pricing";
+import { overrideEntriesFromMap } from "@/lib/admin/pricing";
 import { formatPrice, unitLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
@@ -37,8 +37,23 @@ function ProductAddRow({ product, onAdd, bare }: { product: Product; onAdd: () =
 }
 
 /** מחירון מיוחד ללקוח — הצגה, הוספה, עריכה ומחיקה של חריגות מחיר. */
-export function SpecialPricesPanel({ customer }: { customer: Customer }) {
+export function SpecialPricesPanel({
+  customer,
+  draftOverrides,
+  onDraftChange,
+}: {
+  /** לקוח קיים — שינויים נשמרים ישירות בחנות */
+  customer?: Customer;
+  /** מצב טיוטה (לקוח חדש שטרם נשמר) */
+  draftOverrides?: Record<string, number>;
+  onDraftChange?: (productId: string, price: number | null) => void;
+}) {
   const { setCustomerPriceOverride } = useStore();
+  const overrides = customer ? (customer.priceOverrides ?? {}) : (draftOverrides ?? {});
+  const setOverride = (productId: string, price: number | null) => {
+    if (customer) setCustomerPriceOverride(customer.id, productId, price);
+    else onDraftChange?.(productId, price);
+  };
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -51,7 +66,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
 
 
   const categories = useMemo(() => catalogCategories(), []);
-  const entries = overrideEntries(customer);
+  const entries = overrideEntriesFromMap(overrides);
   const visible = expanded ? entries : entries.slice(0, COLLAPSED_COUNT);
   const hidden = entries.length - visible.length;
 
@@ -60,9 +75,9 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
     const q = query.trim();
     if (!q) return [];
     return allProducts()
-      .filter((p) => p.name.includes(q) && typeof customer.priceOverrides?.[p.id] !== "number")
+      .filter((p) => p.name.includes(q) && typeof overrides[p.id] !== "number")
       .slice(0, 6);
-  }, [query, customer.priceOverrides]);
+  }, [query, overrides]);
 
   const setDraft = (id: string, value: string) => {
     setDrafts((d) => ({ ...d, [id]: value }));
@@ -84,7 +99,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
     const parsed = Number(pendingPrice);
     if (pendingPrice === "" || Number.isNaN(parsed) || parsed <= 0) return;
     const price = Math.round(parsed * 100) / 100;
-    setCustomerPriceOverride(customer.id, pending.id, price);
+    setOverride(pending.id, price);
     setDraft(pending.id, price.toFixed(2));
     toast.success(`נוסף מחיר מיוחד ל${pending.name}`, {
       description: `${formatPrice(price)} ל${unitLabel(pending.unit)} (במקום ${formatPrice(pending.price)})`,
@@ -103,7 +118,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
       setDraft(productId, fallback.toFixed(2));
       return;
     }
-    setCustomerPriceOverride(customer.id, productId, Math.round(parsed * 100) / 100);
+    setOverride(productId, Math.round(parsed * 100) / 100);
     setDraft(productId, parsed.toFixed(2));
     setSavedIds((s) => new Set(s).add(productId));
   };
@@ -175,7 +190,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
               {categories.map((cat) => {
                 const open = openCategory === cat.id;
                 const items = cat.products.filter(
-                  (p) => typeof customer.priceOverrides?.[p.id] !== "number",
+                  (p) => typeof overrides[p.id] !== "number",
                 );
                 return (
                   <div key={cat.id} className="overflow-hidden rounded-xl border border-border bg-card">
@@ -338,7 +353,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
         onClose={() => setDeletePending(null)}
         onConfirm={() => {
           if (!deletePending) return;
-          setCustomerPriceOverride(customer.id, deletePending.id, null);
+          setOverride(deletePending.id, null);
           toast.success("המחיר המיוחד הוסר");
           setDeletePending(null);
         }}
