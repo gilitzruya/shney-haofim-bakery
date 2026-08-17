@@ -229,7 +229,7 @@ function ProductRow({
             </span>
             <span className="mt-0.5 block text-[12px] text-muted-foreground">
               {product.sku ? `קוד ${product.sku} · ` : ""}
-              {formatPrice(product.price)} ₪ ל{unitLabel(product.unit)}
+              {formatPrice(product.price)} ל{unitLabel(product.unit)}
             </span>
           </span>
         </div>
@@ -244,7 +244,7 @@ function ProductRow({
             <DetailRow label="שם המוצר" value={product.name} />
             <DetailRow label="קוד מוצר" value={product.sku || "—"} />
             <DetailRow label="יחידת הזמנה" value={unitLabel(product.unit)} />
-            <DetailRow label="מחיר ליחידה" value={`${formatPrice(product.price)} ₪`} />
+            <DetailRow label="מחיר ליחידה" value={formatPrice(product.price)} />
             <DetailRow label="כמות מינימום" value={String(product.minQty ?? "—")} />
             <DetailRow label="משקל" value={product.weightGrams ? `${product.weightGrams} גרם` : "—"} />
           </div>
