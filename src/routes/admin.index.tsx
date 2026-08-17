@@ -67,14 +67,21 @@ function AdminHomePage() {
   const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
   const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
 
-  const printReport = (target: Exclude<PrintTarget, null>) => {
-    const cls = target === "production" ? "print-only-production" : "print-only-distribution";
-    document.body.classList.add(cls);
-    window.setTimeout(() => {
-      window.print();
-      document.body.classList.remove(cls);
-    }, 120);
-  };
+  const [printTarget, setPrintTarget] = useState<PrintTarget>(null);
+
+  useEffect(() => {
+    if (!printTarget) return;
+    const done = () => setPrintTarget(null);
+    window.addEventListener("afterprint", done);
+    // ממתינים לרינדור הגיליון לפני פתיחת חלון ההדפסה
+    const timer = window.setTimeout(() => window.print(), 200);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("afterprint", done);
+    };
+  }, [printTarget]);
+
+  const printReport = (target: Exclude<PrintTarget, null>) => setPrintTarget(target);
 
   const handleIssueDeliveryNotes = async () => {
     if (issuingDocs) return;
