@@ -11,8 +11,14 @@ import { buildAdminOrders, SEED_CUSTOMERS } from "@/data/admin-seed";
 import type { Customer } from "@/data/admin-seed";
 import { isoFromToday } from "@/lib/admin/dates";
 import { accountingAdapter, type AdminDocument, type DocumentType } from "@/lib/admin/accounting";
+import {
+  applyRuntimeCutoffRules,
+  DEFAULT_CUTOFF_RULES,
+  normalizeCutoffRules,
+  type CutoffRule,
+} from "@/lib/admin/cutoff-rules";
 
-const STORAGE_KEY = "bakery-demo-state:v17";
+const STORAGE_KEY = "bakery-demo-state:v18";
 
 /** הזמנה קבועה שנוצרה על ידי המאפייה בשם לקוח מסוים. */
 export interface AdminRecurringOrder {
@@ -69,6 +75,8 @@ interface PersistedState {
   documents: AdminDocument[];
   /** admin side: recurring orders created on behalf of customers */
   adminRecurring: AdminRecurringOrder[];
+  /** admin side: per-weekday ordering cutoff rules */
+  cutoffRules: CutoffRule[];
 }
 
 const emptyDraft = (mode: CartMode = "order"): CartDraft => ({
@@ -89,6 +97,7 @@ const initialState: PersistedState = {
   catalog: CATEGORIES,
   documents: [],
   adminRecurring: [],
+  cutoffRules: DEFAULT_CUTOFF_RULES,
 };
 
 /**
@@ -139,6 +148,7 @@ function loadState(): PersistedState {
       catalog: parsed.catalog?.length ? parsed.catalog : CATEGORIES,
       documents: parsed.documents ?? [],
       adminRecurring: parsed.adminRecurring ?? [],
+      cutoffRules: normalizeCutoffRules(parsed.cutoffRules),
     });
 
   } catch {
@@ -265,6 +275,9 @@ interface StoreValue extends PersistedState {
   addAdminOrder: (order: Omit<Order, "id">) => Order;
   /** עדכון הזמנה קיימת מצד המאפייה (גם הזמנות שהלקוח יצר) */
   updateOrderAsAdmin: (id: string, patch: Partial<Omit<Order, "id">>) => void;
+  /* admin: cutoff rules */
+  updateCutoffRule: (weekday: number, patch: Partial<Omit<CutoffRule, "weekday">>) => void;
+  resetCutoffRules: () => void;
 
   resetDemoData: () => void;
 }
@@ -278,6 +291,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loaded = loadState();
     applyRuntimeCatalog(loaded.catalog);
+    applyRuntimeCutoffRules(loaded.cutoffRules);
     setState(loaded);
     setHydrated(true);
   }, []);
@@ -296,6 +310,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setState((s) => {
       const next = fn(s);
       if (next.catalog !== s.catalog) applyRuntimeCatalog(next.catalog);
+      if (next.cutoffRules !== s.cutoffRules) applyRuntimeCutoffRules(next.cutoffRules);
       return next;
     });
   }, []);
@@ -717,6 +732,16 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         })),
 
 
+
+      updateCutoffRule: (weekday, patch) =>
+        update((s) => ({
+          ...s,
+          cutoffRules: normalizeCutoffRules(
+            s.cutoffRules.map((r) => (r.weekday === weekday ? { ...r, ...patch } : r)),
+          ),
+        })),
+
+      resetCutoffRules: () => update((s) => ({ ...s, cutoffRules: DEFAULT_CUTOFF_RULES })),
 
       resetDemoData: () => {
         try {
