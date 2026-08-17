@@ -291,9 +291,11 @@ function CustomerDetailPage() {
                 <button
                   type="button"
                   onClick={() => setInviteOpen(true)}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#25D366] px-3 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#1ebe57]"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#25D366] px-3 py-3 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
                 >
-                  <WhatsAppIcon className="size-4" />
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    <WhatsAppIcon className="size-5" />
+                  </span>
                   שליחת פרטי התחברות בוואטסאפ
                 </button>
               </div>
