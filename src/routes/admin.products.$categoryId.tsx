@@ -138,7 +138,6 @@ function ProductRow({
   onUpdate: (patch: Partial<Omit<Product, "id">>) => void;
   onRemove: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(product.name);
   const [sku, setSku] = useState(product.sku ?? "");
@@ -165,7 +164,6 @@ function ProductRow({
     setImageUrl(productPhoto(product));
     setError(null);
     setEditing(true);
-    setOpen(true);
   };
 
   const pickImage = async (file: File | undefined) => {
