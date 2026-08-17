@@ -162,11 +162,9 @@ function SortableCategoryCard({
     zIndex: isDragging ? 10 : undefined,
   };
 
-  const cardBg = index % 2 === 0 ? "bg-card" : "bg-accent-soft";
-
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card className={`flex flex-col gap-2 ${cardBg}`}>
+      <Card className="flex flex-col gap-2 bg-card">
         <div className="flex items-center gap-2">
           <button
             type="button"
