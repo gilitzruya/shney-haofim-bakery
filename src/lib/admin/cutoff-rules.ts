@@ -71,3 +71,32 @@ export function describeRule(rule: CutoffRule): string {
   const when = rule.offsetDays === 0 ? "באותו יום" : `יום ${HE_WEEKDAYS[cutoffDay]}`;
   return `${when} בשעה ${formatTime(rule.hour, rule.minute)}`;
 }
+
+/** חריגה חד-פעמית לתאריך מסוים (חג, יום סגור, מועד סגירה מוקדם וכו'). */
+export interface CutoffException {
+  /** תאריך האספקה בפורמט ISO */
+  date: string;
+  /** שם/סיבה — לדוגמה "ערב פסח" */
+  label: string;
+  /** האם ניתן להזמין לתאריך זה בכלל */
+  open: boolean;
+  /** מועד סגירה מותאם (ISO) — אם ריק, נעשה שימוש בכלל השבועי */
+  cutoffDate?: string | undefined;
+  /** שעת סגירה מותאמת "HH:MM" — נדרש יחד עם cutoffDate */
+  cutoffTime?: string | undefined;
+}
+
+let runtimeExceptions: CutoffException[] = [];
+
+export function applyRuntimeCutoffExceptions(list: CutoffException[] | undefined): void {
+  runtimeExceptions = [...(list ?? [])].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function cutoffExceptions(): CutoffException[] {
+  return runtimeExceptions;
+}
+
+export function cutoffExceptionFor(deliveryIso: string): CutoffException | undefined {
+  return runtimeExceptions.find((e) => e.date === deliveryIso);
+}
+
