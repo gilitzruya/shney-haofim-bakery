@@ -375,7 +375,7 @@ function ProductRow({
             </div>
           ) : null}
 
-          <div className="flex items-center gap-2 border-t border-border pt-3">
+          <div className="flex items-center gap-2 border-t border-border pt-3 md:justify-center">
             <Button size="sm" onClick={save} className="flex-1 md:flex-initial md:w-auto">
               שמירת השינויים
             </Button>
