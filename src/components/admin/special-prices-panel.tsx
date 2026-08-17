@@ -70,10 +70,24 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
     });
   };
 
-  const addProduct = (productId: string, price: number) => {
-    setCustomerPriceOverride(customer.id, productId, price);
-    setDraft(productId, price.toFixed(2));
+  const startAdd = (product: Product) => {
+    setPending(product);
+    setPendingPrice(product.price.toFixed(2));
+  };
+
+  const confirmAdd = () => {
+    if (!pending) return;
+    const parsed = Number(pendingPrice);
+    if (pendingPrice === "" || Number.isNaN(parsed) || parsed <= 0) return;
+    const price = Math.round(parsed * 100) / 100;
+    setCustomerPriceOverride(customer.id, pending.id, price);
+    setDraft(pending.id, price.toFixed(2));
+    toast.success(`נוסף מחיר מיוחד ל${pending.name}`, {
+      description: `${formatPrice(price)} ל${unitLabel(pending.unit)} (במקום ${formatPrice(pending.price)})`,
+    });
+    setPending(null);
     setQuery("");
+    setAdding(false);
     setExpanded(true);
   };
 
