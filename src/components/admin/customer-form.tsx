@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import { Button } from "@/components/app/button";
 import { FormField, TextInput } from "@/components/app/form-controls";
-import { ROUNDS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { cn } from "@/lib/utils";
@@ -19,6 +18,7 @@ export interface CustomerFormValues {
 
 export function toFormValues(customer?: Customer): CustomerFormValues {
   const contact = customer?.contacts[0];
+  const rounds = customer?.allowedRounds ?? [];
   return {
     code: customer?.code ?? "",
     name: customer?.name ?? "",
@@ -26,7 +26,7 @@ export function toFormValues(customer?: Customer): CustomerFormValues {
     contactName: contact?.name ?? "",
     phone: contact?.phone ?? "",
     email: contact?.email ?? "",
-    allowedRounds: customer?.allowedRounds ?? ["morning"],
+    allowedRounds: Array.from(new Set(["morning" as RoundId, ...rounds])),
   };
 }
 
@@ -108,25 +108,18 @@ export function CustomerForm({
 
       <div className="flex flex-col gap-1.5">
         <span className="text-[12px] font-semibold text-muted-foreground">הרשאות סבבים</span>
-        <div className="flex flex-col gap-2 md:flex-row">
-          {ROUNDS.map((r) => {
-            const active = values.allowedRounds.includes(r.id);
-            return (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => toggleRound(r.id)}
-                className={cn(
-                  "flex flex-1 items-center justify-between rounded-xl border px-3.5 py-3 text-start",
-                  active ? "border-[1.5px] border-primary bg-primary-soft" : "border-border bg-card",
-                )}
-              >
-                <span className="text-[13.5px] font-semibold text-foreground">{r.label}</span>
-                <span className="text-[12px] text-muted-foreground">{active ? "מאושר" : "לא מאושר"}</span>
-              </button>
-            );
-          })}
-        </div>
+        <span className="text-[11px] text-muted-foreground">סבב ראשון מוגדר אוטומטית לכל הלקוחות.</span>
+        <button
+          type="button"
+          onClick={() => toggleRound("noon")}
+          className={cn(
+            "flex items-center justify-between rounded-xl border px-3.5 py-3 text-start",
+            values.allowedRounds.includes("noon") ? "border-[1.5px] border-primary bg-primary-soft" : "border-border bg-card",
+          )}
+        >
+          <span className="text-[13.5px] font-semibold text-foreground">מאושר לסבב שני</span>
+          <span className="text-[12px] text-muted-foreground">{values.allowedRounds.includes("noon") ? "כן" : "לא"}</span>
+        </button>
       </div>
 
       {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
