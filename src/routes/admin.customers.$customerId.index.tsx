@@ -285,16 +285,25 @@ function CustomerDetailPage() {
               </section>
             ) : null}
 
-            {/* ניהול */}
-            <section className="flex flex-col gap-2 border-t border-border pt-4">
-              <Button
-                variant="secondary"
-                className="font-semibold"
-                onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
-              >
-                {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
-              </Button>
+            {/* ניהול הלקוח */}
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[13px] font-bold text-heading">ניהול הלקוח</h2>
+              <div className="rounded-[14px] border border-border bg-card px-4 py-3.5">
+                <div className="text-[12.5px] text-muted-foreground">
+                  {customer.blocked
+                    ? "הלקוח חסום כרגע ולא יכול לבצע הזמנות."
+                    : "חסימה תמנע מהלקוח לבצע הזמנות חדשות. אפשר לשחרר בכל רגע."}
+                </div>
+                <Button
+                  variant="secondary"
+                  className="mt-3 w-full font-semibold"
+                  onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
+                >
+                  {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
+                </Button>
+              </div>
             </section>
+
           </div>
         )}
       </Section>
