@@ -142,17 +142,20 @@ function AdminHomePage() {
         <div className="mt-3 grid grid-cols-3 gap-3">
           <PrintReportButton
             icon={<Truck className="size-5" />}
-            title="דוח חלוקה"
+            top="הדפסת"
+            bottom="דוח חלוקה"
             onClick={() => setPendingPrint("distribution")}
           />
           <PrintReportButton
             icon={<FileText className="size-5" />}
-            title="דוח אפייה"
+            top="הדפסת"
+            bottom="דוח אפייה"
             onClick={() => setPendingPrint("production")}
           />
           <PrintReportButton
             icon={<Receipt className="size-5" />}
-            title="תעודות משלוח"
+            top="הפקת"
+            bottom="תעודות משלוח"
             loading={issuingDocs}
             onClick={handleIssueDeliveryNotes}
           />
@@ -246,12 +249,14 @@ function AdminHomePage() {
 
 function PrintReportButton({
   icon,
-  title,
+  top,
+  bottom,
   loading,
   onClick,
 }: {
   icon: React.ReactNode;
-  title: string;
+  top: string;
+  bottom: string;
   loading?: boolean;
   onClick: () => void;
 }) {
@@ -262,7 +267,8 @@ function PrintReportButton({
       disabled={loading}
       className="flex flex-col items-center rounded-[18px] border border-primary/20 bg-primary-soft px-1 py-3 shadow-sm active:scale-95 transition-transform duration-75 disabled:opacity-60"
     >
-      <span className="text-[12px] leading-tight font-bold text-primary text-center">{title}</span>
+      <span className="text-[10px] leading-tight font-semibold text-primary text-center">{top}</span>
+      <span className="text-[12px] leading-tight font-bold text-primary text-center">{bottom}</span>
       <span className="mt-3 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
         {loading ? <Spinner className="border-primary-foreground/40 border-t-primary-foreground" /> : icon}
       </span>
