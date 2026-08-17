@@ -33,14 +33,21 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
 
   const setDraft = (id: string, value: string) => setDrafts((d) => ({ ...d, [id]: value }));
 
-  const commit = (productId: string, raw: string | undefined, fallback: number) => {
+  const save = (productId: string, raw: string, fallback: number) => {
     const parsed = Number(raw);
-    if (raw === undefined || raw === "" || Number.isNaN(parsed) || parsed <= 0) {
+    if (raw === "" || Number.isNaN(parsed) || parsed <= 0) {
       setDraft(productId, fallback.toFixed(2));
       return;
     }
     setCustomerPriceOverride(customer.id, productId, Math.round(parsed * 100) / 100);
     setDraft(productId, parsed.toFixed(2));
+  };
+
+  const resetIfInvalid = (productId: string, raw: string, fallback: number) => {
+    const parsed = Number(raw);
+    if (raw === "" || Number.isNaN(parsed) || parsed <= 0) {
+      setDraft(productId, fallback.toFixed(2));
+    }
   };
 
   return (
