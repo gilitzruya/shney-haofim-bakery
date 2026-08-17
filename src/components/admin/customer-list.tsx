@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Store } from "lucide-react";
 
 import { Card } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
@@ -15,7 +15,7 @@ function roundsLabel(customer: Customer): string {
 export function AdminCustomerList({ customers }: { customers: Customer[] }) {
   return (
     <>
-      <div className="flex flex-col gap-2 md:hidden">
+      <div className="flex flex-col gap-3 md:hidden">
         {customers.map((c) => (
           <CustomerRowCard key={c.id} customer={c} />
         ))}
@@ -30,24 +30,33 @@ export function AdminCustomerList({ customers }: { customers: Customer[] }) {
 function CustomerRowCard({ customer }: { customer: Customer }) {
   const contact = customer.contacts[0];
   return (
-    <Link to="/admin/customers/$customerId" params={{ customerId: customer.id }} className="no-underline">
-      <Card className="flex items-center gap-2.5">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-[14px] font-bold text-heading">{customer.name}</span>
-            {customer.code ? (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground" dir="ltr">
-                {customer.code}
-              </span>
-            ) : null}
-            {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
-          </div>
-          <div className="mt-1 truncate text-[11.5px] text-muted-foreground">
-            {contact ? `${contact.name} · ${contact.phone}` : customer.address}
-          </div>
-          <div className="mt-0.5 text-[11px] text-muted-foreground">{roundsLabel(customer)}</div>
+    <Link
+      to="/admin/customers/$customerId"
+      params={{ customerId: customer.id }}
+      className="no-underline"
+    >
+      <Card className="flex items-stretch gap-2 p-0 transition-shadow hover:shadow-md">
+        <div className="flex flex-1 items-center gap-3 py-3 pe-3">
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+            <Store className="size-4" />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="flex items-center gap-2">
+              <span className="truncate text-[14.5px] font-bold text-heading">{customer.name}</span>
+              {customer.code ? (
+                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground" dir="ltr">
+                  {customer.code}
+                </span>
+              ) : null}
+              {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
+            </span>
+            <span className="mt-0.5 truncate text-[11.5px] text-black">
+              {contact ? `${contact.name} · ${contact.phone}` : customer.address}
+            </span>
+            <span className="text-[11px] text-muted-foreground">{roundsLabel(customer)} · לצפייה ועריכה</span>
+          </span>
+          <ChevronLeft className="size-5 shrink-0 text-primary" />
         </div>
-        <ChevronLeft className="size-4 shrink-0 text-primary" />
       </Card>
     </Link>
   );
