@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronRight, ImagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
