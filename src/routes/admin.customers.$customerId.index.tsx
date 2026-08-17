@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import {
   CalendarClock,
-  ChevronLeft,
+  Tag,
   ChevronRight,
   ClipboardList,
   Mail,
@@ -178,61 +178,84 @@ function CustomerDetailPage() {
               </div>
             </section>
 
-            {/* פעולות הזמנה */}
+            {/* פעולות שבעל המאפייה מבצע עבור הלקוח */}
             <section className="flex flex-col gap-2">
-              <h2 className="text-[13px] font-bold text-heading">הזמנות</h2>
+              <h2 className="text-[13px] font-bold text-heading">פעולות בשם הלקוח</h2>
+              <p className="-mt-1 text-[11.5px] text-muted-foreground">
+                פעולות שאתם מבצעים עבור {customer.name} ממערכת הניהול.
+              </p>
+
               {customer.blocked ? (
                 <div className="rounded-[14px] border border-border bg-card-muted px-4 py-3 text-[12.5px] text-muted-foreground">
                   הלקוח חסום — לא ניתן ליצור עבורו הזמנות חדשות.
                 </div>
-              ) : (
-                <div className="flex flex-col gap-2.5">
-                  <Link
-                    to="/admin/customers/$customerId/new-order"
-                    params={{ customerId: customer.id }}
-                    search={{ type: "onetime" as const }}
-                    className="flex items-center gap-3 rounded-[14px] border border-border bg-card px-4 py-3.5 no-underline"
-                  >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
-                      <Plus className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[13.5px] font-bold text-heading">הזמנה חד-פעמית</span>
-                      <span className="block text-[11.5px] text-muted-foreground">אספקה לתאריך אחד</span>
-                    </span>
-                    <ChevronLeft className="size-4 text-muted-foreground" />
-                  </Link>
+              ) : null}
 
-                  <Link
-                    to="/admin/customers/$customerId/new-order"
-                    params={{ customerId: customer.id }}
-                    search={{ type: "recurring" as const }}
-                    className="flex items-center gap-3 rounded-[14px] border border-border bg-card px-4 py-3.5 no-underline"
-                  >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
-                      <CalendarClock className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[13.5px] font-bold text-heading">הזמנה קבועה</span>
-                      <span className="block text-[11.5px] text-muted-foreground">אספקה חוזרת בימים קבועים</span>
-                    </span>
-                    <ChevronLeft className="size-4 text-muted-foreground" />
-                  </Link>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-3">
+                {!customer.blocked ? (
+                  <>
+                    <Link
+                      to="/admin/customers/$customerId/new-order"
+                      params={{ customerId: customer.id }}
+                      search={{ type: "onetime" as const }}
+                      className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 no-underline"
+                    >
+                      <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+                        <Plus className="size-4" />
+                      </span>
+                      <span>
+                        <span className="block text-[13.5px] font-bold text-heading">הזמנה חד-פעמית</span>
+                        <span className="block text-[11.5px] text-muted-foreground">יצירה עבור הלקוח</span>
+                      </span>
+                    </Link>
 
-              <Link
-                to="/admin/customers/$customerId/orders"
-                params={{ customerId: customer.id }}
-                className="flex items-center gap-3 rounded-[14px] border border-border bg-card px-4 py-3.5 no-underline"
-              >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
-                  <ClipboardList className="size-4" />
-                </span>
-                <span className="min-w-0 flex-1 text-[13.5px] font-bold text-heading">ההזמנות של הלקוח</span>
-                <ChevronLeft className="size-4 text-muted-foreground" />
-              </Link>
+                    <Link
+                      to="/admin/customers/$customerId/new-order"
+                      params={{ customerId: customer.id }}
+                      search={{ type: "recurring" as const }}
+                      className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 no-underline"
+                    >
+                      <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+                        <CalendarClock className="size-4" />
+                      </span>
+                      <span>
+                        <span className="block text-[13.5px] font-bold text-heading">הזמנה קבועה</span>
+                        <span className="block text-[11.5px] text-muted-foreground">ימים קבועים בשבוע</span>
+                      </span>
+                    </Link>
+                  </>
+                ) : null}
+
+                <Link
+                  to="/admin/customers/$customerId/orders"
+                  params={{ customerId: customer.id }}
+                  className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 no-underline"
+                >
+                  <span className="flex size-9 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                    <ClipboardList className="size-4" />
+                  </span>
+                  <span>
+                    <span className="block text-[13.5px] font-bold text-heading">עריכת הזמנה קיימת</span>
+                    <span className="block text-[11.5px] text-muted-foreground">כל ההזמנות של הלקוח</span>
+                  </span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setTab("prices")}
+                  className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 text-start"
+                >
+                  <span className="flex size-9 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                    <Tag className="size-4" />
+                  </span>
+                  <span>
+                    <span className="block text-[13.5px] font-bold text-heading">מחירים מיוחדים</span>
+                    <span className="block text-[11.5px] text-muted-foreground">מחירון ייעודי ללקוח</span>
+                  </span>
+                </button>
+              </div>
             </section>
+
 
             {/* הזמנות קבועות קיימות */}
             {recurring.length ? (
@@ -262,16 +285,25 @@ function CustomerDetailPage() {
               </section>
             ) : null}
 
-            {/* ניהול */}
-            <section className="flex flex-col gap-2 border-t border-border pt-4">
-              <Button
-                variant="secondary"
-                className="font-semibold"
-                onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
-              >
-                {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
-              </Button>
+            {/* ניהול הלקוח */}
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[13px] font-bold text-heading">ניהול הלקוח</h2>
+              <div className="rounded-[14px] border border-border bg-card px-4 py-3.5">
+                <div className="text-[12.5px] text-muted-foreground">
+                  {customer.blocked
+                    ? "הלקוח חסום כרגע ולא יכול לבצע הזמנות."
+                    : "חסימה תמנע מהלקוח לבצע הזמנות חדשות. אפשר לשחרר בכל רגע."}
+                </div>
+                <Button
+                  variant="secondary"
+                  className="mt-3 w-full font-semibold"
+                  onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
+                >
+                  {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
+                </Button>
+              </div>
             </section>
+
           </div>
         )}
       </Section>
