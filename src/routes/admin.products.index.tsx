@@ -162,8 +162,7 @@ function SortableCategoryCard({
     zIndex: isDragging ? 10 : undefined,
   };
 
-  const pairIndex = Math.floor(index / 2);
-  const cardBg = pairIndex % 2 === 0 ? "bg-card" : "bg-accent-soft";
+  const cardBg = index % 2 === 0 ? "bg-card" : "bg-accent-soft";
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
