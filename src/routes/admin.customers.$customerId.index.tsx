@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Mail,
   MapPin,
+  MessageCircle,
   Pencil,
   Phone,
   Plus,
@@ -15,6 +16,7 @@ import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
+import { CustomerInviteModal } from "@/components/admin/customer-invite-modal";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
