@@ -110,32 +110,34 @@ export function CustomerForm({
       <button
         type="button"
         onClick={() => toggleRound("noon")}
-        className={cn(
-          "flex items-center justify-between rounded-xl border px-4 py-3.5 text-start transition-colors",
-          values.allowedRounds.includes("noon")
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-foreground/25 bg-card text-foreground shadow-sm",
-        )}
+        className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 text-start transition-colors active:bg-muted"
+        aria-pressed={values.allowedRounds.includes("noon")}
       >
-        <span className="flex items-center gap-2">
+        <span className="flex flex-col items-start gap-0.5">
+          <span className="text-[14px] font-bold text-foreground">מאושר לסבב שני</span>
+          <span className="text-[12px] font-medium text-muted-foreground">
+            {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
+          </span>
+        </span>
+
+        <span
+          className={cn(
+            "relative flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-200",
+            values.allowedRounds.includes("noon") ? "bg-primary" : "bg-foreground/30",
+          )}
+        >
           <span
             className={cn(
-              "flex size-6 items-center justify-center rounded-full border",
-              values.allowedRounds.includes("noon")
-                ? "border-primary-foreground/60 bg-primary-foreground text-primary"
-                : "border-transparent bg-foreground text-background",
+              "flex size-5 items-center justify-center rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
+              values.allowedRounds.includes("noon") ? "translate-x-5" : "translate-x-0",
             )}
           >
             {values.allowedRounds.includes("noon") ? (
-              <Check className="size-3.5" />
+              <Check className="size-3 text-primary" strokeWidth={3} />
             ) : (
-              <X className="size-3.5" strokeWidth={2.5} />
+              <X className="size-3 text-foreground" strokeWidth={3} />
             )}
           </span>
-          <span className="text-[14px] font-bold">מאושר לסבב שני</span>
-        </span>
-        <span className={cn("text-[13px] font-semibold", values.allowedRounds.includes("noon") ? "text-primary-foreground" : "text-foreground")}>
-          {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
         </span>
       </button>
 
