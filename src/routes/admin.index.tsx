@@ -68,20 +68,22 @@ function AdminHomePage() {
   const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
 
   const [printTarget, setPrintTarget] = useState<PrintTarget>(null);
+  const [printNonce, setPrintNonce] = useState(0);
 
   useEffect(() => {
-    if (!printTarget) return;
-    const done = () => setPrintTarget(null);
-    window.addEventListener("afterprint", done);
-    // ממתינים לרינדור הגיליון לפני פתיחת חלון ההדפסה
-    const timer = window.setTimeout(() => window.print(), 200);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("afterprint", done);
-    };
-  }, [printTarget]);
+    if (!printTarget || printNonce === 0) return;
+    // ממתינים לרינדור הגיליון לפני פתיחת חלון ההדפסה.
+    // לא מסירים את הגיליון אחרי ההדפסה — בחלק מהדפדפנים בנייד
+    // אירוע afterprint נורה לפני שנוצר ה-PDF, וההסרה גורמת לדף ריק.
+    const timer = window.setTimeout(() => window.print(), 300);
+    return () => window.clearTimeout(timer);
+  }, [printTarget, printNonce]);
 
-  const printReport = (target: Exclude<PrintTarget, null>) => setPrintTarget(target);
+  const printReport = (target: Exclude<PrintTarget, null>) => {
+    setPrintTarget(target);
+    setPrintNonce((n) => n + 1);
+  };
+
 
   const handleIssueDeliveryNotes = async () => {
     if (issuingDocs) return;
