@@ -139,8 +139,8 @@ function AdminHomePage() {
 
   return (
     <AdminShell>
-      <BakingSheet date={date} groups={productionGroups} />
-      <PackingSheet date={date} groups={distributionGroups} />
+      {printTarget === "production" ? <BakingSheet date={date} groups={productionGroups} /> : null}
+      {printTarget === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? tomorrowViews : []} />
