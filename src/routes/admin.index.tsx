@@ -5,13 +5,15 @@ import {
   ChevronDown,
   ChevronLeft,
   FileText,
+  Info,
   Receipt,
   RefreshCw,
   Truck,
   Users,
 } from "lucide-react";
-
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BakingSheet } from "@/components/admin/baking-sheet";
@@ -77,6 +79,17 @@ function AdminHomePage() {
 
   const handleIssueDeliveryNotes = async () => {
     if (issuingDocs) return;
+    toast(
+      <span className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+        <Info className="size-4 text-primary" />
+        תעודות משלוח בדרך
+      </span>,
+      {
+        description:
+          "תעודות המשלוח יופקו אוטומטית בריבכית לאחר חיבור מלא למערכת. עד אז ההזמנה נרשמת כמוכנה למשלוח.",
+        duration: 5000,
+      },
+    );
     const pendingOrderIds = tomorrowViews
       .filter((v) => {
         if (v.order.status === "cancelled" || v.order.status === "draft") return false;
