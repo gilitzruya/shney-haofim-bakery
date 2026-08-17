@@ -107,21 +107,33 @@ export function CustomerForm({
         </FormField>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[12px] font-semibold text-muted-foreground">הרשאות סבבים</span>
-        <span className="text-[11px] text-muted-foreground">סבב ראשון מוגדר אוטומטית לכל הלקוחות.</span>
-        <button
-          type="button"
-          onClick={() => toggleRound("noon")}
-          className={cn(
-            "flex items-center justify-between rounded-xl border px-3.5 py-3 text-start",
-            values.allowedRounds.includes("noon") ? "border-[1.5px] border-primary bg-primary-soft" : "border-border bg-card",
-          )}
-        >
-          <span className="text-[13.5px] font-semibold text-foreground">מאושר לסבב שני</span>
-          <span className="text-[12px] text-muted-foreground">{values.allowedRounds.includes("noon") ? "כן" : "לא"}</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => toggleRound("noon")}
+        className={cn(
+          "flex items-center justify-between rounded-xl border px-4 py-3.5 text-start transition-colors",
+          values.allowedRounds.includes("noon")
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-border bg-card text-foreground",
+        )}
+      >
+        <span className="flex items-center gap-2">
+          <span
+            className={cn(
+              "flex size-6 items-center justify-center rounded-full border",
+              values.allowedRounds.includes("noon")
+                ? "border-primary-foreground/60 bg-primary-foreground text-primary"
+                : "border-border bg-background text-muted-foreground",
+            )}
+          >
+            <Check className="size-3.5" />
+          </span>
+          <span className="text-[14px] font-bold">מאושר לסבב שני</span>
+        </span>
+        <span className={cn("text-[13px] font-semibold", values.allowedRounds.includes("noon") ? "text-primary-foreground" : "text-muted-foreground")}>
+          {values.allowedRounds.includes("noon") ? "מאושר" : "לא מאושר"}
+        </span>
+      </button>
 
       {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
 
