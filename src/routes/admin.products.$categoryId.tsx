@@ -214,7 +214,7 @@ function ProductRow({
   return (
     <Card className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={() => setOpen((o) => !o)} className="flex flex-1 items-center gap-2.5 text-start">
+        <div className="flex flex-1 items-center gap-2.5 text-start">
           {photo ? (
             <img
               src={photo}
@@ -232,13 +232,13 @@ function ProductRow({
               {formatPrice(product.price)} ₪ ל{unitLabel(product.unit)}
             </span>
           </span>
-        </button>
+        </div>
         <Button size="sm" variant="ghost" onClick={() => onUpdate({ available: !product.available })}>
           {product.available ? "סימון כלא זמין" : "החזרה למלאי"}
         </Button>
       </div>
 
-      {open && !editing ? (
+      {!editing ? (
         <div className="flex flex-col gap-2 border-t border-border pt-2.5">
           <div className="grid gap-1.5 md:grid-cols-2">
             <DetailRow label="שם המוצר" value={product.name} />
@@ -265,9 +265,7 @@ function ProductRow({
             </Button>
           </div>
         </div>
-      ) : null}
-
-      {open && editing ? (
+      ) : (
         <div className="flex flex-col gap-4 border-t border-border pt-3">
           <div className="flex items-center gap-3">
             {imageUrl ? (
@@ -348,7 +346,7 @@ function ProductRow({
             </Button>
           </div>
         </div>
-      ) : null}
+      )}
     </Card>
   );
 }
