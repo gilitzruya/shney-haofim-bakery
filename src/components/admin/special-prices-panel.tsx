@@ -19,6 +19,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const [adding, setAdding] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   const entries = overrideEntries(customer);
   const visible = expanded ? entries : entries.slice(0, COLLAPSED_COUNT);
@@ -32,7 +33,15 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
       .slice(0, 6);
   }, [query, customer.priceOverrides]);
 
-  const setDraft = (id: string, value: string) => setDrafts((d) => ({ ...d, [id]: value }));
+  const setDraft = (id: string, value: string) => {
+    setDrafts((d) => ({ ...d, [id]: value }));
+    setSavedIds((s) => {
+      if (!s.has(id)) return s;
+      const next = new Set(s);
+      next.delete(id);
+      return next;
+    });
+  };
 
   const save = (productId: string, raw: string, fallback: number) => {
     const parsed = Number(raw);
