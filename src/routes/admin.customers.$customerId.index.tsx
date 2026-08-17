@@ -228,7 +228,7 @@ function CustomerDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => setTab("prices")}
+                  onClick={() => setShowPrices(true)}
                   className="flex aspect-square flex-col justify-between rounded-[16px] border border-border bg-card p-3.5 text-start"
                 >
                   <span className="flex size-9 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
