@@ -328,6 +328,23 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
           </span>
         </label>
       </Modal>
+
+      <Modal
+        open={deletePending !== null}
+        title="אישור מחיקה"
+        description={deletePending ? `להסיר את המחיר המיוחד של ${deletePending.name}?` : undefined}
+        confirmLabel="מחק"
+        cancelLabel="ביטול"
+        onClose={() => setDeletePending(null)}
+        onConfirm={() => {
+          if (!deletePending) return;
+          setCustomerPriceOverride(customer.id, deletePending.id, null);
+          toast.success("המחיר המיוחד הוסר");
+          setDeletePending(null);
+        }}
+        confirmVariant="destructive"
+      />
     </div>
   );
 }
+
