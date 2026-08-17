@@ -171,7 +171,7 @@ function DayCard({
               type="button"
               onClick={() => setEnabled(v)}
               className={cn(
-                "flex-1 rounded-xl border px-3 py-2 text-[13px] font-semibold",
+                "flex-1 rounded-xl border px-3 py-2 text-[13px] font-semibold md:flex-initial md:w-auto md:px-4",
                 enabled === v
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-foreground",
