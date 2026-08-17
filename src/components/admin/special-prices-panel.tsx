@@ -1,4 +1,4 @@
-import { ChevronDown, Plus, Search, Tag, Trash2, X } from "lucide-react";
+import { ChevronDown, Pencil, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/app/button";
