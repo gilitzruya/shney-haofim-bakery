@@ -290,7 +290,7 @@ export function SpecialPricesPanel({
                       size="sm"
                       variant="primary"
                       onClick={() => save(product.id, draftValue, price)}
-                      className="h-7 w-full text-[11px] font-semibold"
+                      className="h-7 w-full md:w-auto text-[11px] font-semibold"
                     >
                       שמור
                     </Button>
