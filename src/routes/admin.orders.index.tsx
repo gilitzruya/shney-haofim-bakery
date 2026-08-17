@@ -76,23 +76,7 @@ function AdminOrdersPage() {
           הזמנות
         </h1>
 
-        <label className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2.5">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="חיפוש לפי שם לקוח"
-            aria-label="חיפוש לפי שם לקוח"
-            className="w-full min-w-0 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          {query ? (
-            <button type="button" aria-label="ניקוי החיפוש" onClick={() => setQuery("")}>
-              <X className="size-4 text-muted-foreground" />
-            </button>
-          ) : null}
-        </label>
-
-        <div className="sticky top-[58px] z-10 -mx-3.5 mt-3 bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
+        <div className="sticky top-[58px] z-10 -mx-3.5 bg-canvas/95 px-3.5 py-2 backdrop-blur md:-mx-5 md:px-5">
           <div className="overflow-hidden rounded-[16px] border border-primary/20 bg-primary-soft shadow-sm">
             <div className="flex items-center justify-between border-b border-primary/10 px-2 py-2.5">
               <button
@@ -134,6 +118,22 @@ function AdminOrdersPage() {
             </div>
           </div>
         </div>
+
+        <label className="mt-3 flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2.5">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="חיפוש לפי שם לקוח"
+            aria-label="חיפוש לפי שם לקוח"
+            className="w-full min-w-0 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {query ? (
+            <button type="button" aria-label="ניקוי החיפוש" onClick={() => setQuery("")}>
+              <X className="size-4 text-muted-foreground" />
+            </button>
+          ) : null}
+        </label>
 
         <div className="mt-3 flex flex-col gap-4">
           {!hydrated ? null : groups.length === 0 ? (
