@@ -11,7 +11,7 @@ export function BakingSheet({ date, groups }: { date: string; groups: Production
 
   return (
     <div
-      className="baking-sheet hidden print:fixed print:inset-0 print:z-[999] print:block print:bg-white print:p-4"
+      className="baking-sheet hidden print:block print:bg-white"
       dir="rtl"
       style={{ backgroundColor: "#fff" }}
     >
