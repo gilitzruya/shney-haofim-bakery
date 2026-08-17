@@ -15,6 +15,7 @@ export const ADMIN_NAV = [
   { to: "/admin/reports/distribution", label: "דוח חלוקה" },
   { to: "/admin/reports/production", label: "דוח אפייה / ייצור" },
   { to: "/admin/documents", label: "מסמכים" },
+  { to: "/admin/cutoff", label: "שעות סגירה" },
 ] as const;
 
 /** מעטפת מסכי הניהול — נשענת על אותו קנבס ושפה ויזואלית של צד הלקוח. */

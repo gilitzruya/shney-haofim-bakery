@@ -16,6 +16,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCutoffRouteImport } from './routes/admin.cutoff'
 import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
@@ -68,6 +69,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCutoffRoute = AdminCutoffRouteImport.update({
+  id: '/admin/cutoff',
+  path: '/admin/cutoff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminDocumentsRoute = AdminDocumentsRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/design-system': typeof DesignSystemRoute
   '/summary': typeof SummaryRoute
+  '/admin/cutoff': typeof AdminCutoffRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/design-system': typeof DesignSystemRoute
   '/summary': typeof SummaryRoute
+  '/admin/cutoff': typeof AdminCutoffRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/design-system': typeof DesignSystemRoute
   '/summary': typeof SummaryRoute
+  '/admin/cutoff': typeof AdminCutoffRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/recurring/new': typeof RecurringNewRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/design-system'
     | '/summary'
+    | '/admin/cutoff'
     | '/admin/documents'
     | '/orders/$orderId'
     | '/recurring/new'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/design-system'
     | '/summary'
+    | '/admin/cutoff'
     | '/admin/documents'
     | '/orders/$orderId'
     | '/recurring/new'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/design-system'
     | '/summary'
+    | '/admin/cutoff'
     | '/admin/documents'
     | '/orders/$orderId'
     | '/recurring/new'
@@ -340,6 +352,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DesignSystemRoute: typeof DesignSystemRoute
   SummaryRoute: typeof SummaryRoute
+  AdminCutoffRoute: typeof AdminCutoffRoute
   AdminDocumentsRoute: typeof AdminDocumentsRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   RecurringNewRoute: typeof RecurringNewRoute
@@ -410,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cutoff': {
+      id: '/admin/cutoff'
+      path: '/admin/cutoff'
+      fullPath: '/admin/cutoff'
+      preLoaderRoute: typeof AdminCutoffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/documents': {
@@ -548,6 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DesignSystemRoute: DesignSystemRoute,
   SummaryRoute: SummaryRoute,
+  AdminCutoffRoute: AdminCutoffRoute,
   AdminDocumentsRoute: AdminDocumentsRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
   RecurringNewRoute: RecurringNewRoute,
