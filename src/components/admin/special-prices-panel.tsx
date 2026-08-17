@@ -47,6 +47,8 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<Product | null>(null);
   const [pendingPrice, setPendingPrice] = useState("");
+  const [deletePending, setDeletePending] = useState<{ id: string; name: string } | null>(null);
+
 
   const categories = useMemo(() => catalogCategories(), []);
   const entries = overrideEntries(customer);
