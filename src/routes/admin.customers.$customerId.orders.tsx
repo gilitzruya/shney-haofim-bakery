@@ -74,6 +74,7 @@ function CustomerOrdersPage() {
               <Link
                 to="/admin/customers/$customerId/new-order"
                 params={{ customerId }}
+                search={{ type: "onetime" as const }}
                 className="text-[12.5px] font-semibold text-primary no-underline"
               >
                 יצירת הזמנה בשם הלקוח

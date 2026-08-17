@@ -19,9 +19,9 @@ import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { TextInput } from "@/components/app/form-controls";
+import { FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
-import { findProduct, ROUNDS } from "@/data/catalog";
+import { findProduct, ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
 import { productImage } from "@/data/product-images";
 import { tomorrowIso } from "@/lib/admin/dates";
@@ -31,6 +31,9 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/customers/$customerId/new-order")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: search["type"] === "recurring" ? ("recurring" as const) : ("onetime" as const),
+  }),
   head: () => ({
     meta: [
       { title: "הזמנה בשם לקוח — ניהול המאפייה" },
@@ -46,13 +49,17 @@ export const Route = createFileRoute("/admin/customers/$customerId/new-order")({
 
 function NewCustomerOrderPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/new-order" });
-  const { customers, hydrated, addAdminOrder } = useStore();
+  const { type } = Route.useSearch();
+  const isRecurring = type === "recurring";
+  const { customers, hydrated, addAdminOrder, addAdminRecurring } = useStore();
   const navigate = useNavigate();
   const customer = customers.find((c) => c.id === customerId);
 
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundId | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [weekdays, setWeekdays] = useState<number[]>([]);
+  const [recName, setRecName] = useState("");
   const [adding, setAdding] = useState(false);
   const [confirmCreate, setConfirmCreate] = useState(false);
 
@@ -98,6 +105,19 @@ function NewCustomerOrderPage() {
 
   const create = () => {
     if (!activeRound) return;
+    if (isRecurring) {
+      addAdminRecurring({
+        customerId: customer.id,
+        name: recName.trim() || `הזמנה קבועה — ${customer.name}`,
+        weekdays,
+        round: activeRound,
+        lines,
+      });
+      setConfirmCreate(false);
+      toast.success("ההזמנה הקבועה נוצרה עבור הלקוח");
+      void navigate({ to: "/admin/customers/$customerId", params: { customerId } });
+      return;
+    }
     const created = addAdminOrder({
       customerId: customer.id,
       date,
@@ -136,7 +156,7 @@ function NewCustomerOrderPage() {
 
         <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary">
           <Sparkles className="size-3.5" />
-          הזמנה חדשה בשם הלקוח
+          {isRecurring ? "הזמנה קבועה בשם הלקוח" : "הזמנה חד-פעמית בשם הלקוח"}
         </div>
 
         {blocked ? (
@@ -148,18 +168,40 @@ function NewCustomerOrderPage() {
           <>
             <Card>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[14.5px] font-bold text-heading">{formatLongDate(date)}</span>
+                <span className="text-[14.5px] font-bold text-heading">
+                  {isRecurring
+                    ? weekdays.length
+                      ? weekdays.map((d) => WEEKDAY_LABELS[d]).join(", ")
+                      : "בחרו ימי אספקה"
+                    : formatLongDate(date)}
+                </span>
                 <span className="text-[12px] text-muted-foreground">{lines.length} פריטים</span>
               </div>
-              <div className="mt-2.5 flex flex-col gap-2">
-                <div className="text-[12px] font-semibold text-muted-foreground">תאריך אספקה</div>
-                <TextInput
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  aria-label="תאריך אספקה"
-                />
-              </div>
+              {isRecurring ? (
+                <div className="mt-2.5 flex flex-col gap-3">
+                  <FormField label="שם ההזמנה הקבועה">
+                    <TextInput
+                      value={recName}
+                      onChange={(e) => setRecName(e.target.value)}
+                      placeholder="לדוגמה: אספקת בוקר קבועה"
+                    />
+                  </FormField>
+                  <div className="flex flex-col gap-2">
+                    <div className="text-[12px] font-semibold text-muted-foreground">ימי אספקה</div>
+                    <WeekdayChips value={weekdays} onChange={setWeekdays} />
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-2.5 flex flex-col gap-2">
+                  <div className="text-[12px] font-semibold text-muted-foreground">תאריך אספקה</div>
+                  <TextInput
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    aria-label="תאריך אספקה"
+                  />
+                </div>
+              )}
               <div className="mt-3 flex flex-col gap-2">
                 <div className="text-[12px] font-semibold text-muted-foreground">סבב אספקה</div>
                 {allowedRounds.length === 0 ? (
@@ -271,10 +313,14 @@ function NewCustomerOrderPage() {
       <AlertDialog open={confirmCreate} onOpenChange={setConfirmCreate}>
         <AlertDialogContent dir="rtl" className="text-right">
           <AlertDialogHeader>
-            <AlertDialogTitle>ליצור הזמנה חדשה בשם הלקוח?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isRecurring ? "ליצור הזמנה קבועה בשם הלקוח?" : "ליצור הזמנה חדשה בשם הלקוח?"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               <span className="block">
-                תיווצר הזמנה חדשה עבור {customer.name} לתאריך {formatLongDate(date)}.
+                {isRecurring
+                  ? `תיווצר הזמנה קבועה עבור ${customer.name} בימים ${weekdays.map((d) => WEEKDAY_LABELS[d]).join(", ")}.`
+                  : `תיווצר הזמנה חדשה עבור ${customer.name} לתאריך ${formatLongDate(date)}.`}
               </span>
               <span className="mt-1.5 block">
                 {lines.length} פריטים · סה״כ {formatPrice(total)}
@@ -295,10 +341,10 @@ function NewCustomerOrderPage() {
             <Button
               size="lg"
               className="flex-1"
-              disabled={lines.length === 0 || !activeRound}
+              disabled={lines.length === 0 || !activeRound || (isRecurring && weekdays.length === 0)}
               onClick={() => setConfirmCreate(true)}
             >
-              יצירת ההזמנה
+              {isRecurring ? "יצירת ההזמנה הקבועה" : "יצירת ההזמנה"}
             </Button>
           </div>
         </div>

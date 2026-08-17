@@ -1,17 +1,29 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, ClipboardList, Mail, MapPin, Phone } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  Plus,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
-import { Card, EmptyState } from "@/components/app/card";
+import { EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
 import { Tabs } from "@/components/app/tabs";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
-import { roundLabel } from "@/data/catalog";
+import { roundLabel, WEEKDAY_LABELS } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/customers/$customerId/")({
@@ -30,9 +42,24 @@ export const Route = createFileRoute("/admin/customers/$customerId/")({
 
 type TabId = "details" | "prices";
 
+/** שורת מידע אחידה בכרטיס הלקוח. */
+function InfoRow({ icon, label, value, ltr }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean }) {
+  return (
+    <div className="flex items-start gap-3 px-4 py-3">
+      <span className="mt-0.5 text-muted-foreground">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[11.5px] text-muted-foreground">{label}</div>
+        <div className="truncate text-[13.5px] font-semibold text-foreground" dir={ltr ? "ltr" : undefined}>
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CustomerDetailPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/" });
-  const { customers, hydrated, updateCustomer, setCustomerBlocked } = useStore();
+  const { customers, hydrated, updateCustomer, setCustomerBlocked, adminRecurring, removeAdminRecurring } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState<TabId>("details");
@@ -59,31 +86,34 @@ function CustomerDetailPage() {
   }
 
   const contact = customer.contacts[0];
+  const recurring = adminRecurring.filter((r) => r.customerId === customer.id);
 
   return (
     <AdminShell>
-      <Section className="pt-5 pb-10">
+      <Section className="pt-4 pb-12">
         <Link
           to="/admin/customers"
-          className="mb-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-primary no-underline"
+          className="mb-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-muted-foreground no-underline"
         >
           <ChevronRight className="size-4" />
           חזרה לרשימת הלקוחות
         </Link>
 
-        <div className="mb-4 flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[19px] font-bold text-heading">{customer.name}</h1>
-            {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
+        {/* כותרת נקייה */}
+        <div className="mb-4 flex items-start gap-3">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card-muted text-[15px] font-bold text-heading">
+            {customer.name.trim().charAt(0)}
           </div>
-          {customer.code ? (
-            <div className="text-[12px] font-semibold text-muted-foreground" dir="ltr">
-              קוד לקוח: <span className="text-foreground">{customer.code}</span>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-[19px] font-bold text-heading">{customer.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
+              {customer.code ? <span dir="ltr">קוד לקוח {customer.code}</span> : null}
+              {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
             </div>
-          ) : null}
+          </div>
         </div>
 
-        <div className="mb-3">
+        <div className="mb-4">
           <Tabs<TabId>
             tabs={[
               { id: "details", label: "פרטי לקוח" },
@@ -113,80 +143,135 @@ function CustomerDetailPage() {
             }}
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            <Card className="flex flex-col gap-2">
-              <div className="text-[12px] font-semibold text-muted-foreground">פרטי קשר</div>
-              {contact ? (
-                <>
-                  <div className="text-[13.5px] font-semibold text-foreground">{contact.name}</div>
-                  <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
-                    <Phone className="size-4 shrink-0 text-primary" />
-                    <span dir="ltr">{contact.phone}</span>
+          <div className="flex flex-col gap-5">
+            {/* פרטי קשר */}
+            <section className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[13px] font-bold text-heading">פרטי הלקוח</h2>
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-muted-foreground"
+                >
+                  <Pencil className="size-3.5" />
+                  עריכה
+                </button>
+              </div>
+              <div className="divide-y divide-border overflow-hidden rounded-[14px] border border-border bg-card">
+                <InfoRow icon={<User className="size-4" />} label="איש קשר" value={contact?.name || "לא הוזן"} />
+                <InfoRow icon={<Phone className="size-4" />} label="טלפון" value={contact?.phone || "לא הוזן"} ltr />
+                <InfoRow icon={<Mail className="size-4" />} label="דוא״ל" value={contact?.email || "לא הוזן"} ltr />
+                <InfoRow icon={<MapPin className="size-4" />} label="כתובת לאספקה" value={customer.address || "לא הוזנה"} />
+                <div className="flex items-start gap-3 px-4 py-3">
+                  <span className="mt-0.5 text-muted-foreground">
+                    <CalendarClock className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11.5px] text-muted-foreground">הרשאות סבבים</div>
+                    <div className="text-[13.5px] font-semibold text-foreground">
+                      {customer.allowedRounds.length
+                        ? customer.allowedRounds.map((r) => roundLabel(r)).join(" · ")
+                        : "ללא הרשאות"}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
-                    <Mail className="size-4 shrink-0 text-primary" />
-                    <span dir="ltr">{contact.email}</span>
-                  </div>
-                </>
+                </div>
+              </div>
+            </section>
+
+            {/* פעולות הזמנה */}
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[13px] font-bold text-heading">הזמנות</h2>
+              {customer.blocked ? (
+                <div className="rounded-[14px] border border-border bg-card-muted px-4 py-3 text-[12.5px] text-muted-foreground">
+                  הלקוח חסום — לא ניתן ליצור עבורו הזמנות חדשות.
+                </div>
               ) : (
-                <div className="text-[12.5px] text-muted-foreground">לא הוזן איש קשר</div>
+                <div className="flex flex-col gap-2.5">
+                  <Link
+                    to="/admin/customers/$customerId/new-order"
+                    params={{ customerId: customer.id }}
+                    search={{ type: "onetime" as const }}
+                    className="flex items-center gap-3 rounded-[14px] border border-border bg-card px-4 py-3.5 no-underline"
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                      <Plus className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13.5px] font-bold text-heading">הזמנה חד-פעמית</span>
+                      <span className="block text-[11.5px] text-muted-foreground">אספקה לתאריך אחד</span>
+                    </span>
+                    <ChevronLeft className="size-4 text-muted-foreground" />
+                  </Link>
+
+                  <Link
+                    to="/admin/customers/$customerId/new-order"
+                    params={{ customerId: customer.id }}
+                    search={{ type: "recurring" as const }}
+                    className="flex items-center gap-3 rounded-[14px] border border-border bg-card px-4 py-3.5 no-underline"
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                      <CalendarClock className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13.5px] font-bold text-heading">הזמנה קבועה</span>
+                      <span className="block text-[11.5px] text-muted-foreground">אספקה חוזרת בימים קבועים</span>
+                    </span>
+                    <ChevronLeft className="size-4 text-muted-foreground" />
+                  </Link>
+                </div>
               )}
-              <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
-                <MapPin className="size-4 shrink-0 text-primary" />
-                <span>{customer.address || "לא הוזנה כתובת"}</span>
-              </div>
-            </Card>
 
-            <Card className="flex flex-col gap-2">
-              <div className="text-[12px] font-semibold text-muted-foreground">הרשאות סבבים</div>
-              <div className="flex flex-wrap gap-1.5">
-                {customer.allowedRounds.length ? (
-                  customer.allowedRounds.map((r) => <Chip key={r}>{roundLabel(r)}</Chip>)
-                ) : (
-                  <span className="text-[12.5px] text-muted-foreground">ללא הרשאות סבב</span>
-                )}
-              </div>
-            </Card>
+              <Link
+                to="/admin/customers/$customerId/orders"
+                params={{ customerId: customer.id }}
+                className="flex items-center gap-3 rounded-[14px] border border-border bg-card px-4 py-3.5 no-underline"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card-muted text-muted-foreground">
+                  <ClipboardList className="size-4" />
+                </span>
+                <span className="min-w-0 flex-1 text-[13.5px] font-bold text-heading">ההזמנות של הלקוח</span>
+                <ChevronLeft className="size-4 text-muted-foreground" />
+              </Link>
+            </section>
 
-            <div className="flex gap-2.5">
-              <Button className="flex-1" onClick={() => setEditing(true)}>
-                עריכת פרטים
-              </Button>
+            {/* הזמנות קבועות קיימות */}
+            {recurring.length ? (
+              <section className="flex flex-col gap-2">
+                <h2 className="text-[13px] font-bold text-heading">הזמנות קבועות</h2>
+                <div className="divide-y divide-border overflow-hidden rounded-[14px] border border-border bg-card">
+                  {recurring.map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[13.5px] font-semibold text-foreground">{r.name}</div>
+                        <div className="text-[11.5px] text-muted-foreground">
+                          {r.weekdays.map((d) => WEEKDAY_LABELS[d]).join(", ") || "ללא ימים"} · {roundLabel(r.round)} ·{" "}
+                          {r.lines.length} פריטים
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="מחיקת הזמנה קבועה"
+                        onClick={() => removeAdminRecurring(r.id)}
+                        className="text-muted-foreground"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {/* ניהול */}
+            <section className="flex flex-col gap-2 border-t border-border pt-4">
               <Button
-                variant={customer.blocked ? "secondary" : "destructive"}
-                className="flex-1 font-semibold"
+                variant="secondary"
+                className="font-semibold"
                 onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
               >
-                {customer.blocked ? "שחרור חסימה" : "חסימת לקוח"}
+                {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
               </Button>
-            </div>
-
-            <Link
-              to="/admin/customers/$customerId/orders"
-              params={{ customerId: customer.id }}
-              className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-[13px] font-bold text-heading no-underline"
-            >
-              <span className="flex items-center gap-2">
-                <ClipboardList className="size-4 text-primary" />
-                ההזמנות של הלקוח
-              </span>
-              <ChevronLeft className="size-4 text-muted-foreground" />
-            </Link>
-
-
-            {customer.blocked ? (
-              <div className="rounded-[14px] border border-border bg-destructive-bg px-3.5 py-3 text-[12.5px] text-destructive">
-                הלקוח חסום — לא ניתן ליצור עבורו הזמנה חדשה.
-              </div>
-            ) : (
-              <Link
-                to="/admin/customers/$customerId/new-order"
-                params={{ customerId: customer.id }}
-                className="flex items-center justify-center rounded-xl border border-primary bg-transparent px-4 py-2.5 text-[13px] font-bold text-primary no-underline"
-              >
-                יצירת הזמנה בשם הלקוח
-              </Link>
-            )}
+            </section>
           </div>
         )}
       </Section>
