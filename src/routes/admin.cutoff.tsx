@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Clock, Pencil, RotateCcw, X } from "lucide-react";
+import { CalendarOff, Check, Clock, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,10 +8,13 @@ import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
 import { useStore } from "@/store/app-store";
+import { TextInput } from "@/components/app/form-controls";
+import { formatShortDate } from "@/lib/format";
 import {
   describeRule,
   formatTime,
   HE_WEEKDAYS,
+  type CutoffException,
   type CutoffRule,
 } from "@/lib/admin/cutoff-rules";
 import { cn } from "@/lib/utils";
@@ -69,9 +72,11 @@ function AdminCutoffPage() {
               ))}
         </div>
 
+        <ExceptionsSection />
+
         <Button
           variant="secondary"
-          className="mt-4 w-full"
+          className="mt-6 w-full"
           onClick={() => {
             resetCutoffRules();
             setEditing(null);
