@@ -41,16 +41,16 @@ export const Route = createFileRoute("/admin/customers/$customerId/")({
 
 
 
-/** שורת מידע אחידה בכרטיס הלקוח. */
+/** שורת מידע קומפקטית בכרטיס הלקוח. */
 function InfoRow({ icon, label, value, ltr }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean }) {
   return (
-    <div className="flex items-start gap-3 px-4 py-3">
-      <span className="mt-0.5 text-muted-foreground">{icon}</span>
+    <div className="flex items-center gap-2 px-3 py-2">
+      <span className="text-muted-foreground">{icon}</span>
       <div className="min-w-0 flex-1">
-        <div className="text-[11.5px] text-muted-foreground">{label}</div>
-        <div className="truncate text-[13.5px] font-semibold text-foreground" dir={ltr ? "ltr" : undefined}>
+        <span className="text-[11px] text-muted-foreground">{label}: </span>
+        <span className="text-[12.5px] font-semibold text-foreground" dir={ltr ? "ltr" : undefined}>
           {value}
-        </div>
+        </span>
       </div>
     </div>
   );
