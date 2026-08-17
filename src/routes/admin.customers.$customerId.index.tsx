@@ -148,7 +148,7 @@ function CustomerDetailPage() {
                 <InfoRow icon={<Phone className="size-3.5" />} label="טלפון" value={contact?.phone || "לא הוזן"} ltr />
                 <InfoRow icon={<Mail className="size-3.5" />} label="דוא״ל" value={contact?.email || "לא הוזן"} ltr />
                 <InfoRow icon={<MapPin className="size-3.5" />} label="כתובת לאספקה" value={customer.address || "לא הוזנה"} />
-                {customer.allowedRounds.includes("round-2") ? (
+                {customer.allowedRounds.includes("noon") ? (
                   <div className="flex items-center gap-2 px-3 py-2">
                     <span className="text-muted-foreground">
                       <CalendarClock className="size-3.5" />
