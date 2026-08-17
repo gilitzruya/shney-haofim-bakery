@@ -195,17 +195,21 @@ function ProductRow({
       return setError("משקל חייב להיות מספר חיובי");
 
     setError(null);
-    onUpdate({
+    const patch: Partial<Omit<Product, "id">> = {
       name: name.trim(),
       sku: sku.trim(),
       unit,
       price: Math.round(parsedPrice * 100) / 100,
       minQty: Number.isNaN(parsedMin) ? (unit === "kg" ? 0.5 : 1) : parsedMin,
       step: unit === "kg" ? 0.5 : 1,
-      weightGrams: Number.isNaN(parsedWeight) ? undefined : parsedWeight,
-      note: note.trim() ? note.trim() : undefined,
-      imageUrl: imageUrl ?? undefined,
-    });
+    };
+    (patch as Record<string, unknown>)["weightGrams"] = Number.isNaN(parsedWeight)
+      ? undefined
+      : parsedWeight;
+    (patch as Record<string, unknown>)["note"] = note.trim() ? note.trim() : undefined;
+    (patch as Record<string, unknown>)["imageUrl"] = imageUrl ?? undefined;
+    onUpdate(patch);
+
     setEditing(false);
   };
 
