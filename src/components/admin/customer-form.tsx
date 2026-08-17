@@ -18,6 +18,7 @@ export interface CustomerFormValues {
 
 export function toFormValues(customer?: Customer): CustomerFormValues {
   const contact = customer?.contacts[0];
+  const rounds = customer?.allowedRounds ?? [];
   return {
     code: customer?.code ?? "",
     name: customer?.name ?? "",
@@ -25,7 +26,7 @@ export function toFormValues(customer?: Customer): CustomerFormValues {
     contactName: contact?.name ?? "",
     phone: contact?.phone ?? "",
     email: contact?.email ?? "",
-    allowedRounds: customer?.allowedRounds ?? ["morning"],
+    allowedRounds: Array.from(new Set(["morning" as RoundId, ...rounds])),
   };
 }
 
