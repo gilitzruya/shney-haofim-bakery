@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronLeft,
   FileText,
+  Receipt,
   RefreshCw,
   Truck,
   Users,
