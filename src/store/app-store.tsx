@@ -228,6 +228,7 @@ interface StoreValue extends PersistedState {
   setCustomerPriceOverride: (id: string, productId: string, price: number | null) => void;
   /* admin: catalog */
   moveCategory: (id: string, direction: -1 | 1) => void;
+  reorderCategories: (catalog: Category[]) => void;
   renameCategory: (id: string, name: string) => void;
   addCategory: (name: string) => void;
   removeCategory: (id: string) => void;
