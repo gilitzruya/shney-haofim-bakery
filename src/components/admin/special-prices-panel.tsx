@@ -51,6 +51,7 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
     }
     setCustomerPriceOverride(customer.id, productId, Math.round(parsed * 100) / 100);
     setDraft(productId, parsed.toFixed(2));
+    setSavedIds((s) => new Set(s).add(productId));
   };
 
   const resetIfInvalid = (productId: string, raw: string, fallback: number) => {
