@@ -53,7 +53,7 @@ function CustomerRowCard({ customer }: { customer: Customer }) {
             <span className="mt-0.5 truncate text-[11.5px] text-black">
               {contact ? `${contact.name} · ${contact.phone}` : customer.address}
             </span>
-            <span className="text-[11px] text-muted-foreground">לצפייה ועריכה</span>
+            <span className="text-left text-[11px] text-muted-foreground">לצפייה ועריכה</span>
           </span>
           <ChevronLeft className="size-5 shrink-0 text-primary" />
         </div>
