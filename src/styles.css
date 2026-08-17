@@ -161,23 +161,25 @@
     background: #fff !important;
   }
 
-  .packing-sheet {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    background: #fff !important;
-    padding: 12px;
-  }
-
   @page {
     margin: 10mm;
   }
 
+  /* גיליונות ההדפסה מוצגים כבלוק רגיל — position: fixed גורם לדפדפן
+     לשכפל את התוכן בכל עמוד מודפס. */
+  .packing-sheet,
   .baking-sheet {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    display: block !important;
     background: #fff !important;
-    padding: 16px;
+    padding: 0 !important;
+  }
+
+  /* בדף הבית שני הגיליונות קיימים — מדפיסים רק את המבוקש. */
+  body.print-only-production .packing-sheet,
+  body.print-only-distribution .baking-sheet {
+    display: none !important;
   }
 }

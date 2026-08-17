@@ -53,7 +53,6 @@ function AdminHomePage() {
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
-  const [pendingPrint, setPendingPrint] = useState<PrintTarget>(null);
   const [issuingDocs, setIssuingDocs] = useState(false);
 
   const summary = useMemo(() => {
@@ -68,14 +67,14 @@ function AdminHomePage() {
   const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
   const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
 
-  useEffect(() => {
-    if (!pendingPrint) return undefined;
-    const id = window.setTimeout(() => {
+  const printReport = (target: Exclude<PrintTarget, null>) => {
+    const cls = target === "production" ? "print-only-production" : "print-only-distribution";
+    document.body.classList.add(cls);
+    window.setTimeout(() => {
       window.print();
-      setPendingPrint(null);
-    }, 250);
-    return () => window.clearTimeout(id);
-  }, [pendingPrint]);
+      document.body.classList.remove(cls);
+    }, 120);
+  };
 
   const handleIssueDeliveryNotes = async () => {
     if (issuingDocs) return;
@@ -133,8 +132,8 @@ function AdminHomePage() {
 
   return (
     <AdminShell>
-      {pendingPrint === "production" ? <BakingSheet date={date} groups={productionGroups} /> : null}
-      {pendingPrint === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
+      <BakingSheet date={date} groups={productionGroups} />
+      <PackingSheet date={date} groups={distributionGroups} />
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? tomorrowViews : []} />
@@ -144,13 +143,13 @@ function AdminHomePage() {
             icon={<Truck className="size-5" />}
             top="הדפסת"
             bottom="דוח חלוקה"
-            onClick={() => setPendingPrint("distribution")}
+            onClick={() => printReport("distribution")}
           />
           <PrintReportButton
             icon={<FileText className="size-5" />}
             top="הדפסת"
             bottom="דוח אפייה"
-            onClick={() => setPendingPrint("production")}
+            onClick={() => printReport("production")}
           />
           <PrintReportButton
             icon={<Receipt className="size-5" />}

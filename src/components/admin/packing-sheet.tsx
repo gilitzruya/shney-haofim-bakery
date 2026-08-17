@@ -9,7 +9,7 @@ import { formatDate, formatWeekday } from "@/lib/format";
 export function PackingSheet({ date, groups }: { date: string; groups: DistributionGroup[] }) {
   return (
     <div
-      className="packing-sheet hidden print:fixed print:inset-0 print:z-[999] print:block print:bg-white print:p-3"
+      className="packing-sheet hidden print:block print:bg-white"
       dir="rtl"
       style={{ backgroundColor: "#fff" }}
     >
