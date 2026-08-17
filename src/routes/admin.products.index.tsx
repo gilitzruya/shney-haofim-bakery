@@ -105,9 +105,10 @@ function AdminProductsPage() {
           {!hydrated ? null : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={catalog.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-                {catalog.map((c) => (
+                {catalog.map((c, index) => (
                   <SortableCategoryCard
                     key={c.id}
+                    index={index}
                     category={c}
                     isEditing={editingId === c.id}
                     editName={editName}
