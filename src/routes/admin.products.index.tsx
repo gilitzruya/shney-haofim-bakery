@@ -69,7 +69,7 @@ function AdminProductsPage() {
     <AdminShell>
       <Section className="pt-6 pb-10">
         <h1 className="text-[19px] font-bold text-heading">מוצרים וקטגוריות</h1>
-        <p className="mt-1 text-[12.5px] text-muted-foreground">
+        <p className="mt-1 text-[12.5px] text-black">
           לחיצה על קטגוריה פותחת את המוצרים שלה לעריכה. גרירה בידית מימין משנה את סדר התצוגה בקטלוג הלקוח.
         </p>
 
