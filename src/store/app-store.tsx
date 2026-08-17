@@ -612,6 +612,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
           return { ...s, catalog };
         }),
 
+      reorderCategories: (catalog) =>
+        update((s) => ({
+          ...s,
+          catalog,
+        })),
+
       renameCategory: (id, name) =>
         update((s) => ({
           ...s,
