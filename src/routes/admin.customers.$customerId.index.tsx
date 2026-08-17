@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import {
   CalendarClock,
-  Tag,
   ChevronRight,
   ClipboardList,
   Mail,
@@ -61,7 +60,6 @@ function CustomerDetailPage() {
   const { customers, hydrated, updateCustomer, setCustomerBlocked, adminRecurring, removeAdminRecurring } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
-  const [showPrices, setShowPrices] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
 
   if (!customer) {
