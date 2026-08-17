@@ -119,6 +119,15 @@ function AdminCategoryPage() {
   );
 }
 
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
+      <span className="text-[11.5px] text-muted-foreground">{label}</span>
+      <span className="text-[12.5px] font-semibold text-heading">{value}</span>
+    </div>
+  );
+}
+
 function ProductRow({
   product,
   onUpdate,
@@ -129,56 +138,123 @@ function ProductRow({
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [name, setName] = useState(product.name);
+  const [sku, setSku] = useState(product.sku ?? "");
   const [price, setPrice] = useState(product.price.toFixed(2));
+  const [unit, setUnit] = useState<Unit>(product.unit);
+  const [minQty, setMinQty] = useState(String(product.minQty ?? ""));
+  const [weight, setWeight] = useState(product.weightGrams ? String(product.weightGrams) : "");
+  const [note, setNote] = useState(product.note ?? "");
+  const [imageUrl, setImageUrl] = useState<string | undefined>(productPhoto(product));
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const photo = productPhoto(product);
+
+  const startEdit = () => {
+    setName(product.name);
+    setSku(product.sku ?? "");
+    setPrice(product.price.toFixed(2));
+    setUnit(product.unit);
+    setMinQty(String(product.minQty ?? ""));
+    setWeight(product.weightGrams ? String(product.weightGrams) : "");
+    setNote(product.note ?? "");
+    setImageUrl(productPhoto(product));
+    setError(null);
+    setEditing(true);
+    setOpen(true);
+  };
+
+  const pickImage = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      setImageUrl(await fileToCompressedDataUrl(file));
+    } catch {
+      setError("לא הצלחנו לטעון את התמונה");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = () => {
-    const parsed = Number(price);
-    const patch: Partial<Omit<Product, "id">> = {};
-    if (name.trim()) patch.name = name.trim();
-    if (!Number.isNaN(parsed) && parsed > 0) patch.price = Math.round(parsed * 100) / 100;
-    onUpdate(patch);
-    setOpen(false);
+    const parsedPrice = Number(price);
+    const parsedMin = minQty.trim() ? Number(minQty) : NaN;
+    const parsedWeight = weight.trim() ? Number(weight) : NaN;
+
+    if (!name.trim()) return setError("יש להזין שם מוצר");
+    if (!sku.trim()) return setError("יש להזין קוד מוצר");
+    if (!price.trim() || Number.isNaN(parsedPrice) || parsedPrice <= 0)
+      return setError("יש להזין מחיר תקין");
+    if (minQty.trim() && (Number.isNaN(parsedMin) || parsedMin <= 0))
+      return setError("כמות מינימום חייבת להיות מספר חיובי");
+    if (weight.trim() && (Number.isNaN(parsedWeight) || parsedWeight <= 0))
+      return setError("משקל חייב להיות מספר חיובי");
+
+    setError(null);
+    onUpdate({
+      name: name.trim(),
+      sku: sku.trim(),
+      unit,
+      price: Math.round(parsedPrice * 100) / 100,
+      minQty: Number.isNaN(parsedMin) ? (unit === "kg" ? 0.5 : 1) : parsedMin,
+      step: unit === "kg" ? 0.5 : 1,
+      weightGrams: Number.isNaN(parsedWeight) ? undefined : parsedWeight,
+      note: note.trim() ? note.trim() : undefined,
+      imageUrl: imageUrl ?? undefined,
+    });
+    setEditing(false);
   };
 
   return (
     <Card className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={() => setOpen((o) => !o)} className="flex-1 text-start">
-          <div className="flex items-center gap-2">
-            <span className="text-[13.5px] font-bold text-heading">{product.name}</span>
-            {product.available ? null : <Chip tone="error">לא זמין</Chip>}
-          </div>
-          <div className="mt-0.5 text-[12px] text-muted-foreground">
-            {formatPrice(product.price)} ₪ ל{unitLabel(product.unit)}
-          </div>
+        <button type="button" onClick={() => setOpen((o) => !o)} className="flex flex-1 items-center gap-2.5 text-start">
+          {photo ? (
+            <img
+              src={photo}
+              alt={product.name}
+              className="size-11 shrink-0 rounded-[10px] border border-border object-contain"
+            />
+          ) : null}
+          <span className="min-w-0">
+            <span className="flex items-center gap-2">
+              <span className="text-[13.5px] font-bold text-heading">{product.name}</span>
+              {product.available ? null : <Chip tone="error">לא זמין</Chip>}
+            </span>
+            <span className="mt-0.5 block text-[12px] text-muted-foreground">
+              {product.sku ? `קוד ${product.sku} · ` : ""}
+              {formatPrice(product.price)} ₪ ל{unitLabel(product.unit)}
+            </span>
+          </span>
         </button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onUpdate({ available: !product.available })}
-        >
+        <Button size="sm" variant="ghost" onClick={() => onUpdate({ available: !product.available })}>
           {product.available ? "סימון כלא זמין" : "החזרה למלאי"}
         </Button>
       </div>
 
-      {open ? (
-        <div className="flex flex-col gap-2.5 border-t border-border pt-2.5">
-          <div className="grid gap-2.5 md:grid-cols-2">
-            <FormField label="שם המוצר">
-              <TextInput value={name} onChange={(e) => setName(e.target.value)} />
-            </FormField>
-            <FormField label="מחיר בסיס (₪)">
-              <TextInput
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                inputMode="decimal"
-              />
-            </FormField>
+      {open && !editing ? (
+        <div className="flex flex-col gap-2 border-t border-border pt-2.5">
+          <div className="grid gap-1.5 md:grid-cols-2">
+            <DetailRow label="שם המוצר" value={product.name} />
+            <DetailRow label="קוד מוצר" value={product.sku || "—"} />
+            <DetailRow label="יחידת הזמנה" value={unitLabel(product.unit)} />
+            <DetailRow label="מחיר ליחידה" value={`${formatPrice(product.price)} ₪`} />
+            <DetailRow label="כמות מינימום" value={String(product.minQty ?? "—")} />
+            <DetailRow label="משקל" value={product.weightGrams ? `${product.weightGrams} גרם` : "—"} />
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" onClick={save}>
-              שמירה
+          {product.note ? (
+            <div className="rounded-lg bg-muted/40 px-2.5 py-2 text-[12px] text-heading">
+              <span className="text-muted-foreground">הערות: </span>
+              {product.note}
+            </div>
+          ) : null}
+          <div className="flex items-center gap-2 pt-0.5">
+            <Button size="sm" onClick={startEdit}>
+              <Pencil className="size-4" />
+              עריכת המוצר
             </Button>
             <Button size="sm" variant="ghost" onClick={onRemove}>
               <Trash2 className="size-4" />
@@ -187,9 +263,93 @@ function ProductRow({
           </div>
         </div>
       ) : null}
+
+      {open && editing ? (
+        <div className="flex flex-col gap-4 border-t border-border pt-3">
+          <div className="flex items-center gap-3">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt="תמונת המוצר"
+                className="size-[84px] shrink-0 rounded-[12px] border border-border object-contain"
+              />
+            ) : (
+              <ProductPlaceholder />
+            )}
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <span className="text-[12px] font-semibold text-muted-foreground">תמונת מוצר (רשות)</span>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="ghost" onClick={() => fileRef.current?.click()}>
+                  <ImagePlus className="size-4" />
+                  {uploading ? "מעלה…" : imageUrl ? "החלפת תמונה" : "העלאת תמונה"}
+                </Button>
+                {imageUrl ? (
+                  <Button size="sm" variant="ghost" onClick={() => setImageUrl(undefined)}>
+                    הסרה
+                  </Button>
+                ) : null}
+              </div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => void pickImage(e.target.files?.[0])}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="שם המוצר *">
+              <TextInput value={name} onChange={(e) => setName(e.target.value)} />
+            </FormField>
+            <FormField label="קוד מוצר *">
+              <TextInput value={sku} onChange={(e) => setSku(e.target.value)} inputMode="numeric" />
+            </FormField>
+            <FormField label="יחידת הזמנה *">
+              <div className="grid grid-cols-2 gap-2">
+                <Button size="sm" variant={unit === "unit" ? "primary" : "ghost"} onClick={() => setUnit("unit")}>
+                  יחידה
+                </Button>
+                <Button size="sm" variant={unit === "kg" ? "primary" : "ghost"} onClick={() => setUnit("kg")}>
+                  ק״ג
+                </Button>
+              </div>
+            </FormField>
+            <FormField label="מחיר ליחידה (₪) *">
+              <TextInput value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
+            </FormField>
+            <FormField label="כמות מינימום להזמנה">
+              <TextInput value={minQty} onChange={(e) => setMinQty(e.target.value)} inputMode="decimal" />
+            </FormField>
+            <FormField label="משקל (גרם)">
+              <TextInput value={weight} onChange={(e) => setWeight(e.target.value)} inputMode="numeric" />
+            </FormField>
+          </div>
+          <FormField label="הערות למוצר">
+            <TextArea value={note} onChange={(e) => setNote(e.target.value)} className="min-h-[68px]" />
+          </FormField>
+
+          {error ? (
+            <div className="rounded-xl bg-destructive/10 px-3 py-2 text-[12px] font-semibold text-destructive">
+              {error}
+            </div>
+          ) : null}
+
+          <div className="flex items-center gap-2 border-t border-border pt-3">
+            <Button size="sm" onClick={save} className="flex-1">
+              שמירת השינויים
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+              ביטול
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }
+
 
 function NewProductForm({
   onCreate,
