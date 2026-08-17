@@ -18,6 +18,7 @@ import { BakingSheet } from "@/components/admin/baking-sheet";
 import { PackingSheet } from "@/components/admin/packing-sheet";
 import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
+import { Spinner } from "@/components/app/button";
 import { Chip } from "@/components/app/status-chip";
 import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
 import { intakeTime, tomorrowIso } from "@/lib/admin/dates";
@@ -136,21 +137,12 @@ function AdminHomePage() {
             title="דוח אפייה"
             onClick={() => setPendingPrint("production")}
           />
-          <button
-            type="button"
-            disabled={issuingDocs}
+          <PrintReportButton
+            icon={<Receipt className="size-5" />}
+            title="תעודות משלוח"
+            loading={issuingDocs}
             onClick={handleIssueDeliveryNotes}
-            className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm disabled:opacity-60"
-          >
-            <ChevronLeft className="size-4 shrink-0 text-primary" />
-            <span className="flex min-w-0 flex-col items-end gap-0.5">
-              <span className="text-[12px] leading-tight font-bold text-heading">תעודות משלוח</span>
-              <span className="text-[10px] font-medium text-muted-foreground">{issuingDocs ? "מפיק..." : "הפקה"}</span>
-            </span>
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Receipt className="size-5" />
-            </span>
-          </button>
+          />
         </div>
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
@@ -242,24 +234,24 @@ function AdminHomePage() {
 function PrintReportButton({
   icon,
   title,
+  loading,
   onClick,
 }: {
   icon: React.ReactNode;
   title: string;
+  loading?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm"
+      disabled={loading}
+      className="flex flex-col items-center justify-between rounded-[18px] border border-border bg-white px-1 py-3 shadow-sm active:scale-95 transition-transform duration-75 disabled:opacity-60"
     >
-      <ChevronLeft className="size-4 shrink-0 text-primary" />
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="text-[12.5px] leading-tight font-bold text-heading">{title}</span>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          {icon}
-        </span>
+      <span className="text-[10px] leading-none font-bold text-primary text-center">{title}</span>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+        {loading ? <Spinner className="border-primary/40 border-t-primary" /> : icon}
       </span>
     </button>
   );
