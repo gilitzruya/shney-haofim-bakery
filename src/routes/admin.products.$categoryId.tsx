@@ -197,56 +197,198 @@ function NewProductForm({
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
+  const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState<Unit>("unit");
+  const [minQty, setMinQty] = useState("");
+  const [weight, setWeight] = useState("");
+  const [note, setNote] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const pickImage = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      setImageUrl(await fileToCompressedDataUrl(file));
+    } catch {
+      setError("לא הצלחנו לטעון את התמונה");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const submit = () => {
-    const parsed = Number(price);
+    const parsedPrice = Number(price);
+    const parsedMin = minQty.trim() ? Number(minQty) : NaN;
+    const parsedWeight = weight.trim() ? Number(weight) : NaN;
+
     if (!name.trim()) return setError("יש להזין שם מוצר");
-    if (Number.isNaN(parsed) || parsed <= 0) return setError("יש להזין מחיר תקין");
+    if (!sku.trim()) return setError("יש להזין קוד מוצר");
+    if (!price.trim() || Number.isNaN(parsedPrice) || parsedPrice <= 0)
+      return setError("יש להזין מחיר תקין");
+    if (minQty.trim() && (Number.isNaN(parsedMin) || parsedMin <= 0))
+      return setError("כמות מינימום חייבת להיות מספר חיובי");
+    if (weight.trim() && (Number.isNaN(parsedWeight) || parsedWeight <= 0))
+      return setError("משקל חייב להיות מספר חיובי");
+
     setError(null);
+    const defaultMin = unit === "kg" ? 0.5 : 1;
     onCreate({
       name: name.trim(),
+      sku: sku.trim(),
       unit,
-      price: Math.round(parsed * 100) / 100,
-      minQty: unit === "kg" ? 0.5 : 1,
+      price: Math.round(parsedPrice * 100) / 100,
+      minQty: Number.isNaN(parsedMin) ? defaultMin : parsedMin,
       step: unit === "kg" ? 0.5 : 1,
       quickAdd: unit === "kg" ? 1 : 5,
       available: true,
+      ...(Number.isNaN(parsedWeight) ? {} : { weightGrams: parsedWeight }),
+      ...(note.trim() ? { note: note.trim() } : {}),
+      ...(imageUrl ? { imageUrl } : {}),
     });
   };
 
   return (
-    <Card className="mt-3 flex flex-col gap-2.5">
-      <div className="text-[12px] font-semibold text-muted-foreground">מוצר חדש</div>
-      <div className="grid gap-2.5 md:grid-cols-3">
-        <FormField label="שם המוצר">
-          <TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="לדוגמה: לחם כוסמין" />
-        </FormField>
-        <FormField label="מחיר (₪)">
-          <TextInput value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
-        </FormField>
-        <FormField label="יחידת מכירה">
-          <div className="flex gap-2">
-            <Button size="sm" variant={unit === "unit" ? "primary" : "ghost"} onClick={() => setUnit("unit")}>
-              יחידה
-            </Button>
-            <Button size="sm" variant={unit === "kg" ? "primary" : "ghost"} onClick={() => setUnit("kg")}>
-              ק״ג
-            </Button>
-          </div>
-        </FormField>
+    <Card className="mt-3 flex flex-col gap-0 p-0 overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border bg-primary-soft px-3.5 py-3">
+        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Plus className="size-4" />
+        </div>
+        <div>
+          <div className="text-[14px] font-bold text-heading">הוספת מוצר חדש</div>
+          <div className="text-[11.5px] text-muted-foreground">שדות המסומנים ב-* הם חובה</div>
+        </div>
       </div>
-      {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
-      <div className="flex items-center gap-2">
-        <Button size="sm" onClick={submit}>
-          הוספת מוצר
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          ביטול
-        </Button>
+
+      <div className="flex flex-col gap-4 px-3.5 py-4">
+        {/* Image */}
+        <div className="flex items-center gap-3">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt="תמונת המוצר"
+              className="size-[84px] shrink-0 rounded-[12px] border border-border object-contain"
+            />
+          ) : (
+            <ProductPlaceholder />
+          )}
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-[12px] font-semibold text-muted-foreground">תמונת מוצר (רשות)</span>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="ghost" onClick={() => fileRef.current?.click()}>
+                <ImagePlus className="size-4" />
+                {uploading ? "מעלה…" : imageUrl ? "החלפת תמונה" : "העלאת תמונה"}
+              </Button>
+              {imageUrl ? (
+                <Button size="sm" variant="ghost" onClick={() => setImageUrl(null)}>
+                  הסרה
+                </Button>
+              ) : null}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => void pickImage(e.target.files?.[0])}
+            />
+          </div>
+        </div>
+
+        {/* Required */}
+        <div className="flex flex-col gap-3">
+          <div className="text-[11.5px] font-bold text-primary">פרטי חובה</div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="שם המוצר *">
+              <TextInput
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="לדוגמה: לחם כוסמין"
+              />
+            </FormField>
+            <FormField label="קוד מוצר *">
+              <TextInput
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                placeholder="לדוגמה: 1048"
+                inputMode="numeric"
+              />
+            </FormField>
+            <FormField label="יחידת הזמנה *">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant={unit === "unit" ? "primary" : "ghost"}
+                  onClick={() => setUnit("unit")}
+                >
+                  יחידה
+                </Button>
+                <Button size="sm" variant={unit === "kg" ? "primary" : "ghost"} onClick={() => setUnit("kg")}>
+                  ק״ג
+                </Button>
+              </div>
+            </FormField>
+            <FormField label="מחיר ליחידה (₪) *">
+              <TextInput
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                inputMode="decimal"
+                placeholder="0.00"
+              />
+            </FormField>
+          </div>
+        </div>
+
+        {/* Optional */}
+        <div className="flex flex-col gap-3 border-t border-border pt-3.5">
+          <div className="text-[11.5px] font-bold text-muted-foreground">פרטים נוספים (רשות)</div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="כמות מינימום להזמנה" hint={unit === "kg" ? "ברירת מחדל: 0.5 ק״ג" : "ברירת מחדל: יחידה אחת"}>
+              <TextInput
+                value={minQty}
+                onChange={(e) => setMinQty(e.target.value)}
+                inputMode="decimal"
+                placeholder={unit === "kg" ? "0.5" : "1"}
+              />
+            </FormField>
+            <FormField label="משקל (גרם)">
+              <TextInput
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                inputMode="numeric"
+                placeholder="לדוגמה: 500"
+              />
+            </FormField>
+          </div>
+          <FormField label="הערות למוצר">
+            <TextArea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="לדוגמה: מחמצת טבעית, זמן אפייה ארוך"
+              className="min-h-[68px]"
+            />
+          </FormField>
+        </div>
+
+        {error ? (
+          <div className="rounded-xl bg-destructive/10 px-3 py-2 text-[12px] font-semibold text-destructive">
+            {error}
+          </div>
+        ) : null}
+
+        <div className="flex items-center gap-2 border-t border-border pt-3.5">
+          <Button size="sm" onClick={submit} className="flex-1">
+            שמירת המוצר
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onCancel}>
+            ביטול
+          </Button>
+        </div>
       </div>
     </Card>
   );
 }
+
