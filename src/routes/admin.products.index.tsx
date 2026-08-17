@@ -101,7 +101,7 @@ function AdminProductsPage() {
           </div>
         </Card>
 
-        <div className="mt-4 flex flex-col gap-2">
+        <div className="mt-4 flex flex-col gap-3">
           {!hydrated ? null : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={catalog.map((c) => c.id)} strategy={verticalListSortingStrategy}>
