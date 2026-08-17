@@ -21,7 +21,6 @@ import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
-import { Tabs } from "@/components/app/tabs";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { roundLabel, WEEKDAY_LABELS } from "@/data/catalog";
 import { useStore } from "@/store/app-store";
