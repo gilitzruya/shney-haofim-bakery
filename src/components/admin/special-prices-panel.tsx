@@ -164,8 +164,8 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex flex-col items-stretch gap-1">
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
                     <span className="relative block">
                       <span className="pointer-events-none absolute start-2 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-muted-foreground">
                         ₪
@@ -183,31 +183,30 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
                         )}
                       />
                     </span>
-                    {isDirty ? (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={() => save(product.id, draftValue, price)}
-                        disabled={!draftValid}
-                        className="h-7 text-[11px] font-semibold"
-                      >
-                        שמור
-                      </Button>
-                    ) : (
-                      <span className="flex h-7 items-center justify-center text-[10px] font-medium text-muted-foreground">
-                        נשמר
-                      </span>
-                    )}
+                    <button
+                      type="button"
+                      aria-label={`הסרת המחיר המיוחד ל${product.name}`}
+                      onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
+                      className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    aria-label={`הסרת המחיר המיוחד ל${product.name}`}
-                    onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
-                    className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
+                  {isDirty && draftValid ? (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={() => save(product.id, draftValue, price)}
+                      className="h-7 w-full text-[11px] font-semibold"
+                    >
+                      שמור
+                    </Button>
+                  ) : savedIds.has(product.id) ? (
+                    <span className="flex h-7 items-center justify-center text-[10px] font-semibold text-success">
+                      נשמר
+                    </span>
+                  ) : null}
+                </div>
                 </div>
               </div>
             );
