@@ -76,7 +76,7 @@ function AdminCutoffPage() {
 
         <Button
           variant="secondary"
-          className="mt-6 w-full"
+          className="mt-6 w-full md:w-auto"
           onClick={() => {
             resetCutoffRules();
             setEditing(null);
@@ -344,7 +344,7 @@ function ExceptionsSection() {
             <div className="mt-3 flex gap-2">
               <Button
                 variant="destructive"
-                className="flex-1"
+                className="flex-1 md:flex-initial md:w-auto"
                 onClick={() => {
                   removeCutoffException(pendingDelete);
                   setPendingDelete(null);
@@ -353,7 +353,7 @@ function ExceptionsSection() {
               >
                 מחיקה
               </Button>
-              <Button variant="secondary" className="flex-1" onClick={() => setPendingDelete(null)}>
+              <Button variant="secondary" className="flex-1 md:flex-initial md:w-auto" onClick={() => setPendingDelete(null)}>
                 ביטול
               </Button>
             </div>

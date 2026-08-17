@@ -273,7 +273,7 @@ function CustomerDetailPage() {
                 </div>
                 <Button
                   variant="secondary"
-                  className="mt-3 w-full font-semibold"
+                  className="mt-3 w-full md:w-auto font-semibold"
                   onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
                 >
                   {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
@@ -291,7 +291,7 @@ function CustomerDetailPage() {
                 <button
                   type="button"
                   onClick={() => setInviteOpen(true)}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[12px] bg-[#25D366] px-3 py-3 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+                  className="mt-3 inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-[12px] bg-[#25D366] px-3 py-3 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
                 >
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/20">
                     <WhatsAppIcon className="size-5" />

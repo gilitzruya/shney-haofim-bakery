@@ -163,11 +163,11 @@ export function CustomerForm({
       {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
 
       <div className="flex gap-2.5">
-        <Button className="flex-1" onClick={submit}>
+        <Button className="flex-1 md:flex-initial md:w-auto" onClick={submit}>
           {submitLabel}
         </Button>
         {onCancel ? (
-          <Button variant="secondary" className="flex-1 font-semibold" onClick={onCancel}>
+          <Button variant="secondary" className="flex-1 md:flex-initial md:w-auto font-semibold" onClick={onCancel}>
             ביטול
           </Button>
         ) : null}

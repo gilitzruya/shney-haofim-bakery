@@ -172,7 +172,7 @@ function AdminOrdersPage() {
             </div>
           </div>
           <Button
-            className="flex-1"
+            className="flex-1 md:flex-initial md:w-auto"
             onClick={issueTargets}
             loading={issuing}
             disabled={!hydrated || pendingIds.length === 0}

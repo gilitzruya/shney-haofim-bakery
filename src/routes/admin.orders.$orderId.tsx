@@ -377,7 +377,7 @@ function AdminOrderDetailPage() {
             <Button variant="secondary" size="lg" className="font-semibold" onClick={() => setEditing(false)}>
               ביטול העריכה
             </Button>
-            <Button size="lg" className="flex-1" onClick={promptSave}>
+            <Button size="lg" className="flex-1 md:flex-initial md:w-auto" onClick={promptSave}>
               שמירת השינויים
             </Button>
           </div>

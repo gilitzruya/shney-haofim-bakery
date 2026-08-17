@@ -106,15 +106,15 @@ export function CustomerInviteModal({
         </label>
 
         <div className="flex gap-2.5">
-          <Button variant="secondary" className="flex-1 font-semibold py-2.5" onClick={copy}>
+          <Button variant="secondary" className="flex-1 md:flex-initial md:w-auto font-semibold py-2.5" onClick={copy}>
             <Copy className="size-4" />
             העתקה
           </Button>
           <Button
-            className="flex-1 gap-2 bg-[#25D366] hover:bg-[#1ebe57] text-white py-2.5"
+            className="flex-1 md:flex-initial md:w-auto gap-2 bg-[#25D366] hover:bg-[#1ebe57] text-white py-2.5"
             onClick={send}
           >
-            <span className="flex size-7 items-center justify-center rounded-full bg-white/20">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/20">
               <WhatsAppIcon className="size-5" />
             </span>
             שליחה ללקוח
