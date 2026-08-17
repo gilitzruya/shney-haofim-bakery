@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronLeft,
   FileText,
+  Receipt,
   RefreshCw,
   Truck,
   Users,
@@ -45,11 +46,12 @@ export const Route = createFileRoute("/admin/")({
 type PrintTarget = "production" | "distribution" | null;
 
 function AdminHomePage() {
-  const { hydrated } = useStore();
+  const { hydrated, issueDocuments, documentsForOrder } = useStore();
   const date = tomorrowIso();
   const views = useAllAdminOrderViews();
 
   const [pendingPrint, setPendingPrint] = useState<PrintTarget>(null);
+  const [issuingDocs, setIssuingDocs] = useState(false);
 
   const summary = useMemo(() => {
     const forDate = views.filter((v) => ordersForDate([v.order], date).length > 0);
@@ -71,6 +73,24 @@ function AdminHomePage() {
     }, 250);
     return () => window.clearTimeout(id);
   }, [pendingPrint]);
+
+  const handleIssueDeliveryNotes = async () => {
+    if (issuingDocs) return;
+    const pendingOrderIds = tomorrowViews
+      .filter((v) => {
+        if (v.order.status === "cancelled" || v.order.status === "draft") return false;
+        const existing = documentsForOrder(v.order.id).find((d) => d.type === "delivery_note");
+        return !existing;
+      })
+      .map((v) => v.order.id);
+    if (pendingOrderIds.length === 0) return;
+    setIssuingDocs(true);
+    try {
+      await issueDocuments(pendingOrderIds, "delivery_note");
+    } finally {
+      setIssuingDocs(false);
+    }
+  };
 
   const todayIntake = useMemo(
     () =>
@@ -103,19 +123,34 @@ function AdminHomePage() {
       {pendingPrint === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
-        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={tomorrowViews} />
+        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? tomorrowViews : []} />
 
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-3 gap-3">
           <PrintReportButton
             icon={<Truck className="size-5" />}
-            title="הדפסת דוח חלוקה"
+            title="דוח חלוקה"
             onClick={() => setPendingPrint("distribution")}
           />
           <PrintReportButton
             icon={<FileText className="size-5" />}
-            title="הדפסת דוח אפייה / ייצור"
+            title="דוח אפייה"
             onClick={() => setPendingPrint("production")}
           />
+          <button
+            type="button"
+            disabled={issuingDocs}
+            onClick={handleIssueDeliveryNotes}
+            className="flex items-center justify-between gap-2 rounded-[18px] border border-primary/20 bg-primary-soft px-3 py-3.5 text-start shadow-sm disabled:opacity-60"
+          >
+            <ChevronLeft className="size-4 shrink-0 text-primary" />
+            <span className="flex min-w-0 flex-col items-end gap-0.5">
+              <span className="text-[12px] leading-tight font-bold text-heading">תעודות משלוח</span>
+              <span className="text-[10px] font-medium text-muted-foreground">{issuingDocs ? "מפיק..." : "הפקה"}</span>
+            </span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Receipt className="size-5" />
+            </span>
+          </button>
         </div>
 
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
