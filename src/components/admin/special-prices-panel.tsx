@@ -1,4 +1,4 @@
-import { ChevronDown, Pencil, Plus, Search, Tag, Trash2, X } from "lucide-react";
+import { ChevronDown, Plus, Search, Tag, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/app/button";
@@ -7,6 +7,7 @@ import { allProducts } from "@/data/catalog";
 import type { Customer } from "@/data/admin-seed";
 import { overrideEntries } from "@/lib/admin/pricing";
 import { formatPrice, unitLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store/app-store";
 
 const COLLAPSED_COUNT = 3;
@@ -33,14 +34,21 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
 
   const setDraft = (id: string, value: string) => setDrafts((d) => ({ ...d, [id]: value }));
 
-  const commit = (productId: string, raw: string | undefined, fallback: number) => {
+  const save = (productId: string, raw: string, fallback: number) => {
     const parsed = Number(raw);
-    if (raw === undefined || raw === "" || Number.isNaN(parsed) || parsed <= 0) {
+    if (raw === "" || Number.isNaN(parsed) || parsed <= 0) {
       setDraft(productId, fallback.toFixed(2));
       return;
     }
     setCustomerPriceOverride(customer.id, productId, Math.round(parsed * 100) / 100);
     setDraft(productId, parsed.toFixed(2));
+  };
+
+  const resetIfInvalid = (productId: string, raw: string, fallback: number) => {
+    const parsed = Number(raw);
+    if (raw === "" || Number.isNaN(parsed) || parsed <= 0) {
+      setDraft(productId, fallback.toFixed(2));
+    }
   };
 
   return (
@@ -128,52 +136,72 @@ export function SpecialPricesPanel({ customer }: { customer: Customer }) {
         </div>
       ) : (
         <div className="divide-y divide-border border-t border-border">
-          {visible.map(({ product, price }) => (
-            <div key={product.id} className="flex items-center gap-2.5 px-3.5 py-3">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-semibold text-heading">{product.name}</div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[11.5px]">
-                  <span className="text-muted-foreground line-through">{formatPrice(product.price)}</span>
-                  <span className="font-bold text-primary">{formatPrice(price)}</span>
-                  <span className="text-muted-foreground">ל{unitLabel(product.unit)}</span>
+          {visible.map(({ product, price }) => {
+            const draftValue = drafts[product.id] ?? price.toFixed(2);
+            const isDirty = draftValue !== price.toFixed(2);
+            const parsedDraft = Number(draftValue);
+            const draftValid = draftValue !== "" && !Number.isNaN(parsedDraft) && parsedDraft > 0;
+            const shownSpecial = isDirty && draftValid ? parsedDraft : price;
+
+            return (
+              <div key={product.id} className="flex items-center gap-2 px-3.5 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-semibold text-heading">{product.name}</div>
+                  <div className="mt-0.5 flex items-center gap-1.5 text-[11.5px]">
+                    <span className="text-muted-foreground line-through">{formatPrice(product.price)}</span>
+                    <span className="font-bold text-primary">{formatPrice(shownSpecial)}</span>
+                    <span className="text-muted-foreground">ל{unitLabel(product.unit)}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-stretch gap-1">
+                    <span className="relative block">
+                      <span className="pointer-events-none absolute start-2 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-muted-foreground">
+                        ₪
+                      </span>
+                      <TextInput
+                        value={draftValue}
+                        onChange={(e) => setDraft(product.id, e.target.value)}
+                        onBlur={() => resetIfInvalid(product.id, draftValue, price)}
+                        inputMode="decimal"
+                        className={cn(
+                          "h-9 w-[92px] ps-6 text-center text-[13.5px] font-bold outline-none transition-colors",
+                          isDirty
+                            ? "border-primary bg-primary-soft/40 text-primary focus:border-primary"
+                            : "border-border bg-card text-foreground focus:border-primary",
+                        )}
+                      />
+                    </span>
+                    {isDirty ? (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => save(product.id, draftValue, price)}
+                        disabled={!draftValid}
+                        className="h-7 text-[11px] font-semibold"
+                      >
+                        שמור
+                      </Button>
+                    ) : (
+                      <span className="flex h-7 items-center justify-center text-[10px] font-medium text-muted-foreground">
+                        נשמר
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label={`הסרת המחיר המיוחד ל${product.name}`}
+                    onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
+                    className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
                 </div>
               </div>
-
-              <label className="shrink-0" aria-label={`מחיר מיוחד ל${product.name}`}>
-                <span className="mb-0.5 flex items-center justify-center gap-1 text-[10px] font-semibold text-primary">
-                  <Pencil className="size-3" />
-                  עריכת מחיר
-                </span>
-                <span className="relative block">
-                  <span className="pointer-events-none absolute start-2 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-muted-foreground">
-                    ₪
-                  </span>
-                  <TextInput
-                    value={drafts[product.id] ?? price.toFixed(2)}
-                    onChange={(e) => {
-                      setDraft(product.id, e.target.value);
-                      const parsed = Number(e.target.value);
-                      if (e.target.value !== "" && !Number.isNaN(parsed) && parsed > 0) {
-                        setCustomerPriceOverride(customer.id, product.id, Math.round(parsed * 100) / 100);
-                      }
-                    }}
-                    onBlur={(e) => commit(product.id, e.target.value, price)}
-                    inputMode="decimal"
-                    className="h-9 w-[86px] border-primary bg-primary-soft/40 ps-6 text-center text-[13.5px] font-bold text-primary"
-                  />
-                </span>
-              </label>
-
-              <button
-                type="button"
-                aria-label={`הסרת המחיר המיוחד ל${product.name}`}
-                onClick={() => setCustomerPriceOverride(customer.id, product.id, null)}
-                className="mt-3.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-border text-destructive"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
 
 
           {entries.length > COLLAPSED_COUNT ? (
