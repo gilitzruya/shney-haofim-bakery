@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
+import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { Section } from "@/components/app/app-shell";
 import { useStore } from "@/store/app-store";
 
@@ -23,6 +25,15 @@ export const Route = createFileRoute("/admin/customers/new")({
 function NewCustomerPage() {
   const { addCustomer } = useStore();
   const navigate = useNavigate();
+  const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
+
+  const setDraftOverride = (productId: string, price: number | null) =>
+    setPriceOverrides((prev) => {
+      const next = { ...prev };
+      if (price === null) delete next[productId];
+      else next[productId] = price;
+      return next;
+    });
 
   return (
     <AdminShell>
@@ -47,9 +58,18 @@ function NewCustomerPage() {
               address: v.address,
               contacts: [{ name: v.contactName, phone: v.phone, email: v.email }],
               allowedRounds: v.allowedRounds,
+              ...(Object.keys(priceOverrides).length ? { priceOverrides } : {}),
             });
             void navigate({ to: "/admin/customers/$customerId", params: { customerId: created.id } });
           }}
+          extra={
+            <div className="flex flex-col gap-2">
+              <div className="text-[12.5px] font-semibold text-muted-foreground">
+                אפשר להגדיר כבר עכשיו מחירים מיוחדים ללקוח — הם יישמרו יחד עם פרטי הלקוח.
+              </div>
+              <SpecialPricesPanel draftOverrides={priceOverrides} onDraftChange={setDraftOverride} />
+            </div>
+          }
         />
       </Section>
     </AdminShell>

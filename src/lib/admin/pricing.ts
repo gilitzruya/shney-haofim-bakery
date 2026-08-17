@@ -28,8 +28,12 @@ export interface OverrideEntry {
 
 /** רשימת החריגות של הלקוח בלבד, ממוינת לפי שם המוצר. */
 export function overrideEntries(customer: Customer | undefined): OverrideEntry[] {
-  const map = customer?.priceOverrides ?? {};
-  return Object.entries(map)
+  return overrideEntriesFromMap(customer?.priceOverrides);
+}
+
+/** רשימת חריגות מתוך מפת מחירים (גם ללקוח שטרם נשמר). */
+export function overrideEntriesFromMap(map: Record<string, number> | undefined): OverrideEntry[] {
+  return Object.entries(map ?? {})
     .map(([productId, price]) => {
       const product = findProduct(productId);
       return product ? { product, price } : null;

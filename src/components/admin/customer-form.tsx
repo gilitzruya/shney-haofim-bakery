@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/app/button";
 import { FormField, TextInput } from "@/components/app/form-controls";
@@ -36,11 +36,14 @@ export function CustomerForm({
   submitLabel,
   onSubmit,
   onCancel,
+  extra,
 }: {
   initial: CustomerFormValues;
   submitLabel: string;
   onSubmit: (values: CustomerFormValues) => void;
   onCancel?: (() => void) | undefined;
+  /** תוכן נוסף שמוצג לפני כפתורי השמירה (למשל מחירון מיוחד) */
+  extra?: ReactNode;
 }) {
   const [values, setValues] = useState(initial);
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +157,8 @@ export function CustomerForm({
           </button>
         </div>
       </div>
+
+      {extra}
 
       {error ? <div className="text-[12px] font-semibold text-destructive">{error}</div> : null}
 
