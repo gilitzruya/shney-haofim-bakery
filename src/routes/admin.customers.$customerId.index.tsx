@@ -39,7 +39,7 @@ export const Route = createFileRoute("/admin/customers/$customerId/")({
   component: CustomerDetailPage,
 });
 
-type TabId = "details" | "prices";
+
 
 /** שורת מידע אחידה בכרטיס הלקוח. */
 function InfoRow({ icon, label, value, ltr }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean }) {
@@ -61,7 +61,7 @@ function CustomerDetailPage() {
   const { customers, hydrated, updateCustomer, setCustomerBlocked, adminRecurring, removeAdminRecurring } = useStore();
   const customer = customers.find((c) => c.id === customerId);
   const [editing, setEditing] = useState(false);
-  const [tab, setTab] = useState<TabId>("details");
+  const [showPrices, setShowPrices] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
 
   if (!customer) {
