@@ -20,7 +20,7 @@ import {
   type CutoffRule,
 } from "@/lib/admin/cutoff-rules";
 
-const STORAGE_KEY = "bakery-demo-state:v20";
+const STORAGE_KEY = "bakery-demo-state:v21";
 
 /** הזמנה קבועה שנוצרה על ידי המאפייה בשם לקוח מסוים. */
 export interface AdminRecurringOrder {
