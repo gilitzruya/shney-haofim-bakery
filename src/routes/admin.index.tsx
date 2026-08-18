@@ -210,7 +210,7 @@ function AdminHomePage() {
             )}
           </div>
 
-          {hydrated && todayIntake.length > 3 ? (
+          {hydrated && todayIntake.length > 6 ? (
             <button
               type="button"
               aria-expanded={intakeExpanded}
