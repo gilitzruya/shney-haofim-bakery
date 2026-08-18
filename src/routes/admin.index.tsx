@@ -123,7 +123,7 @@ function AdminHomePage() {
     [views],
   );
   const [intakeExpanded, setIntakeExpanded] = useState(false);
-  const visibleIntake = intakeExpanded ? todayIntake : todayIntake.slice(0, 3);
+  const visibleIntake = intakeExpanded ? todayIntake : todayIntake.slice(0, 6);
 
   const attention = useMemo(() => {
     const drafts = views.filter((v) => v.order.status === "draft").length;
