@@ -198,34 +198,28 @@ function variation(seed: string, base: number): number {
   return Math.max(1, base + delta);
 }
 
-const DAYS_AHEAD = 14;
+/** מספר ההזמנות בדמו — כמות קטנה שנוחה לבדיקה. */
+const DEMO_ORDERS_COUNT = 6;
 
 /**
- * הזמנות דמו לשבועיים הקרובים, נבנות ביחס ל"מחר".
- * offset 0 = מחר. שבת (6) מדולגת — אין אספקה.
+ * הזמנות דמו ליום האספקה הקרוב בלבד (offset 0 = מחר) — שש הזמנות סה״כ.
  */
 export function buildAdminOrders(dateForOffset: (offset: number) => string): Order[] {
-  const orders: Order[] = [];
-  for (let offset = 0; offset < DAYS_AHEAD; offset += 1) {
-    const date = dateForOffset(offset);
-    const weekday = new Date(`${date}T00:00:00`).getDay();
-    if (weekday === 6) continue;
-    for (const plan of PLANS) {
-      if (!plan.weekdays.includes(weekday)) continue;
-      const id = `ao-${date}-${plan.customerId}-${plan.round}`;
-      orders.push({
-        id,
-        customerId: plan.customerId,
-        date,
-        round: plan.round,
-        status: "approved",
-        lines: plan.lines.map((l) => ({
-          productId: l.productId,
-          qty: variation(`${id}-${l.productId}`, l.qty),
-        })),
-        createdFrom: "manual" as const,
-      });
-    }
-  }
-  return orders;
+  const date = dateForOffset(0);
+  return PLANS.slice(0, DEMO_ORDERS_COUNT).map((plan) => {
+    const id = `ao-${date}-${plan.customerId}-${plan.round}`;
+    return {
+      id,
+      customerId: plan.customerId,
+      date,
+      round: plan.round,
+      status: "approved" as const,
+      lines: plan.lines.map((l) => ({
+        productId: l.productId,
+        qty: variation(`${id}-${l.productId}`, l.qty),
+      })),
+      createdFrom: "manual" as const,
+    };
+  });
 }
+
