@@ -1,123 +1,38 @@
-# Bakery Design Digest
+# מאפיית שני האופים — מערכת הזמנות סיטונאית
 
-Analyze the attached ZIP package containing the complete approved Claude Design handoff for the Hebrew B2B bakery ordering application.
+אפליקציית web בעברית (RTL, mobile-first, PWA) לניהול הזמנות סיטונאיות של מאפיית שני האופים.
+לקוחות עסקיים מזמינים מוצרים; בעל המאפייה מנהל הזמנות ודוחות תחת `/admin`.
 
-The package includes:
+הפרויקט נבנה מחדש על תשתית Supabase (Postgres + Auth + Storage + Realtime), אחרי ניתוק
+מלא מאב-הטיפוס שנוצר ב-Lovable. פירוט מלא של הכללים העסקיים, מודל הנתונים ותוכנית העבודה
+נמצא ב-[docs/PRD.md](docs/PRD.md) וב-[docs/WORK_PLAN.md](docs/WORK_PLAN.md).
 
-README.md
+## פיתוח
 
-15 approved screen HTML files
+מנהל החבילות הוא [bun](https://bun.sh).
 
-screenshots for all screens
-
-image assets
-
-For this step, work in Plan Mode only.
-Do not build or modify the application yet.
-
-Your task:
-
-Extract and inspect the entire ZIP package.
-
-Read README.md first and treat it as the main handoff document.
-
-Match every HTML file with its corresponding screenshot.
-
-Create a complete inventory of all screens.
-
-Identify the navigation and user flow between the screens.
-
-Identify shared visual components, including:
-
-application header
-
-buttons
-
-status chips
-
-cards
-
-product cards
-
-quantity controls
-
-search field
-
-category navigation
-
-order summary elements
-
-dialogs and messages
-
-Identify shared design tokens:
-
-colors
-
-typography
-
-spacing
-
-border radii
-
-shadows
-
-Identify duplicated or conflicting component versions across the HTML files.
-
-Propose how to combine all 15 screens into one unified React and TypeScript application.
-
-Prepare a phased implementation plan.
-
-Important constraints:
-
-This must become one single Lovable project.
-
-Do not create separate projects for different screens.
-
-Preserve the approved designs as closely as possible.
-
-Do not redesign the application.
-
-Use the screenshots as the visual source of truth.
-
-Use the HTML files as structural and implementation references.
-
-Preserve Hebrew RTL throughout the application.
-
-Create reusable shared components instead of duplicating components per page.
-
-Use realistic mock data and frontend state only.
-
-Do not connect Supabase, Lovable Cloud, authentication or any backend.
-
-Do not implement anything until I review and approve the plan.
-
-At the end, tell me:
-
-whether all 15 screens were successfully extracted and understood
-
-whether any files or assets are missing
-
-which screens or component versions conflict
-
-whether you can reproduce the full application faithfully from this package
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/7b4cb2b3-1f3b-497b-8a82-28968e1aed90).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+```bash
+bun install          # התקנת תלויות
+bun run dev           # הרצת סביבת פיתוח (Vite)
+bun run build         # בניית production
+bun run lint          # ESLint
+bun run format        # Prettier
+supabase start        # סטאק Supabase מקומי (דורש Docker)
+supabase db reset     # איפוס DB מקומי + הרצת כל המיגרציות מחדש
 ```
+
+## מבנה
+
+```
+src/routes/          # מסלולים (file-based, TanStack Router)
+src/components/app/   # רכיבי UI לצד הלקוח
+src/components/admin/ # רכיבי UI לצד הניהול
+src/lib/              # לוגיקה טהורה + שכבת API
+supabase/             # מיגרציות, RLS, seed
+docs/                 # PRD.md + WORK_PLAN.md
+```
+
+## פריסה
+
+Vercel (TanStack Start / nitro `vercel` preset) + Supabase מאוחסן. פירוט מלא בשלב 7 של
+[WORK_PLAN.md](docs/WORK_PLAN.md).

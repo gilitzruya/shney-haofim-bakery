@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
-import logo from "@/assets/bakery-logo.png.asset.json";
+import logo from "@/assets/bakery-logo.png";
 import { cn } from "@/lib/utils";
 
 export const ADMIN_NAV = [
@@ -66,7 +66,7 @@ function AdminHeader() {
         </nav>
 
         <Link to="/admin" className="flex min-w-0 items-center gap-2 no-underline">
-          <img src={logo.url} alt="לוגו מאפיית שני האופים" className="size-[34px] shrink-0 object-contain md:size-[38px]" />
+          <img src={logo} alt="לוגו מאפיית שני האופים" className="size-[34px] shrink-0 object-contain md:size-[38px]" />
         </Link>
       </div>
       {open ? <AdminSideMenu onClose={() => setOpen(false)} /> : null}

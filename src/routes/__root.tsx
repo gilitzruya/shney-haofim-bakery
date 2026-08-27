@@ -9,9 +9,9 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppStoreProvider } from "@/store/app-store";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaInstallPrompt } from "@/components/app/pwa-install-prompt";
 
 function NotFoundComponent() {
   return (
@@ -36,9 +36,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -79,6 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#8E3B5B" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -89,6 +87,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -114,12 +114,21 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((error: unknown) => {
+        console.error("Service worker registration failed", error);
+      });
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AppStoreProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="bottom-center" dir="rtl" />
+        <PwaInstallPrompt />
       </AppStoreProvider>
     </QueryClientProvider>
   );

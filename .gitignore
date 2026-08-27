@@ -16,9 +16,15 @@ dist-ssr
 .nitro
 *.local
 
-# Wrangler / Cloudflare
-.wrangler/
-.dev.vars
+# Vercel
+.vercel
+
+# Claude Code session-local runtime state (transient, machine-local)
+.claude/worktrees/
+.claude/*.lock
+
+# Supabase local stack
+supabase/.temp
 
 # Editor directories and files
 .vscode/*

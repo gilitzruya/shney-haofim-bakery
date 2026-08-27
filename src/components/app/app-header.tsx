@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
-import logo from "@/assets/bakery-logo.png.asset.json";
+import logo from "@/assets/bakery-logo.png";
 import { useStore } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +41,7 @@ export function AppHeader({ children }: { children?: React.ReactNode | undefined
             <div>שני האופים</div>
           </div>
           <img
-            src={logo.url}
+            src={logo}
             alt="לוגו מאפיית שני האופים"
             className="size-[34px] shrink-0 object-contain md:size-[38px]"
           />
