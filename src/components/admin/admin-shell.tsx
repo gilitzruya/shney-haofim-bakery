@@ -1,11 +1,18 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
+import { IconButton } from "@/components/app/button";
 import logo from "@/assets/bakery-logo.png";
+import { supabase } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = "/login";
+}
 
 export const ADMIN_NAV = [
   { to: "/admin", label: "דף הבית" },
@@ -63,6 +70,9 @@ function AdminHeader() {
               {item.label}
             </Link>
           ))}
+          <IconButton label="התנתקות" onClick={() => void logout()}>
+            <LogOut className="size-[16px]" strokeWidth={2.2} />
+          </IconButton>
         </nav>
 
         <Link to="/admin" className="flex min-w-0 items-center gap-2 no-underline">
@@ -111,6 +121,13 @@ function AdminSideMenu({ onClose }: { onClose: () => void }) {
             </Link>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="mt-auto rounded-xl border border-border bg-transparent px-3.5 py-3 text-[12.5px] font-semibold text-muted-foreground"
+        >
+          התנתקות
+        </button>
       </nav>
     </div>
   );

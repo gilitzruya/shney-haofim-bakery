@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
+  redirect,
   useRouter,
   HeadContent,
   Scripts,
@@ -12,6 +13,10 @@ import appCss from "../styles.css?url";
 import { AppStoreProvider } from "@/store/app-store";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaInstallPrompt } from "@/components/app/pwa-install-prompt";
+import { getAuthContext } from "@/lib/auth/auth-context";
+
+const LOGIN_PATH = "/login";
+const roleHome = (role: "customer" | "admin") => (role === "admin" ? "/admin" : "/catalog");
 
 function NotFoundComponent() {
   return (
@@ -65,6 +70,26 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async ({ location }) => {
+    const result = await getAuthContext();
+
+    if (result.status !== "ok") {
+      if (location.pathname !== LOGIN_PATH) {
+        const search: { redirect: string; error?: "no-access" } = { redirect: location.href };
+        if (result.status === "no-access") search.error = "no-access";
+        throw redirect({ to: LOGIN_PATH, search });
+      }
+      return { auth: null };
+    }
+
+    if (location.pathname === LOGIN_PATH) {
+      throw redirect({ to: roleHome(result.role) });
+    }
+
+    const { status: _status, ...auth } = result;
+    return { auth };
+  },
+
   head: () => ({
     meta: [
       { charSet: "utf-8" },

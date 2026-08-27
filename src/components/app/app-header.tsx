@@ -3,8 +3,14 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 import logo from "@/assets/bakery-logo.png";
+import { supabase } from "@/lib/api/client";
 import { useStore } from "@/store/app-store";
 import { cn } from "@/lib/utils";
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = "/login";
+}
 
 const NAV = [
   { to: "/catalog", label: "הזמנה חדשה" },
@@ -92,16 +98,25 @@ function SideMenu({ onClose }: { onClose: () => void }) {
             </Link>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            resetDemoData();
-            onClose();
-          }}
-          className="mt-auto rounded-xl border border-border bg-transparent px-3.5 py-3 text-[12.5px] font-semibold text-muted-foreground"
-        >
-          איפוס נתוני הדמו
-        </button>
+        <div className="mt-auto flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              resetDemoData();
+              onClose();
+            }}
+            className="rounded-xl border border-border bg-transparent px-3.5 py-3 text-[12.5px] font-semibold text-muted-foreground"
+          >
+            איפוס נתוני הדמו
+          </button>
+          <button
+            type="button"
+            onClick={() => void logout()}
+            className="rounded-xl border border-border bg-transparent px-3.5 py-3 text-[12.5px] font-semibold text-muted-foreground"
+          >
+            התנתקות
+          </button>
+        </div>
       </nav>
     </div>
   );

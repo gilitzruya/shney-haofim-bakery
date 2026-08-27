@@ -51,22 +51,34 @@ insert into customer_prices (customer_id, product_id, price) values
 -- deterministically; the shape here matches what GoTrue itself writes for a phone
 -- signup, so a real phone-OTP login in stage 1 finds the same user instead of
 -- colliding with a differently-shaped row.
+-- Phone numbers here deliberately have NO leading "+" — GoTrue normalizes phone
+-- numbers by stripping it before storing/matching (confirmed empirically: signing in
+-- with "+972500000001" looks up "972500000001"). A seeded row stored WITH a "+" never
+-- matches a real signInWithOtp call, silently creates a fresh unrelated auth.users row
+-- instead (since enable_signup=true) and locks the test user out of their own account.
 do $$
 declare
   v_instance_id uuid := '00000000-0000-0000-0000-000000000000';
   v_users jsonb := '[
-    {"id":"11111111-1111-1111-1111-111111111101","phone":"+972500000001"},
-    {"id":"11111111-1111-1111-1111-111111111201","phone":"+972500000002"},
-    {"id":"11111111-1111-1111-1111-111111111202","phone":"+972500000003"},
-    {"id":"11111111-1111-1111-1111-111111111301","phone":"+972500000004"},
-    {"id":"11111111-1111-1111-1111-111111111401","phone":"+972500000005"}
+    {"id":"11111111-1111-1111-1111-111111111101","phone":"972500000001"},
+    {"id":"11111111-1111-1111-1111-111111111201","phone":"972500000002"},
+    {"id":"11111111-1111-1111-1111-111111111202","phone":"972500000003"},
+    {"id":"11111111-1111-1111-1111-111111111301","phone":"972500000004"},
+    {"id":"11111111-1111-1111-1111-111111111401","phone":"972500000005"}
   ]';
   v_user jsonb;
 begin
   for v_user in select * from jsonb_array_elements(v_users) loop
+    -- confirmation_token/recovery_token/email_change_token_new/email_change have no
+    -- column default (NULL) — GoTrue's Go scanner expects non-null strings for every
+    -- one of these token columns and errors ("converting NULL to string is
+    -- unsupported") the moment it reads a row that skipped them, so they must be set
+    -- to '' explicitly here even though this user never goes through email/recovery
+    -- flows.
     insert into auth.users (
       instance_id, id, aud, role, phone, phone_confirmed_at,
       raw_app_meta_data, raw_user_meta_data, is_sso_user, is_anonymous,
+      confirmation_token, recovery_token, email_change_token_new, email_change,
       created_at, updated_at
     ) values (
       v_instance_id,
@@ -74,7 +86,9 @@ begin
       'authenticated', 'authenticated',
       v_user->>'phone', now(),
       '{"provider":"phone","providers":["phone"]}'::jsonb, '{}'::jsonb,
-      false, false, now(), now()
+      false, false,
+      '', '', '', '',
+      now(), now()
     );
 
     insert into auth.identities (

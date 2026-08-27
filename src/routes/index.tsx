@@ -9,8 +9,8 @@ import { formatDate, formatPrice, linesCount, linesTotal, nextOccurrence } from 
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: () => {
-    throw redirect({ to: "/catalog" });
+  beforeLoad: ({ context }) => {
+    throw redirect({ to: context.auth?.role === "admin" ? "/admin" : "/catalog" });
   },
 
   head: () => ({

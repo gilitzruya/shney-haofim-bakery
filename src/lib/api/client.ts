@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -11,4 +11,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Only the publishable/anon key is ever used here — this file is bundled to the
 // browser. The service_role key must never be imported outside server-only code.
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+//
+// `createBrowserClient` (not the plain `createClient`) stores the session in cookies
+// instead of localStorage, so the SSR request on the next navigation can read it via
+// `src/lib/api/server-client.ts` — required for route guards to see auth state before
+// any component renders.
+export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
