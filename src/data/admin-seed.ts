@@ -1,6 +1,19 @@
 import type { RoundId } from "./catalog";
 import type { Order } from "./seed";
 
+/**
+ * Stage 2 moved the catalog to Supabase (`supabase/seed.sql`'s small dev-only test
+ * catalog, 4 products) — this demo customer/order data predates that and referenced
+ * a much richer mock catalog (deleted with `data/catalog.ts`'s `CATEGORIES`).
+ * Remapped onto the real dev-seed product ids so `findProduct` resolves every line;
+ * reduced product variety is fine since this is local seed/demo data only (real
+ * catalog entry is WORK_PLAN stage 7).
+ */
+const SEED_BREAD = "90000000-0000-0000-0000-000000000001";
+const SEED_BAGUETTE = "90000000-0000-0000-0000-000000000002";
+const SEED_CROISSANT = "90000000-0000-0000-0000-000000000003";
+const SEED_CHOCOLATE_CAKE = "90000000-0000-0000-0000-000000000004"; // kg
+
 export interface CustomerContact {
   name: string;
   phone: string;
@@ -43,16 +56,10 @@ export const SEED_CUSTOMERS: Customer[] = [
     contacts: [{ name: "אלמה כהן", phone: "054-2213388", email: "alma@cafe-alma.co.il" }],
     allowedRounds: ["morning"],
     priceOverrides: {
-      c1_2: 5.5,
-      c1_9: 13.9,
-      c1_12: 8.5,
-      c2_1: 1.1,
-      c2_2: 1.45,
-      c3_2: 3.2,
-      c4_1: 0.95,
-      c5_1: 7.9,
-      c6_3: 33.0,
-      c7_1: 31.5,
+      [SEED_BREAD]: 8.5,
+      [SEED_BAGUETTE]: 6.5,
+      [SEED_CROISSANT]: 5.0,
+      [SEED_CHOCOLATE_CAKE]: 55.0,
     },
   },
   {
@@ -122,9 +129,8 @@ const PLANS: CustomerPlan[] = [
     round: "morning",
     weekdays: [0, 1, 2, 3, 4, 5],
     lines: [
-      { productId: "c1_2", qty: 12 },
-      { productId: "c2_1", qty: 60 },
-      { productId: "c5_1", qty: 18 },
+      { productId: SEED_BAGUETTE, qty: 72 },
+      { productId: SEED_BREAD, qty: 18 },
     ],
   },
   {
@@ -132,9 +138,8 @@ const PLANS: CustomerPlan[] = [
     round: "morning",
     weekdays: [0, 1, 2, 3, 4],
     lines: [
-      { productId: "c2_1", qty: 90 },
-      { productId: "c4_1", qty: 40 },
-      { productId: "c3_1", qty: 20 },
+      { productId: SEED_BAGUETTE, qty: 90 },
+      { productId: SEED_CROISSANT, qty: 60 },
     ],
   },
   {
@@ -142,10 +147,9 @@ const PLANS: CustomerPlan[] = [
     round: "morning",
     weekdays: [0, 2, 4],
     lines: [
-      { productId: "c1_8", qty: 20 },
-      { productId: "c1_14", qty: 15 },
-      { productId: "c3_1", qty: 30 },
-      { productId: "c4_5", qty: 12 },
+      { productId: SEED_BREAD, qty: 35 },
+      { productId: SEED_CROISSANT, qty: 30 },
+      { productId: SEED_BAGUETTE, qty: 12 },
     ],
   },
   {
@@ -153,9 +157,8 @@ const PLANS: CustomerPlan[] = [
     round: "noon",
     weekdays: [0, 1, 2, 3, 4],
     lines: [
-      { productId: "c1_1", qty: 40 },
-      { productId: "c2_2", qty: 48 },
-      { productId: "c4_11", qty: 16 },
+      { productId: SEED_BAGUETTE, qty: 56 },
+      { productId: SEED_CROISSANT, qty: 48 },
     ],
   },
   {
@@ -163,9 +166,9 @@ const PLANS: CustomerPlan[] = [
     round: "noon",
     weekdays: [1, 3, 5],
     lines: [
-      { productId: "c6_1", qty: 6 },
-      { productId: "c5_1", qty: 25 },
-      { productId: "c2_1", qty: 50 },
+      { productId: SEED_CHOCOLATE_CAKE, qty: 6 },
+      { productId: SEED_BREAD, qty: 25 },
+      { productId: SEED_BAGUETTE, qty: 50 },
     ],
   },
   {
@@ -173,9 +176,8 @@ const PLANS: CustomerPlan[] = [
     round: "noon",
     weekdays: [0, 2, 4],
     lines: [
-      { productId: "c1_12", qty: 18 },
-      { productId: "c1_11", qty: 10 },
-      { productId: "c2_13", qty: 24 },
+      { productId: SEED_CROISSANT, qty: 18 },
+      { productId: SEED_BREAD, qty: 34 },
     ],
   },
   {
@@ -183,9 +185,8 @@ const PLANS: CustomerPlan[] = [
     round: "morning",
     weekdays: [0, 1, 2, 3, 4],
     lines: [
-      { productId: "c1_9", qty: 8 },
-      { productId: "c2_4", qty: 60 },
-      { productId: "c4_1", qty: 50 },
+      { productId: SEED_BREAD, qty: 8 },
+      { productId: SEED_CROISSANT, qty: 110 },
     ],
   },
 ];

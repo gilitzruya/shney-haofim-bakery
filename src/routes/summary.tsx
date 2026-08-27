@@ -12,7 +12,6 @@ import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-ca
 import { DateCalendar } from "@/components/app/date-calendar";
 
 import { findProduct } from "@/data/catalog";
-import { productImage } from "@/data/product-images";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
 import { formatDate, formatLongDate, formatPrice, formatQty, linesTotal, parseDate, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
@@ -215,9 +214,9 @@ function SummaryPage() {
               if (!product) return null;
               return (
                 <Card key={line.productId} className="flex items-center gap-2.5">
-                  {productImage(product.id) ? (
+                  {product.imageUrl ? (
                     <img
-                      src={productImage(product.id)}
+                      src={product.imageUrl}
                       alt={product.name}
                       loading="lazy"
                       className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"

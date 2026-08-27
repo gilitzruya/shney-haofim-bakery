@@ -10,7 +10,6 @@ import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct } from "@/data/catalog";
-import { productImage } from "@/data/product-images";
 import { formatLongDate, formatPrice, formatQty, linesTotal } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -76,9 +75,9 @@ function OrderDetailsPage() {
             if (!product) return null;
             return (
               <Card key={line.productId} className="flex items-center gap-2.5">
-                {productImage(product.id) ? (
+                {product.imageUrl ? (
                   <img
-                    src={productImage(product.id)}
+                    src={product.imageUrl}
                     alt={product.name}
                     loading="lazy"
                     className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"

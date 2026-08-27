@@ -23,7 +23,6 @@ import { FormField, TextInput, WeekdayChips } from "@/components/app/form-contro
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { findProduct, ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
-import { productImage } from "@/data/product-images";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
@@ -265,9 +264,9 @@ function NewCustomerOrderPage() {
                   const unitPrice = priceFor(customer, product);
                   return (
                     <Card key={line.productId} className="flex items-center gap-2.5">
-                      {productImage(product.id) ? (
+                      {product.imageUrl ? (
                         <img
-                          src={productImage(product.id)}
+                          src={product.imageUrl}
                           alt={product.name}
                           loading="lazy"
                           className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"

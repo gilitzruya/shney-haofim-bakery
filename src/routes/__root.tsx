@@ -14,6 +14,7 @@ import { AppStoreProvider } from "@/store/app-store";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaInstallPrompt } from "@/components/app/pwa-install-prompt";
 import { getAuthContext } from "@/lib/auth/auth-context";
+import { useCatalog } from "@/hooks/use-catalog";
 
 const LOGIN_PATH = "/login";
 const roleHome = (role: "customer" | "admin") => (role === "admin" ? "/admin" : "/catalog");
@@ -136,6 +137,14 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** אין דף שלא צריך אותו: `findProduct`/`linesTotal` (`data/catalog.ts`, `lib/format.ts`)
+ * נצרכים סינכרונית מחוץ ל-React בכל מסלול (הזמנות, דוחות...), לא רק בדפי הקטלוג עצמם —
+ * לכן אינדקס ה-runtime חייב להיטען פעם אחת ברמת ה-root, בלי תלות באיזה מסך נטען ראשון. */
+function CatalogSync() {
+  useCatalog();
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -150,6 +159,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppStoreProvider>
+        <CatalogSync />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="bottom-center" dir="rtl" />

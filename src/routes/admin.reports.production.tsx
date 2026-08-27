@@ -9,7 +9,6 @@ import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { FilterChips } from "@/components/app/tabs";
 import { ROUNDS, roundLabel, type RoundId } from "@/data/catalog";
-import { productImage } from "@/data/product-images";
 import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { buildProductionReport } from "@/lib/admin/reports";
@@ -93,7 +92,7 @@ function ProductionReportPage() {
                 </h2>
                 <ul className="flex flex-col">
                   {group.rows.map((row) => {
-                    const img = productImage(row.product.id);
+                    const img = row.product.imageUrl;
                     return (
                       <li
                         key={row.product.id}

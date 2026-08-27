@@ -1,5 +1,17 @@
-import { CATEGORIES } from "./catalog";
 import type { RoundId } from "./catalog";
+
+/**
+ * Stage 2 moved the catalog to Supabase (`supabase/seed.sql`'s small dev-only test
+ * catalog, 4 products) — this demo order data predates that and referenced a much
+ * richer mock catalog (deleted with `data/catalog.ts`'s `CATEGORIES`). Remapped onto
+ * the real dev-seed product ids so `findProduct` still resolves every line; reduced
+ * product variety here is fine since this is local seed/demo data only (real catalog
+ * entry is WORK_PLAN stage 7).
+ */
+const SEED_BREAD = "90000000-0000-0000-0000-000000000001";
+const SEED_BAGUETTE = "90000000-0000-0000-0000-000000000002";
+const SEED_CROISSANT = "90000000-0000-0000-0000-000000000003";
+const SEED_CHOCOLATE_CAKE = "90000000-0000-0000-0000-000000000004"; // kg
 
 export type OrderStatus = "draft" | "approved" | "needs_update" | "reopened" | "completed" | "cancelled";
 
@@ -51,9 +63,9 @@ export const SEED_ORDERS: Order[] = [
     closed: true,
     createdFrom: "manual",
     lines: [
-      { productId: "c1_1", qty: 15 },
-      { productId: "c2_1", qty: 40 },
-      { productId: "c4_1", qty: 20 },
+      { productId: SEED_BREAD, qty: 15 },
+      { productId: SEED_BAGUETTE, qty: 40 },
+      { productId: SEED_CROISSANT, qty: 20 },
     ],
   },
   {
@@ -64,9 +76,8 @@ export const SEED_ORDERS: Order[] = [
     closed: true,
     createdFrom: "manual",
     lines: [
-      { productId: "c1_1", qty: 10 },
-      { productId: "c5_1", qty: 8 },
-      { productId: "c7_1", qty: 2 },
+      { productId: SEED_BREAD, qty: 18 },
+      { productId: SEED_CHOCOLATE_CAKE, qty: 2 },
     ],
   },
   {
@@ -77,9 +88,8 @@ export const SEED_ORDERS: Order[] = [
     closed: true,
     createdFrom: "recurring",
     lines: [
-      { productId: "c6_1", qty: 3 },
-      { productId: "c6_2", qty: 2 },
-      { productId: "c5_1", qty: 12 },
+      { productId: SEED_CHOCOLATE_CAKE, qty: 5 },
+      { productId: SEED_BREAD, qty: 12 },
     ],
   },
   {
@@ -90,8 +100,8 @@ export const SEED_ORDERS: Order[] = [
     closed: true,
     createdFrom: "manual",
     lines: [
-      { productId: "c2_1", qty: 35 },
-      { productId: "c4_1", qty: 25 },
+      { productId: SEED_BAGUETTE, qty: 35 },
+      { productId: SEED_CROISSANT, qty: 25 },
     ],
   },
   {
@@ -102,8 +112,8 @@ export const SEED_ORDERS: Order[] = [
     closed: true,
     createdFrom: "manual",
     lines: [
-      { productId: "c1_1", qty: 12 },
-      { productId: "c7_3", qty: 2 },
+      { productId: SEED_BREAD, qty: 12 },
+      { productId: SEED_CHOCOLATE_CAKE, qty: 2 },
     ],
   },
   {
@@ -114,14 +124,10 @@ export const SEED_ORDERS: Order[] = [
     closed: true,
     createdFrom: "manual",
     lines: [
-      { productId: "c1_1", qty: 18 },
-      { productId: "c2_1", qty: 45 },
-      { productId: "c5_1", qty: 6 },
+      { productId: SEED_BREAD, qty: 24 },
+      { productId: SEED_BAGUETTE, qty: 45 },
     ],
   },
 ];
 
 export const SEED_RECURRING: RecurringOrder[] = [];
-
-/** Product ids that exist in the catalog, used to flag stale recurring lines. */
-export const CATALOG_PRODUCT_IDS = new Set(CATEGORIES.flatMap((c) => c.products.map((p) => p.id)));

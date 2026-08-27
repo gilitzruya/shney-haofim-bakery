@@ -8,7 +8,6 @@ import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { roundLabel } from "@/data/catalog";
-import { productImage } from "@/data/product-images";
 import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { buildDistributionReport } from "@/lib/admin/reports";
@@ -108,7 +107,7 @@ function DistributionReportPage() {
                     </div>
                     <ul className="flex flex-col">
                       {stop.lines.map((line) => {
-                        const img = productImage(line.product.id);
+                        const img = line.product.imageUrl;
                         return (
                           <li
                             key={line.product.id}

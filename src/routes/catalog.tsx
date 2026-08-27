@@ -12,6 +12,7 @@ import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 
 import { formatPrice, linesTotal } from "@/lib/format";
 import { linesFromQuantities, useStore } from "@/store/app-store";
+import { useCatalog } from "@/hooks/use-catalog";
 
 export const Route = createFileRoute("/catalog")({
   head: () => ({
@@ -37,7 +38,8 @@ function headerOffset() {
 function CatalogPage() {
   const navigate = useNavigate();
   const { copy } = Route.useSearch();
-  const { draft, orders, bumpQty, setQty, startOrderDraft, catalog: CATEGORIES } = useStore();
+  const { draft, orders, bumpQty, setQty, startOrderDraft } = useStore();
+  const { categories: CATEGORIES } = useCatalog();
   const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});

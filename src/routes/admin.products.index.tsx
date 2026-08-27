@@ -17,13 +17,14 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronLeft, GripVertical, Package, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
 import { TextInput } from "@/components/app/form-controls";
-import { useStore } from "@/store/app-store";
+import { useAddCategory, useCatalog, useRemoveCategory, useReorderCategories } from "@/hooks/use-catalog";
 import type { Category } from "@/data/catalog";
 
 export const Route = createFileRoute("/admin/products/")({
@@ -41,7 +42,11 @@ export const Route = createFileRoute("/admin/products/")({
 });
 
 function AdminProductsPage() {
-  const { catalog, hydrated, reorderCategories, addCategory, removeCategory } = useStore();
+  const { categories: catalog, isLoading } = useCatalog();
+  const hydrated = !isLoading;
+  const addCategoryMutation = useAddCategory();
+  const removeCategoryMutation = useRemoveCategory();
+  const reorderCategoriesMutation = useReorderCategories();
   const [newName, setNewName] = useState("");
 
   const sensors = useSensors(
@@ -52,8 +57,16 @@ function AdminProductsPage() {
   const create = () => {
     const name = newName.trim();
     if (!name) return;
-    addCategory(name);
+    addCategoryMutation.mutate(name, {
+      onError: () => toast.error("הוספת הקטגוריה נכשלה"),
+    });
     setNewName("");
+  };
+
+  const removeCategory = (id: string) => {
+    removeCategoryMutation.mutate(id, {
+      onError: (error) => toast.error(error instanceof Error ? error.message : "מחיקת הקטגוריה נכשלה"),
+    });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -62,7 +75,9 @@ function AdminProductsPage() {
     const oldIndex = catalog.findIndex((c) => c.id === active.id);
     const newIndex = catalog.findIndex((c) => c.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    reorderCategories(arrayMove(catalog, oldIndex, newIndex));
+    reorderCategoriesMutation.mutate(arrayMove(catalog, oldIndex, newIndex), {
+      onError: () => toast.error("שינוי סדר הקטגוריות נכשל"),
+    });
   };
 
   return (

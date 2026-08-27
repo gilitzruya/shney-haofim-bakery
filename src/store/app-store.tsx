@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { applyRuntimeCatalog, BUSINESS, CATEGORIES } from "@/data/catalog";
-import type { Category, Product, RoundId } from "@/data/catalog";
+import { BUSINESS } from "@/data/catalog";
+import type { RoundId } from "@/data/catalog";
 import { SEED_ORDERS, SEED_RECURRING } from "@/data/seed";
 import type { Order, OrderLine, RecurringOrder } from "@/data/seed";
 import { nextOccurrence, roundQty } from "@/lib/format";
@@ -71,8 +71,6 @@ interface PersistedState {
   customers: Customer[];
   /** admin side: orders placed by the other customers */
   adminOrders: Order[];
-  /** admin side: editable catalog (categories order, products) */
-  catalog: Category[];
   /** admin side: issued accounting documents */
   documents: AdminDocument[];
   /** admin side: recurring orders created on behalf of customers */
@@ -98,7 +96,6 @@ const initialState: PersistedState = {
   draft: null,
   customers: SEED_CUSTOMERS,
   adminOrders: seedAdminOrders(),
-  catalog: CATEGORIES,
   documents: [],
   adminRecurring: [],
   cutoffRules: DEFAULT_CUTOFF_RULES,
@@ -150,7 +147,6 @@ function loadState(): PersistedState {
       draft: parsed.draft ?? null,
       customers: mergeCustomersWithSeed(parsed.customers),
       adminOrders: freshAdminOrders(parsed.adminOrders),
-      catalog: parsed.catalog?.length ? parsed.catalog : CATEGORIES,
       documents: parsed.documents ?? [],
       adminRecurring: parsed.adminRecurring ?? [],
       cutoffRules: normalizeCutoffRules(parsed.cutoffRules),
@@ -258,15 +254,6 @@ interface StoreValue extends PersistedState {
   updateCustomer: (id: string, patch: Partial<Omit<Customer, "id">>) => void;
   setCustomerBlocked: (id: string, blocked: boolean) => void;
   setCustomerPriceOverride: (id: string, productId: string, price: number | null) => void;
-  /* admin: catalog */
-  moveCategory: (id: string, direction: -1 | 1) => void;
-  reorderCategories: (catalog: Category[]) => void;
-  renameCategory: (id: string, name: string) => void;
-  addCategory: (name: string) => void;
-  removeCategory: (id: string) => void;
-  addProduct: (categoryId: string, product: Omit<Product, "id">) => void;
-  updateProduct: (productId: string, patch: Partial<Omit<Product, "id">>) => void;
-  removeProduct: (productId: string) => void;
   /* admin: documents */
   documentsForOrder: (orderId: string) => AdminDocument[];
   issueDocument: (orderId: string, type?: DocumentType) => Promise<void>;
@@ -300,7 +287,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const loaded = loadState();
-    applyRuntimeCatalog(loaded.catalog);
     applyRuntimeCutoffRules(loaded.cutoffRules);
     applyRuntimeCutoffExceptions(loaded.cutoffExceptions);
     setState(loaded);
@@ -320,7 +306,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const update = useCallback((fn: (s: PersistedState) => PersistedState) => {
     setState((s) => {
       const next = fn(s);
-      if (next.catalog !== s.catalog) applyRuntimeCatalog(next.catalog);
       if (next.cutoffRules !== s.cutoffRules) applyRuntimeCutoffRules(next.cutoffRules);
       if (next.cutoffExceptions !== s.cutoffExceptions) applyRuntimeCutoffExceptions(next.cutoffExceptions);
       return next;
@@ -648,69 +633,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
             else next[productId] = price;
             return { ...c, priceOverrides: next };
           }),
-        })),
-
-      moveCategory: (id, direction) =>
-        update((s) => {
-          const index = s.catalog.findIndex((c) => c.id === id);
-          const target = index + direction;
-          if (index < 0 || target < 0 || target >= s.catalog.length) return s;
-          const catalog = [...s.catalog];
-          const [moved] = catalog.splice(index, 1);
-          catalog.splice(target, 0, moved!);
-          return { ...s, catalog };
-        }),
-
-      reorderCategories: (catalog) =>
-        update((s) => ({
-          ...s,
-          catalog,
-        })),
-
-      renameCategory: (id, name) =>
-        update((s) => ({
-          ...s,
-          catalog: s.catalog.map((c) => (c.id === id ? { ...c, name } : c)),
-        })),
-
-      addCategory: (name) =>
-        update((s) => ({
-          ...s,
-          catalog: [...s.catalog, { id: `cat-${Date.now()}`, name, products: [] }],
-        })),
-
-      removeCategory: (id) =>
-        update((s) => ({
-          ...s,
-          catalog: s.catalog.filter((c) => !(c.id === id && c.products.length === 0)),
-        })),
-
-      addProduct: (categoryId, product) =>
-        update((s) => ({
-          ...s,
-          catalog: s.catalog.map((c) =>
-            c.id === categoryId
-              ? { ...c, products: [...c.products, { ...product, id: `p-${Date.now()}` }] }
-              : c,
-          ),
-        })),
-
-      updateProduct: (productId, patch) =>
-        update((s) => ({
-          ...s,
-          catalog: s.catalog.map((c) => ({
-            ...c,
-            products: c.products.map((p) => (p.id === productId ? { ...p, ...patch } : p)),
-          })),
-        })),
-
-      removeProduct: (productId) =>
-        update((s) => ({
-          ...s,
-          catalog: s.catalog.map((c) => ({
-            ...c,
-            products: c.products.filter((p) => p.id !== productId),
-          })),
         })),
 
       documentsForOrder: (orderId) => state.documents.filter((d) => d.orderId === orderId),

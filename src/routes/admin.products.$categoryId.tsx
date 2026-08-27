@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, ImagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
@@ -8,12 +9,27 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { ProductPlaceholder } from "@/components/app/product-card";
-import { fileToCompressedDataUrl } from "@/lib/image-upload";
-import { productPhoto } from "@/data/product-images";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
 import type { Product, Unit } from "@/data/catalog";
 import { formatPrice, unitLabel } from "@/lib/format";
-import { useStore } from "@/store/app-store";
+import {
+  useAddProduct,
+  useCatalog,
+  useRemoveProduct,
+  useRenameCategory,
+  useUpdateProduct,
+  type ProductFormInput,
+} from "@/hooks/use-catalog";
 
 export const Route = createFileRoute("/admin/products/$categoryId")({
   head: () => ({
@@ -21,7 +37,10 @@ export const Route = createFileRoute("/admin/products/$categoryId")({
       { title: "מוצרי קטגוריה — ניהול המאפייה" },
       { name: "description", content: "עריכת מוצרי הקטגוריה: מחיר, זמינות והוספת מוצר חדש." },
       { property: "og:title", content: "מוצרי קטגוריה — ניהול המאפייה" },
-      { property: "og:description", content: "עריכת מוצרי הקטגוריה: מחיר, זמינות והוספת מוצר חדש." },
+      {
+        property: "og:description",
+        content: "עריכת מוצרי הקטגוריה: מחיר, זמינות והוספת מוצר חדש.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -29,13 +48,54 @@ export const Route = createFileRoute("/admin/products/$categoryId")({
   component: AdminCategoryPage,
 });
 
+/** ניהול תמונה נבחרת/מוסרת עם תצוגה מקדימה, בלי להעלות ל-Storage עד השמירה בפועל. */
+function useImagePicker(initialUrl: string | undefined) {
+  const [file, setFile] = useState<File | undefined>(undefined);
+  const [removed, setRemoved] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(initialUrl);
+
+  useEffect(() => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return {
+    file,
+    removed,
+    previewUrl,
+    pick: (f: File | undefined) => {
+      if (!f) return;
+      setRemoved(false);
+      setFile(f);
+    },
+    remove: () => {
+      setFile(undefined);
+      setRemoved(true);
+      setPreviewUrl(undefined);
+    },
+    reset: (url: string | undefined) => {
+      setFile(undefined);
+      setRemoved(false);
+      setPreviewUrl(url);
+    },
+  };
+}
+
 function AdminCategoryPage() {
   const { categoryId } = Route.useParams();
-  const { catalog, hydrated, updateProduct, addProduct, removeProduct, renameCategory } = useStore();
+  const { categories: catalog, isLoading } = useCatalog();
+  const hydrated = !isLoading;
+  const renameCategoryMutation = useRenameCategory();
+  const addProductMutation = useAddProduct();
+  const updateProductMutation = useUpdateProduct();
+  const removeProductMutation = useRemoveProduct();
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [categoryName, setCategoryName] = useState("");
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
   const category = catalog.find((c) => c.id === categoryId);
 
@@ -63,6 +123,18 @@ function AdminCategoryPage() {
     );
   }
 
+  const productToRemove = confirmRemoveId
+    ? products.find((p) => p.id === confirmRemoveId)
+    : undefined;
+
+  const removeProduct = () => {
+    if (!confirmRemoveId) return;
+    removeProductMutation.mutate(confirmRemoveId, {
+      onError: () => toast.error("מחיקת המוצר נכשלה"),
+    });
+    setConfirmRemoveId(null);
+  };
+
   return (
     <AdminShell>
       <Section className="pt-6 pb-10">
@@ -88,7 +160,12 @@ function AdminCategoryPage() {
                 disabled={!categoryName.trim()}
                 onClick={() => {
                   const name = categoryName.trim();
-                  if (name) renameCategory(category.id, name);
+                  if (name) {
+                    renameCategoryMutation.mutate(
+                      { id: category.id, name },
+                      { onError: () => toast.error("שינוי שם הקטגוריה נכשל") },
+                    );
+                  }
                   setRenaming(false);
                 }}
               >
@@ -115,7 +192,11 @@ function AdminCategoryPage() {
                 <Pencil className="size-4" />
               </button>
             </div>
-            <Button size="sm" variant={adding ? "ghost" : "primary"} onClick={() => setAdding((a) => !a)}>
+            <Button
+              size="sm"
+              variant={adding ? "ghost" : "primary"}
+              onClick={() => setAdding((a) => !a)}
+            >
               <Plus className="size-4" />
               {adding ? "ביטול" : "מוצר חדש"}
             </Button>
@@ -124,10 +205,16 @@ function AdminCategoryPage() {
 
         {adding ? (
           <NewProductForm
+            saving={addProductMutation.isPending}
             onCancel={() => setAdding(false)}
-            onCreate={(product) => {
-              addProduct(category.id, product);
-              setAdding(false);
+            onCreate={(input) => {
+              addProductMutation.mutate(
+                { categoryId: category.id, input },
+                {
+                  onSuccess: () => setAdding(false),
+                  onError: () => toast.error("הוספת המוצר נכשלה"),
+                },
+              );
             }}
           />
         ) : null}
@@ -151,13 +238,37 @@ function AdminCategoryPage() {
               <ProductRow
                 key={p.id}
                 product={p}
-                onUpdate={(patch) => updateProduct(p.id, patch)}
-                onRemove={() => removeProduct(p.id)}
+                saving={updateProductMutation.isPending}
+                onUpdate={(patch) =>
+                  updateProductMutation.mutate(
+                    { productId: p.id, patch },
+                    { onError: () => toast.error("שמירת השינויים נכשלה") },
+                  )
+                }
+                onRemove={() => setConfirmRemoveId(p.id)}
               />
             ))
           )}
         </div>
       </Section>
+
+      <AlertDialog
+        open={!!confirmRemoveId}
+        onOpenChange={(open) => !open && setConfirmRemoveId(null)}
+      >
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>למחוק את {productToRemove?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              המוצר יוסר מהקטלוג ומהזמנות עתידיות, אך הזמנות קיימות שכוללות אותו לא ישתנו.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction onClick={removeProduct}>מחיקת המוצר</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminShell>
   );
 }
@@ -173,11 +284,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 function ProductRow({
   product,
+  saving,
   onUpdate,
   onRemove,
 }: {
   product: Product;
-  onUpdate: (patch: Partial<Omit<Product, "id">>) => void;
+  saving: boolean;
+  onUpdate: (patch: Partial<ProductFormInput> & { available?: boolean }) => void;
   onRemove: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -188,12 +301,9 @@ function ProductRow({
   const [minQty, setMinQty] = useState(String(product.minQty ?? ""));
   const [weight, setWeight] = useState(product.weightGrams ? String(product.weightGrams) : "");
   const [note, setNote] = useState(product.note ?? "");
-  const [imageUrl, setImageUrl] = useState<string | undefined>(productPhoto(product));
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const image = useImagePicker(product.imageUrl);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const photo = productPhoto(product);
 
   const startEdit = () => {
     setName(product.name);
@@ -203,21 +313,9 @@ function ProductRow({
     setMinQty(String(product.minQty ?? ""));
     setWeight(product.weightGrams ? String(product.weightGrams) : "");
     setNote(product.note ?? "");
-    setImageUrl(productPhoto(product));
+    image.reset(product.imageUrl);
     setError(null);
     setEditing(true);
-  };
-
-  const pickImage = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      setImageUrl(await fileToCompressedDataUrl(file));
-    } catch {
-      setError("לא הצלחנו לטעון את התמונה");
-    } finally {
-      setUploading(false);
-    }
   };
 
   const save = () => {
@@ -235,21 +333,18 @@ function ProductRow({
       return setError("משקל חייב להיות מספר חיובי");
 
     setError(null);
-    const patch: Partial<Omit<Product, "id">> = {
+    onUpdate({
       name: name.trim(),
       sku: sku.trim(),
       unit,
       price: Math.round(parsedPrice * 100) / 100,
       minQty: Number.isNaN(parsedMin) ? (unit === "kg" ? 0.5 : 1) : parsedMin,
       step: unit === "kg" ? 0.5 : 1,
-    };
-    (patch as Record<string, unknown>)["weightGrams"] = Number.isNaN(parsedWeight)
-      ? undefined
-      : parsedWeight;
-    (patch as Record<string, unknown>)["note"] = note.trim() ? note.trim() : undefined;
-    (patch as Record<string, unknown>)["imageUrl"] = imageUrl ?? undefined;
-    onUpdate(patch);
-
+      weightGrams: Number.isNaN(parsedWeight) ? undefined : parsedWeight,
+      note: note.trim() ? note.trim() : undefined,
+      imageFile: image.file,
+      removeImage: image.removed,
+    });
     setEditing(false);
   };
 
@@ -257,9 +352,9 @@ function ProductRow({
     <Card className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-1 items-center gap-2.5 text-start">
-          {photo ? (
+          {product.imageUrl ? (
             <img
-              src={photo}
+              src={product.imageUrl}
               alt={product.name}
               className="size-11 shrink-0 rounded-[10px] border border-border object-contain"
             />
@@ -271,7 +366,11 @@ function ProductRow({
             </span>
           </span>
         </div>
-        <Button size="sm" variant="ghost" onClick={() => onUpdate({ available: !product.available })}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => onUpdate({ available: !product.available })}
+        >
           {product.available ? "סימון כלא זמין" : "החזרה למלאי"}
         </Button>
       </div>
@@ -284,7 +383,10 @@ function ProductRow({
             <DetailRow label="יחידת הזמנה" value={unitLabel(product.unit)} />
             <DetailRow label="מחיר ליחידה" value={formatPrice(product.price)} />
             <DetailRow label="כמות מינימום" value={String(product.minQty ?? "—")} />
-            <DetailRow label="משקל" value={product.weightGrams ? `${product.weightGrams} גרם` : "—"} />
+            <DetailRow
+              label="משקל"
+              value={product.weightGrams ? `${product.weightGrams} גרם` : "—"}
+            />
           </div>
           {product.note ? (
             <div className="rounded-lg bg-muted/40 px-2.5 py-2 text-[12px] text-heading">
@@ -306,9 +408,9 @@ function ProductRow({
       ) : (
         <div className="flex flex-col gap-4 border-t border-border pt-3">
           <div className="flex items-center gap-3">
-            {imageUrl ? (
+            {image.previewUrl ? (
               <img
-                src={imageUrl}
+                src={image.previewUrl}
                 alt="תמונת המוצר"
                 className="size-[84px] shrink-0 rounded-[12px] border border-border object-contain"
               />
@@ -316,14 +418,16 @@ function ProductRow({
               <ProductPlaceholder />
             )}
             <div className="flex min-w-0 flex-col gap-1.5">
-              <span className="text-[12px] font-semibold text-muted-foreground">תמונת מוצר (רשות)</span>
+              <span className="text-[12px] font-semibold text-muted-foreground">
+                תמונת מוצר (רשות)
+              </span>
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="ghost" onClick={() => fileRef.current?.click()}>
                   <ImagePlus className="size-4" />
-                  {uploading ? "מעלה…" : imageUrl ? "החלפת תמונה" : "העלאת תמונה"}
+                  {image.previewUrl ? "החלפת תמונה" : "העלאת תמונה"}
                 </Button>
-                {imageUrl ? (
-                  <Button size="sm" variant="ghost" onClick={() => setImageUrl(undefined)}>
+                {image.previewUrl ? (
+                  <Button size="sm" variant="ghost" onClick={image.remove}>
                     הסרה
                   </Button>
                 ) : null}
@@ -333,7 +437,7 @@ function ProductRow({
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => void pickImage(e.target.files?.[0])}
+                onChange={(e) => image.pick(e.target.files?.[0])}
               />
             </div>
           </div>
@@ -347,26 +451,50 @@ function ProductRow({
             </FormField>
             <FormField label="יחידת הזמנה *">
               <div className="grid grid-cols-2 gap-2">
-                <Button size="sm" variant={unit === "unit" ? "primary" : "ghost"} onClick={() => setUnit("unit")}>
+                <Button
+                  size="sm"
+                  variant={unit === "unit" ? "primary" : "ghost"}
+                  onClick={() => setUnit("unit")}
+                >
                   יחידה
                 </Button>
-                <Button size="sm" variant={unit === "kg" ? "primary" : "ghost"} onClick={() => setUnit("kg")}>
+                <Button
+                  size="sm"
+                  variant={unit === "kg" ? "primary" : "ghost"}
+                  onClick={() => setUnit("kg")}
+                >
                   ק״ג
                 </Button>
               </div>
             </FormField>
             <FormField label="מחיר ליחידה (₪) *">
-              <TextInput value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
+              <TextInput
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                inputMode="decimal"
+              />
             </FormField>
             <FormField label="כמות מינימום להזמנה">
-              <TextInput value={minQty} onChange={(e) => setMinQty(e.target.value)} inputMode="decimal" />
+              <TextInput
+                value={minQty}
+                onChange={(e) => setMinQty(e.target.value)}
+                inputMode="decimal"
+              />
             </FormField>
             <FormField label="משקל (גרם)">
-              <TextInput value={weight} onChange={(e) => setWeight(e.target.value)} inputMode="numeric" />
+              <TextInput
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                inputMode="numeric"
+              />
             </FormField>
           </div>
           <FormField label="הערות למוצר">
-            <TextArea value={note} onChange={(e) => setNote(e.target.value)} className="min-h-[68px]" />
+            <TextArea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="min-h-[68px]"
+            />
           </FormField>
 
           {error ? (
@@ -376,7 +504,12 @@ function ProductRow({
           ) : null}
 
           <div className="flex items-center gap-2 border-t border-border pt-3 md:justify-center">
-            <Button size="sm" onClick={save} className="flex-1 md:flex-initial md:w-auto">
+            <Button
+              size="sm"
+              loading={saving}
+              onClick={save}
+              className="flex-1 md:flex-initial md:w-auto"
+            >
               שמירת השינויים
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
@@ -389,12 +522,13 @@ function ProductRow({
   );
 }
 
-
 function NewProductForm({
+  saving,
   onCreate,
   onCancel,
 }: {
-  onCreate: (product: Omit<Product, "id">) => void;
+  saving: boolean;
+  onCreate: (input: ProductFormInput) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
@@ -404,22 +538,9 @@ function NewProductForm({
   const [minQty, setMinQty] = useState("");
   const [weight, setWeight] = useState("");
   const [note, setNote] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const image = useImagePicker(undefined);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const pickImage = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      setImageUrl(await fileToCompressedDataUrl(file));
-    } catch {
-      setError("לא הצלחנו לטעון את התמונה");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const submit = () => {
     const parsedPrice = Number(price);
@@ -445,10 +566,9 @@ function NewProductForm({
       minQty: Number.isNaN(parsedMin) ? defaultMin : parsedMin,
       step: unit === "kg" ? 0.5 : 1,
       quickAdd: unit === "kg" ? 1 : 5,
-      available: true,
-      ...(Number.isNaN(parsedWeight) ? {} : { weightGrams: parsedWeight }),
-      ...(note.trim() ? { note: note.trim() } : {}),
-      ...(imageUrl ? { imageUrl } : {}),
+      weightGrams: Number.isNaN(parsedWeight) ? undefined : parsedWeight,
+      note: note.trim() ? note.trim() : undefined,
+      imageFile: image.file,
     });
   };
 
@@ -467,9 +587,9 @@ function NewProductForm({
       <div className="flex flex-col gap-4 px-3.5 py-4">
         {/* Image */}
         <div className="flex items-center gap-3">
-          {imageUrl ? (
+          {image.previewUrl ? (
             <img
-              src={imageUrl}
+              src={image.previewUrl}
               alt="תמונת המוצר"
               className="size-[84px] shrink-0 rounded-[12px] border border-border object-contain"
             />
@@ -477,14 +597,16 @@ function NewProductForm({
             <ProductPlaceholder />
           )}
           <div className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-[12px] font-semibold text-muted-foreground">תמונת מוצר (רשות)</span>
+            <span className="text-[12px] font-semibold text-muted-foreground">
+              תמונת מוצר (רשות)
+            </span>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="ghost" onClick={() => fileRef.current?.click()}>
                 <ImagePlus className="size-4" />
-                {uploading ? "מעלה…" : imageUrl ? "החלפת תמונה" : "העלאת תמונה"}
+                {image.previewUrl ? "החלפת תמונה" : "העלאת תמונה"}
               </Button>
-              {imageUrl ? (
-                <Button size="sm" variant="ghost" onClick={() => setImageUrl(null)}>
+              {image.previewUrl ? (
+                <Button size="sm" variant="ghost" onClick={image.remove}>
                   הסרה
                 </Button>
               ) : null}
@@ -494,7 +616,7 @@ function NewProductForm({
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => void pickImage(e.target.files?.[0])}
+              onChange={(e) => image.pick(e.target.files?.[0])}
             />
           </div>
         </div>
@@ -527,7 +649,11 @@ function NewProductForm({
                 >
                   יחידה
                 </Button>
-                <Button size="sm" variant={unit === "kg" ? "primary" : "ghost"} onClick={() => setUnit("kg")}>
+                <Button
+                  size="sm"
+                  variant={unit === "kg" ? "primary" : "ghost"}
+                  onClick={() => setUnit("kg")}
+                >
                   ק״ג
                 </Button>
               </div>
@@ -547,7 +673,10 @@ function NewProductForm({
         <div className="flex flex-col gap-3 border-t border-border pt-3.5">
           <div className="text-[11.5px] font-bold text-primary">פרטים נוספים (רשות)</div>
           <div className="grid gap-3 md:grid-cols-2">
-            <FormField label="כמות מינימום להזמנה" hint={unit === "kg" ? "ברירת מחדל: 0.5 ק״ג" : "ברירת מחדל: יחידה אחת"}>
+            <FormField
+              label="כמות מינימום להזמנה"
+              hint={unit === "kg" ? "ברירת מחדל: 0.5 ק״ג" : "ברירת מחדל: יחידה אחת"}
+            >
               <TextInput
                 value={minQty}
                 onChange={(e) => setMinQty(e.target.value)}
@@ -581,7 +710,12 @@ function NewProductForm({
         ) : null}
 
         <div className="flex items-center gap-2 border-t border-border pt-3.5">
-          <Button size="sm" onClick={submit} className="flex-1 md:flex-initial md:w-auto">
+          <Button
+            size="sm"
+            loading={saving}
+            onClick={submit}
+            className="flex-1 md:flex-initial md:w-auto"
+          >
             שמירת המוצר
           </Button>
           <Button size="sm" variant="ghost" onClick={onCancel}>
@@ -592,4 +726,3 @@ function NewProductForm({
     </Card>
   );
 }
-

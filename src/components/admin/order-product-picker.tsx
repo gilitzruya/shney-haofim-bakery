@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/app/card";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
 import { formatPrice } from "@/lib/format";
-import { useStore } from "@/store/app-store";
+import { useCatalog } from "@/hooks/use-catalog";
 
 /** בורר מוצרים לצד הניהול — תצוגה זהה לקטלוג של הלקוח. */
 export function OrderProductPicker({
@@ -23,7 +23,7 @@ export function OrderProductPicker({
   onDone: () => void;
   total: number;
 }) {
-  const { catalog: CATEGORIES } = useStore();
+  const { categories: CATEGORIES } = useCatalog();
   const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
