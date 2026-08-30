@@ -8,7 +8,7 @@ import { Button } from "@/components/app/button";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-orders";
+import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
@@ -34,8 +34,9 @@ function AdminOrdersPage() {
   const [date, setDate] = useState(() => tomorrowIso());
   const [query, setQuery] = useState("");
 
-  const { views, isLoading } = useAdminOrdersForDate(date);
+  const { views, isLoading } = useAdminOrdersForDateWithRecurring(date);
   const hydrated = !isLoading;
+  const materialize = useMaterializeRecurringOccurrence();
   const filtered = useMemo(
     () => views.filter((v) => query.trim() === "" || v.customerName.includes(query.trim())),
     [views, query],
@@ -55,14 +56,19 @@ function AdminOrdersPage() {
     documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
   /** הפקה לכל הזמנות היום שאין להן עדיין תעודת משלוח */
-  const pendingIds = filtered
-    .filter((v) => !latestDocFor(v.order.id))
-    .map((v) => v.order.id);
+  const pendingViews = filtered.filter((v) => v.isVirtual || !latestDocFor(v.order.id));
 
   const issueTargets = async () => {
-    if (pendingIds.length === 0) return;
+    if (pendingViews.length === 0) return;
     setIssuing(true);
     try {
+      // מופע וירטואלי ממומש קודם — לתעודה חייב להיות order_id אמיתי (PRD §4.2).
+      const pendingIds = await Promise.all(
+        pendingViews.map((v) => {
+          if (!v.isVirtual || !v.order.recurringId) return v.order.id;
+          return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
+        }),
+      );
       await issueDocuments(pendingIds);
     } finally {
       setIssuing(false);
@@ -176,14 +182,14 @@ function AdminOrdersPage() {
             className="flex-1 md:flex-initial md:w-auto"
             onClick={issueTargets}
             loading={issuing}
-            disabled={!hydrated || pendingIds.length === 0}
+            disabled={!hydrated || pendingViews.length === 0}
           >
             <FileText className="size-4" />
             {!hydrated
               ? "הפקת תעודות משלוח"
-              : pendingIds.length === 0
+              : pendingViews.length === 0
                 ? "כל התעודות הופקו"
-                : `הפקת תעודות משלוח (${pendingIds.length})`}
+                : `הפקת תעודות משלוח (${pendingViews.length})`}
           </Button>
         </div>
       </div>

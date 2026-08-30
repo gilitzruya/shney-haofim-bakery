@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -8,9 +8,9 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { FilterChips } from "@/components/app/tabs";
+import { useMyRecurring } from "@/hooks/use-recurring";
 import { formatDate, formatPrice, linesCount, linesTotal, weekdaysLabel } from "@/lib/format";
 import { nextRecurringDelivery } from "@/lib/recurring";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/recurring/")({
   head: () => ({
@@ -33,7 +33,7 @@ export const RECURRING_STATUS_LABEL = {
 } as const;
 
 function RecurringListPage() {
-  const { recurring } = useStore();
+  const { recurring } = useMyRecurring();
   const [filter, setFilter] = useState<FilterId>("all");
   const list = recurring.filter((r) => filter === "all" || r.status === filter);
 
@@ -67,11 +67,7 @@ function RecurringListPage() {
                   params={{ recurringId: rec.id }}
                   className="no-underline"
                 >
-                  <Card
-                    variant={
-                      rec.needsAttention ? "attention" : rec.status === "active" ? "active" : "muted"
-                    }
-                  >
+                  <Card variant={rec.status === "active" ? "active" : "muted"}>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[13.5px] font-semibold text-foreground">{rec.name}</span>
                       <Chip tone={rec.status === "active" ? "neutral" : "muted"}>
@@ -89,12 +85,6 @@ function RecurringListPage() {
                         {formatPrice(linesTotal(rec.lines))}
                       </span>
                     </div>
-                    {rec.needsAttention && rec.attentionText ? (
-                      <div className="mt-2 flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2 text-[11.5px] font-semibold text-destructive">
-                        <AlertTriangle className="mt-px size-3.5 shrink-0" />
-                        {rec.attentionText}
-                      </div>
-                    ) : null}
                   </Card>
                 </Link>
               );

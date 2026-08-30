@@ -8,9 +8,12 @@ import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
 import { FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
+import { useMyCustomer } from "@/hooks/use-customers";
+import { useMyRecurring } from "@/hooks/use-recurring";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
-import { useStore } from "@/store/app-store";
+import { cn } from "@/lib/utils";
+import { useRecurringDraft } from "@/store/recurring-draft";
 
 export const Route = createFileRoute("/recurring/new")({
   head: () => ({
@@ -26,11 +29,20 @@ export const Route = createFileRoute("/recurring/new")({
 
 function NewRecurringPage() {
   const navigate = useNavigate();
-  const { startRecurringCreate, recurring } = useStore();
+  const { start } = useRecurringDraft();
+  const { recurring } = useMyRecurring();
+  const { customer } = useMyCustomer();
   const [name, setName] = useState("");
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [round, setRound] = useState<RoundId | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
+
+  // בחירת סבב מתבצעת כאן, ורק ללקוח עם הרשאה לסבב שני — אחרים לא נשאלים ומקבלים
+  // "סבב ראשון" אוטומטית (PRD §2.1/§3.7, החלטה 3).
+  const askRound = !!customer?.allowedRounds.includes("noon");
+  useEffect(() => {
+    if (!askRound) setRound("morning");
+  }, [askRound]);
 
   const options = useMemo(() => upcomingStartOptions(weekdays, 4), [weekdays]);
   const firstAvailable = options.find((o) => !o.blocked) ?? null;
@@ -59,6 +71,7 @@ function NewRecurringPage() {
   const missing: string[] = [];
   if (name.trim().length <= 1) missing.push("שם להזמנה הקבועה");
   if (weekdays.length === 0) missing.push("ימי אספקה");
+  if (askRound && !round) missing.push("סבב אספקה");
   if (weekdays.length > 0 && round && !startDate) missing.push("תאריך התחלה");
 
   const valid = missing.length === 0 && conflicts.length === 0;
@@ -80,6 +93,29 @@ function NewRecurringPage() {
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ימי אספקה</div>
             <WeekdayChips value={weekdays} onChange={setWeekdays} />
           </div>
+
+          {askRound ? (
+            <div>
+              <div className="mb-2 text-[12px] font-semibold text-muted-foreground">סבב אספקה</div>
+              <div className="flex gap-2">
+                {(["morning", "noon"] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRound(r)}
+                    className={cn(
+                      "flex-1 rounded-xl border px-3.5 py-3 text-[13.5px] font-semibold",
+                      round === r
+                        ? "border-[1.5px] border-primary bg-primary-soft text-foreground"
+                        : "border-border bg-card text-foreground",
+                    )}
+                  >
+                    {r === "morning" ? "סבב ראשון" : "סבב שני"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {conflicts.length > 0 ? (
             <div className="flex items-start gap-1.5 rounded-[10px] bg-destructive-bg px-3 py-2.5 text-[12px] font-semibold text-destructive">
@@ -157,7 +193,7 @@ function NewRecurringPage() {
             className="w-full"
             disabled={!valid}
             onClick={() => {
-              startRecurringCreate(name.trim(), weekdays, round!, startDate ?? undefined);
+              start("recurring_create", { round: round!, name: name.trim(), weekdays, startDate: startDate ?? undefined });
               navigate({ to: "/catalog" });
             }}
           >

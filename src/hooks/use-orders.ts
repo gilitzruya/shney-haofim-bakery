@@ -38,6 +38,9 @@ export interface AdminOrderView {
   customerPhone: string | null;
   itemsCount: number;
   total: number;
+  /** הזמנה קבועה שעדיין לא מומשה לרשומת `orders` אמיתית — מחושבת חי, לא נשמרה (PRD §2.4).
+   * ראו `useRecurringOccurrencesForDate`/`useAdminOrdersForDateWithRecurring` ב-use-recurring.ts. */
+  isVirtual?: boolean | undefined;
 }
 
 type OrderLineRow = {

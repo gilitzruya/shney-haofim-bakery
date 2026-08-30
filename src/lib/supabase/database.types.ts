@@ -562,7 +562,30 @@ export type Database = {
       fn_current_customer_id: { Args: never; Returns: string }
       fn_cutoff_at: { Args: { p_delivery_date: string }; Returns: string }
       fn_is_admin: { Args: never; Returns: boolean }
+      fn_materialize_recurring_occurrence_internal: {
+        Args: { p_date: string; p_patch: Json; p_recurring_id: string }
+        Returns: string
+      }
+      fn_recurring_occurrences: {
+        Args: { p_date: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          customer_id: string
+          name: string
+          note: string
+          product_id: string
+          product_name: string
+          qty: number
+          recurring_id: string
+          round: Database["public"]["Enums"]["round_id"]
+          sku: string
+          unit: Database["public"]["Enums"]["unit_type"]
+          unit_price: number
+        }[]
+      }
       job_close_completed_orders: { Args: never; Returns: undefined }
+      job_close_upcoming_recurring: { Args: never; Returns: undefined }
       job_expire_stale_drafts: { Args: never; Returns: undefined }
       rpc_confirm_order: {
         Args: { p_order_id: string }
@@ -585,6 +608,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      rpc_materialize_recurring_occurrence: {
+        Args: { p_date: string; p_patch?: Json; p_recurring_id: string }
+        Returns: string
       }
     }
     Enums: {

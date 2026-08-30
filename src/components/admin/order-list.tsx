@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { Card } from "@/components/app/card";
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import type { AdminDocument } from "@/lib/admin/accounting";
-import { StatusChip } from "@/components/app/status-chip";
+import { Chip, StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
 import { orderDate, type AdminOrderView } from "@/hooks/use-orders";
 import { formatDate, formatPrice } from "@/lib/format";
@@ -58,7 +58,10 @@ function OrderRowCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="truncate text-[14.5px] font-bold text-heading">{view.customerName}</div>
+              <div className="flex items-center gap-1.5">
+                <div className="truncate text-[14.5px] font-bold text-heading">{view.customerName}</div>
+                {view.order.source === "recurring" ? <Chip tone="muted">קבועה</Chip> : null}
+              </div>
               <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                 {showDate ? (
                   <span className="font-medium text-foreground">{formatDate(orderDate(view.order))}</span>
@@ -123,7 +126,12 @@ function OrdersTable({
         <tbody>
           {views.map((v) => (
             <tr key={v.order.id} className="border-b border-border last:border-b-0">
-              <td className="px-4 py-3 font-semibold text-heading">{v.customerName}</td>
+              <td className="px-4 py-3 font-semibold text-heading">
+                <span className="flex items-center gap-1.5">
+                  {v.customerName}
+                  {v.order.source === "recurring" ? <Chip tone="muted">קבועה</Chip> : null}
+                </span>
+              </td>
               {showDate ? (
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(orderDate(v.order))}</td>
               ) : null}

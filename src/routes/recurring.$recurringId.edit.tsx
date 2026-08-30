@@ -8,7 +8,8 @@ import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
 import { FormField, TextArea, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
-import { useStore } from "@/store/app-store";
+import { useRecurring, useUpdateRecurringDetails } from "@/hooks/use-recurring";
+import { useRecurringDraft } from "@/store/recurring-draft";
 
 export const Route = createFileRoute("/recurring/$recurringId/edit")({
   head: () => ({
@@ -25,8 +26,9 @@ export const Route = createFileRoute("/recurring/$recurringId/edit")({
 function EditRecurringPage() {
   const { recurringId } = useParams({ from: "/recurring/$recurringId/edit" });
   const navigate = useNavigate();
-  const { getRecurring, saveRecurringDetails, startRecurringEdit } = useStore();
-  const rec = getRecurring(recurringId);
+  const { recurring: rec } = useRecurring(recurringId);
+  const updateDetails = useUpdateRecurringDetails();
+  const { start } = useRecurringDraft();
 
   const [name, setName] = useState(rec?.name ?? "");
   const [weekdays, setWeekdays] = useState<number[]>(rec?.weekdays ?? []);
@@ -50,9 +52,16 @@ function EditRecurringPage() {
   }
 
   const save = () => {
-    saveRecurringDetails(rec.id, { name: name.trim() || rec.name, weekdays, round, note });
-    toast.success("פרטי ההזמנה הקבועה נשמרו");
-    navigate({ to: "/recurring/$recurringId", params: { recurringId: rec.id } });
+    updateDetails.mutate(
+      { id: rec.id, input: { name: name.trim() || rec.name, weekdays, round, note } },
+      {
+        onSuccess: () => {
+          toast.success("פרטי ההזמנה הקבועה נשמרו");
+          navigate({ to: "/recurring/$recurringId", params: { recurringId: rec.id } });
+        },
+        onError: () => toast.error("שמירת הפרטים נכשלה"),
+      },
+    );
   };
 
   return (
@@ -78,8 +87,9 @@ function EditRecurringPage() {
           <button
             type="button"
             onClick={() => {
-              saveRecurringDetails(rec.id, { name: name.trim() || rec.name, weekdays, round, note });
-              startRecurringEdit(rec.id);
+              const quantities: Record<string, number> = {};
+              for (const line of rec.lines) quantities[line.productId] = line.qty;
+              start("recurring_edit", { recurringId: rec.id, round, name, weekdays, note, quantities });
               navigate({ to: "/catalog" });
             }}
             className="w-full rounded-xl border border-border bg-card py-2.5 text-[12.5px] font-semibold text-foreground"

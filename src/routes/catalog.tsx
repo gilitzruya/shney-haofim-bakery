@@ -17,8 +17,8 @@ import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import { useAddCartLines, useCartOrder, useMyOrders, useSetCartDateRound, useUpsertCartLine, type Order } from "@/hooks/use-orders";
 import { isCutoffPassed, israelNow } from "@/lib/cutoff";
 import { priceFor } from "@/lib/admin/pricing";
-import { formatPrice, linesTotal, parseDate } from "@/lib/format";
-import { linesFromQuantities as draftLinesFromQuantities, useStore } from "@/store/app-store";
+import { formatPrice, parseDate } from "@/lib/format";
+import { linesFromQuantities as draftLinesFromQuantities, useRecurringDraft } from "@/store/recurring-draft";
 
 export const Route = createFileRoute("/catalog")({
   head: () => ({
@@ -41,12 +41,11 @@ function headerOffset() {
   return header ? Math.round(header.getBoundingClientRect().height) : 150;
 }
 
-/** מסך הקטלוג משותף היום לזרימת הזמנה חד-פעמית וגם לבניית הזמנה קבועה (אותו `draft`
- * ב-store הישן). כל עוד יש `draft` פעיל — הוא תמיד ממצב קבוע (recurring_create/edit/
- * onetime, שלב 4/5 טרם עברו ל-DB) — הנתיב הישן רץ ללא שינוי. אחרת, זו הזמנה חד-פעמית,
- * שכולה כבר על ה-DB. */
+/** מסך הקטלוג משותף היום לזרימת הזמנה חד-פעמית (DB, `useCartOrder`) וגם לבניית הזמנה
+ * קבועה (`useRecurringDraft`, wizard in-memory בלבד — ראו src/store/recurring-draft.tsx).
+ * כל עוד יש `draft` פעיל — זו זרימת הזמנה קבועה. אחרת, הזמנה חד-פעמית. */
 function CatalogPage() {
-  const { draft } = useStore();
+  const { draft } = useRecurringDraft();
   return draft ? <RecurringCatalogPage /> : <OrderCatalogPage />;
 }
 
@@ -56,31 +55,48 @@ function CatalogPage() {
 
 function RecurringCatalogPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty, setQty } = useStore();
+  const { draft, bumpQty, setQty } = useRecurringDraft();
   const { categories: CATEGORIES } = useCatalog();
+  const myPrices = useMyPrices();
   const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const lockRef = useRef(false);
 
-  const quantities = draft?.quantities ?? {};
-  const total = useMemo(() => linesTotal(draftLinesFromQuantities(quantities)), [quantities]);
+  const quantities = useMemo(() => draft?.quantities ?? {}, [draft?.quantities]);
   const selectedCount = Object.keys(quantities).length;
+
+  // מחיר הלקוח בפועל (מיוחד אם קיים) גם כאן — לא רק בהזמנה חד-פעמית (PRD §2.6).
+  const pricedCategories = useMemo(
+    () =>
+      CATEGORIES.map((c) => ({
+        ...c,
+        products: c.products.map((p): Product => ({ ...p, price: priceFor(p, myPrices) })),
+      })),
+    [CATEGORIES, myPrices],
+  );
+  const total = useMemo(() => {
+    const priced = pricedCategories.flatMap((c) => c.products);
+    return draftLinesFromQuantities(quantities).reduce((sum, l) => {
+      const p = priced.find((x) => x.id === l.productId);
+      return p ? sum + p.price * l.qty : sum;
+    }, 0);
+  }, [quantities, pricedCategories]);
 
   const searching = query.trim().length > 0;
   const searchResults = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
-    return CATEGORIES.flatMap((c) => c.products).filter((p) => p.name.includes(q));
-  }, [query, CATEGORIES]);
+    return pricedCategories.flatMap((c) => c.products).filter((p) => p.name.includes(q));
+  }, [query, pricedCategories]);
 
   useEffect(() => {
     if (searching) return;
     const onScroll = () => {
       if (lockRef.current) return;
       const anchor = headerOffset() + 12;
-      let current = CATEGORIES[0]?.id ?? "";
-      for (const c of CATEGORIES) {
+      let current = pricedCategories[0]?.id ?? "";
+      for (const c of pricedCategories) {
         const el = sectionRefs.current[c.id];
         if (!el) continue;
         if (el.getBoundingClientRect().top <= anchor) current = c.id;
@@ -90,7 +106,7 @@ function RecurringCatalogPage() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [searching, CATEGORIES]);
+  }, [searching, pricedCategories]);
 
   const goToCategory = (id: string) => {
     setCategory(id);
@@ -117,7 +133,7 @@ function RecurringCatalogPage() {
         {searching ? null : (
           <div className="mx-auto w-full max-w-5xl px-3.5 pb-2.5 md:px-5">
             <Tabs
-              tabs={CATEGORIES.map((c) => ({ id: c.id, label: c.name }))}
+              tabs={pricedCategories.map((c) => ({ id: c.id, label: c.name }))}
               value={category}
               onChange={goToCategory}
             />
@@ -152,7 +168,7 @@ function RecurringCatalogPage() {
               ))
             )
           ) : (
-            CATEGORIES.map((c) => (
+            pricedCategories.map((c) => (
               <section
                 key={c.id}
                 ref={(el) => {

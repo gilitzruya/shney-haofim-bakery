@@ -12,7 +12,7 @@ import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-ca
 import { DateCalendar } from "@/components/app/date-calendar";
 
 import { findProduct, type RoundId } from "@/data/catalog";
-import { useMyCustomer } from "@/hooks/use-customers";
+import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import {
   useCartOrder,
   useConfirmOrder,
@@ -22,9 +22,11 @@ import {
   useSetCartNote,
   useUpsertCartLine,
 } from "@/hooks/use-orders";
+import { useCreateRecurring, useUpdateRecurringLines } from "@/hooks/use-recurring";
+import { priceFor } from "@/lib/admin/pricing";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
-import { formatDate, formatPrice, formatQty, linesTotal, weekdaysLabel } from "@/lib/format";
-import { linesFromQuantities, useStore } from "@/store/app-store";
+import { formatDate, formatPrice, formatQty, weekdaysLabel } from "@/lib/format";
+import { linesFromQuantities, useRecurringDraft } from "@/store/recurring-draft";
 
 export const Route = createFileRoute("/summary")({
   // מזהה הזמנה מפורש — נדרש כשמגיעים לכאן מזרימת ההעתקה (catalog.tsx), שכבר קבעה
@@ -43,20 +45,25 @@ export const Route = createFileRoute("/summary")({
   component: SummaryPage,
 });
 
-/** אותו פיצול כמו `catalog.tsx`: אם יש `draft` פעיל ב-store הישן — הוא תמיד ממצב קבוע. */
+/** אותו פיצול כמו `catalog.tsx`: אם יש `draft` פעיל ב-wizard הקבוע — זו זרימת הזמנה קבועה. */
 function SummaryPage() {
-  const { draft } = useStore();
+  const { draft } = useRecurringDraft();
   return draft ? <RecurringSummaryPage /> : <OrderSummaryPage />;
 }
 
 /* ---------------------------------------------------------------------- */
-/* מצב קבוע — ללא שינוי מהזרימה הקיימת.                                     */
+/* מצב קבוע — שמירה חד-פעמית ל-DB בסוף ה-wizard (create/edit).             */
 /* ---------------------------------------------------------------------- */
 
 function RecurringSummaryPage() {
   const navigate = useNavigate();
-  const { draft, bumpQty, setQty, confirmDraft, discardDraft } = useStore();
+  const { draft, bumpQty, setQty, clear } = useRecurringDraft();
+  const { auth } = Route.useRouteContext();
+  const myPrices = useMyPrices();
+  const createRecurring = useCreateRecurring();
+  const updateLines = useUpdateRecurringLines();
   const [confirming, setConfirming] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   if (!draft) {
     return (
@@ -76,14 +83,42 @@ function RecurringSummaryPage() {
   }
 
   const lines = linesFromQuantities(draft.quantities);
-  const total = linesTotal(lines);
+  const total = lines.reduce((sum, l) => {
+    const product = findProduct(l.productId);
+    return product ? sum + priceFor(product, myPrices) * l.qty : sum;
+  }, 0);
 
-  const confirm = () => {
-    const result = confirmDraft();
-    setConfirming(false);
-    toast.success("ההזמנה הקבועה נשמרה");
-    void result;
-    navigate({ to: "/recurring" });
+  const confirm = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (draft.mode === "recurring_edit" && draft.recurringId) {
+        await updateLines.mutateAsync({ id: draft.recurringId, lines });
+        toast.success("רשימת המוצרים עודכנה");
+        clear();
+        navigate({ to: "/recurring/$recurringId", params: { recurringId: draft.recurringId } });
+        return;
+      }
+      if (!auth?.customerId) return;
+      await createRecurring.mutateAsync({
+        customerId: auth.customerId,
+        name: draft.name?.trim() || "הזמנה קבועה",
+        weekdays: draft.weekdays ?? [],
+        round: draft.round,
+        startDate: draft.startDate ?? null,
+        note: draft.note,
+        lines,
+      });
+      toast.success("ההזמנה הקבועה נשמרה");
+      clear();
+      navigate({ to: "/recurring" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "שמירת ההזמנה הקבועה נכשלה";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+      setConfirming(false);
+    }
   };
 
   return (
@@ -120,6 +155,7 @@ function RecurringSummaryPage() {
             lines.map((line) => {
               const product = findProduct(line.productId);
               if (!product) return null;
+              const unitPrice = priceFor(product, myPrices);
               return (
                 <Card key={line.productId} className="flex items-center gap-2.5">
                   {product.imageUrl ? (
@@ -138,9 +174,9 @@ function RecurringSummaryPage() {
                       קוד פריט: <span className="font-semibold text-foreground">{product.sku ?? product.id}</span>
                     </div>
                     <div className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      {formatQty(line.qty, product.unit)} × {formatPrice(product.price)} ={" "}
+                      {formatQty(line.qty, product.unit)} × {formatPrice(unitPrice)} ={" "}
                       <span className="font-semibold text-foreground">
-                        {formatPrice(product.price * line.qty)}
+                        {formatPrice(unitPrice * line.qty)}
                       </span>
                     </div>
                   </div>
@@ -167,7 +203,7 @@ function RecurringSummaryPage() {
         <button
           type="button"
           onClick={() => {
-            discardDraft();
+            clear();
             navigate({ to: "/catalog", search: { copy: 1 } as never });
           }}
           className="mt-3 w-full rounded-xl border border-border bg-transparent py-2.5 text-[12.5px] font-semibold text-muted-foreground"
@@ -192,7 +228,8 @@ function RecurringSummaryPage() {
         title="לשמור את ההזמנה הקבועה?"
         description="ההזמנה תישלח למאפייה בכל אחד מימי האספקה שנבחרו."
         confirmLabel="אישור"
-        onConfirm={confirm}
+        loading={saving}
+        onConfirm={() => void confirm()}
         onClose={() => setConfirming(false)}
       />
     </AppShell>

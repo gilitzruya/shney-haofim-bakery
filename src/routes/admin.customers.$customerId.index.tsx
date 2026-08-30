@@ -35,8 +35,9 @@ import {
   useUpdateContact,
   useUpdateCustomer,
 } from "@/hooks/use-customers";
+import { useCancelRecurring, useCustomerRecurring } from "@/hooks/use-recurring";
+import { linesCount } from "@/lib/format";
 import { toE164 } from "@/lib/phone";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/customers/$customerId/")({
   head: () => ({
@@ -78,7 +79,8 @@ function CustomerDetailPage() {
   const removeContact = useRemoveContact();
   const grantAccess = useGrantContactAccess();
   const revokeAccess = useRevokeContactAccess();
-  const { adminRecurring, removeAdminRecurring } = useStore();
+  const { recurring } = useCustomerRecurring(customerId);
+  const cancelRecurring = useCancelRecurring();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
@@ -107,7 +109,6 @@ function CustomerDetailPage() {
   }
 
   const contact = customer.contacts[0];
-  const recurring = adminRecurring.filter((r) => r.customerId === customer.id);
 
   const saveForm = async (v: ReturnType<typeof toFormValues>) => {
     if (saving) return;
@@ -321,20 +322,27 @@ function CustomerDetailPage() {
                   {recurring.map((r) => (
                     <div key={r.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[13.5px] font-semibold text-foreground">{r.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-[13.5px] font-semibold text-foreground">{r.name}</span>
+                          <Chip tone={r.status === "active" ? "neutral" : "muted"}>
+                            {r.status === "active" ? "פעילה" : r.status === "paused" ? "מושהית" : "בוטלה"}
+                          </Chip>
+                        </div>
                         <div className="text-[11.5px] text-muted-foreground">
                           {r.weekdays.map((d) => WEEKDAY_LABELS[d]).join(", ") || "ללא ימים"} · {roundLabel(r.round)} ·{" "}
-                          {r.lines.length} פריטים
+                          {linesCount(r.lines)} פריטים
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        aria-label="מחיקת הזמנה קבועה"
-                        onClick={() => removeAdminRecurring(r.id)}
-                        className="text-muted-foreground"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
+                      {r.status !== "cancelled" ? (
+                        <button
+                          type="button"
+                          aria-label="ביטול הזמנה קבועה"
+                          onClick={() => cancelRecurring.mutate(r.id)}
+                          className="text-muted-foreground"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      ) : null}
                     </div>
                   ))}
                 </div>

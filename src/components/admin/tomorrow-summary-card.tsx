@@ -3,6 +3,7 @@ import { ChevronDown, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 
 import type { AdminOrderView } from "@/hooks/use-orders";
+import { Chip } from "@/components/app/status-chip";
 import type { DaySummary } from "@/lib/admin/selectors";
 import { formatDate, formatWeekday, formatPrice } from "@/lib/format";
 
@@ -52,6 +53,7 @@ export function TomorrowSummaryCard({
               >
                 <span className="flex min-w-0 flex-1 items-center gap-2">
                   <span className="truncate text-[13.5px] font-semibold text-foreground">{view.customerName}</span>
+                  {view.order.source === "recurring" ? <Chip tone="muted">קבועה</Chip> : null}
                 </span>
                 <span className="shrink-0 text-[12px] text-muted-foreground">
                   {view.itemsCount} מוצרים

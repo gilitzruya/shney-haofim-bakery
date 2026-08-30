@@ -25,11 +25,11 @@ import { findProduct, ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
 import { useCustomer, useCustomerPriceMap } from "@/hooks/use-customers";
 import { useAdminCreateOrder } from "@/hooks/use-orders";
+import { useCreateRecurring } from "@/hooks/use-recurring";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/customers/$customerId/new-order")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -52,7 +52,7 @@ function NewCustomerOrderPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/new-order" });
   const { type } = Route.useSearch();
   const isRecurring = type === "recurring";
-  const { addAdminRecurring } = useStore();
+  const createRecurring = useCreateRecurring();
   const { customer, isLoading } = useCustomer(customerId);
   const hydrated = !isLoading;
   const priceMap = useCustomerPriceMap(customerId);
@@ -111,16 +111,24 @@ function NewCustomerOrderPage() {
   const create = () => {
     if (!activeRound || !auth) return;
     if (isRecurring) {
-      addAdminRecurring({
-        customerId: customer.id,
-        name: recName.trim() || `הזמנה קבועה — ${customer.name}`,
-        weekdays,
-        round: activeRound,
-        lines,
-      });
-      setConfirmCreate(false);
-      toast.success("ההזמנה הקבועה נוצרה עבור הלקוח");
-      void navigate({ to: "/admin/customers/$customerId", params: { customerId } });
+      createRecurring.mutate(
+        {
+          customerId: customer.id,
+          name: recName.trim() || `הזמנה קבועה — ${customer.name}`,
+          weekdays,
+          round: activeRound,
+          startDate: tomorrowIso(),
+          lines,
+        },
+        {
+          onSuccess: () => {
+            setConfirmCreate(false);
+            toast.success("ההזמנה הקבועה נוצרה עבור הלקוח");
+            void navigate({ to: "/admin/customers/$customerId", params: { customerId } });
+          },
+          onError: (err) => toast.error(err instanceof Error ? err.message : "יצירת ההזמנה הקבועה נכשלה"),
+        },
+      );
       return;
     }
     const orderLines = lines

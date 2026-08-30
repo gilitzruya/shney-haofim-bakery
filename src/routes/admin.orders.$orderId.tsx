@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { FileText, MapPin, Pencil, Phone, Plus, RotateCcw, XCircle } from "lucide-react";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { FileText, Info, MapPin, Pencil, Phone, Plus, RotateCcw, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,6 +23,11 @@ import { StatusChip } from "@/components/app/status-chip";
 import { findProduct, roundLabel } from "@/data/catalog";
 import { useAdminOrderView, useAdminUpdateOrderLines, useCancelOrder, useRestoreOrder, orderDate, type CartLineInput } from "@/hooks/use-orders";
 import { useCustomerPriceMap } from "@/hooks/use-customers";
+import {
+  useAdminOrdersForDateWithRecurring,
+  useMaterializeRecurringOccurrence,
+  parseVirtualOrderId,
+} from "@/hooks/use-recurring";
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { priceFor } from "@/lib/admin/pricing";
@@ -45,6 +50,142 @@ export const Route = createFileRoute("/admin/orders/$orderId")({
 
 function AdminOrderDetailPage() {
   const { orderId } = useParams({ from: "/admin/orders/$orderId" });
+  const virtual = parseVirtualOrderId(orderId);
+  if (virtual) return <VirtualOccurrenceDetailPage recurringId={virtual.recurringId} date={virtual.date} />;
+  return <RealOrderDetailPage orderId={orderId} />;
+}
+
+/** מופע וירטואלי של הזמנה קבועה (עוד לא מומש) — תצוגה מצומצמת, קריאה בלבד. עריכה/ביטול
+ * ממששים אותו קודם לרשומת `orders` אמיתית (PRD §4.2-4.3) ואז מפנים לדף הרגיל, שמטפל
+ * מכאן בכל עריכה/ביטול בדיוק כמו בכל הזמנה אחרת — בלי לשכפל את ה-UI של שלב 3. */
+function VirtualOccurrenceDetailPage({ recurringId, date }: { recurringId: string; date: string }) {
+  const navigate = useNavigate();
+  const { views, isLoading } = useAdminOrdersForDateWithRecurring(date);
+  const view = views.find((v) => v.isVirtual && v.order.recurringId === recurringId);
+  const materialize = useMaterializeRecurringOccurrence();
+  const [opening, setOpening] = useState(false);
+
+  if (!view) {
+    return (
+      <AdminShell>
+        <Section className="pt-4 pb-10">
+          <PageTitleBar title="פירוט הזמנה" backTo="/admin/orders" />
+          {isLoading ? null : (
+            <EmptyState title="ההזמנה לא נמצאה" description="ייתכן שההזמנה הקבועה כבר לא חלה על התאריך הזה." />
+          )}
+        </Section>
+      </AdminShell>
+    );
+  }
+
+  const { order } = view;
+  const total = order.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
+
+  const openForEditing = async () => {
+    if (opening) return;
+    setOpening(true);
+    try {
+      const realOrderId = await materialize.mutateAsync({ recurringId, date });
+      navigate({ to: "/admin/orders/$orderId", params: { orderId: realOrderId }, replace: true });
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  return (
+    <AdminShell>
+      <Section className="pt-4 pb-28">
+        <PageTitleBar title={view.customerName} backTo="/admin/orders" />
+
+        <div className="mb-3 flex items-start gap-1.5 rounded-[10px] bg-card-muted px-3 py-2.5 text-[12px] font-semibold text-muted-foreground">
+          <Info className="mt-px size-3.5 shrink-0 text-primary" />
+          <span>זו הזמנה קבועה שטרם מומשה — נעילה/עריכה/ביטול יקרו רק אחרי פתיחה לעריכה.</span>
+        </div>
+
+        <Card>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[14.5px] font-bold text-heading">{formatLongDate(order.date!)}</span>
+            <span className="rounded-full bg-card-muted px-3 py-[3px] text-[10.5px] font-bold text-muted-foreground">
+              קבועה
+            </span>
+          </div>
+          <div className="mt-1.5 text-[12px] text-muted-foreground">
+            {roundLabel(order.round)} · {order.lines.length} פריטים
+          </div>
+          <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
+            {view.customerAddress ? (
+              <span className="flex items-center gap-1.5">
+                <MapPin className="size-3.5 shrink-0" />
+                {view.customerAddress}
+              </span>
+            ) : null}
+            {view.customerPhone ? (
+              <span className="flex items-center gap-1.5">
+                <Phone className="size-3.5 shrink-0" />
+                {formatPhone(view.customerPhone)}
+              </span>
+            ) : null}
+          </div>
+        </Card>
+
+        {order.note ? (
+          <Card className="mt-3 bg-card-muted">
+            <div className="text-[11.5px] font-semibold text-muted-foreground">הערה למאפייה</div>
+            <div className="mt-1 text-[13px] text-foreground">{order.note}</div>
+          </Card>
+        ) : null}
+
+        <h2 className="mt-4 mb-2 text-[15px] font-bold text-heading">מוצרים בהזמנה</h2>
+        <div className="flex flex-col gap-2">
+          {order.lines.map((line) => {
+            const imageUrl = findProduct(line.productId)?.imageUrl;
+            return (
+              <Card key={line.productId} className="flex items-center gap-2.5">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={line.productName}
+                    loading="lazy"
+                    className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"
+                  />
+                ) : (
+                  <ProductPlaceholder className="size-[56px]" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[15px] font-bold text-foreground">{line.productName}</div>
+                  <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                    {formatQty(line.qty, line.unit)} × {formatPrice(line.unitPrice)} ={" "}
+                    <span className="font-semibold text-foreground">{formatPrice(line.unitPrice * line.qty)}</span>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <Card className="mt-3 bg-card-muted">
+          <div className="flex items-center justify-between">
+            <span className="text-[13.5px] font-bold text-foreground">
+              סה״כ <span className="text-[11px] font-normal text-muted-foreground">(לפני מע״מ)</span>
+            </span>
+            <span className="text-[19px] font-bold text-heading">{formatPrice(total)}</span>
+          </div>
+        </Card>
+      </Section>
+
+      <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
+        <div className="mx-auto max-w-5xl">
+          <Button size="lg" className="w-full" loading={opening} onClick={() => void openForEditing()}>
+            <Pencil className="size-4" />
+            פתיחת ההזמנה לעריכה / ביטול
+          </Button>
+        </div>
+      </div>
+    </AdminShell>
+  );
+}
+
+function RealOrderDetailPage({ orderId }: { orderId: string }) {
   const { view } = useAdminOrderView(orderId);
   const { documents, issueDocument } = useStore();
   const updateLines = useAdminUpdateOrderLines();

@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AppStoreProvider } from "@/store/app-store";
+import { RecurringDraftProvider } from "@/store/recurring-draft";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaInstallPrompt } from "@/components/app/pwa-install-prompt";
 import { getAuthContext } from "@/lib/auth/auth-context";
@@ -159,11 +160,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppStoreProvider>
-        <CatalogSync />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster position="bottom-center" dir="rtl" />
-        <PwaInstallPrompt />
+        <RecurringDraftProvider>
+          <CatalogSync />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster position="bottom-center" dir="rtl" />
+          <PwaInstallPrompt />
+        </RecurringDraftProvider>
       </AppStoreProvider>
     </QueryClientProvider>
   );

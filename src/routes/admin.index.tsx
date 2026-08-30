@@ -22,7 +22,8 @@ import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/button";
 import { Chip } from "@/components/app/status-chip";
-import { orderDate, useAdminOrdersForDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
+import { orderDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
+import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
@@ -51,10 +52,11 @@ type PrintTarget = "production" | "distribution" | null;
 function AdminHomePage() {
   const { issueDocuments, documentsForOrder } = useStore();
   const date = tomorrowIso();
-  const { views: tomorrowViews, isLoading: loadingTomorrow } = useAdminOrdersForDate(date);
+  const { views: tomorrowViews, isLoading: loadingTomorrow } = useAdminOrdersForDateWithRecurring(date);
   const { views: recentViews, isLoading: loadingRecent } = useRecentAdminOrders();
   const { views: stalledDrafts, isLoading: loadingDrafts } = useAdminStalledDrafts();
   const hydrated = !loadingTomorrow && !loadingRecent && !loadingDrafts;
+  const materialize = useMaterializeRecurringOccurrence();
 
   const [issuingDocs, setIssuingDocs] = useState(false);
 
@@ -93,12 +95,20 @@ function AdminHomePage() {
         duration: 5000,
       },
     );
-    const pendingOrderIds = tomorrowViews
-      .filter((v) => !documentsForOrder(v.order.id).find((d) => d.type === "delivery_note"))
-      .map((v) => v.order.id);
-    if (pendingOrderIds.length === 0) return;
+    const pendingViews = tomorrowViews.filter(
+      (v) => v.isVirtual || !documentsForOrder(v.order.id).find((d) => d.type === "delivery_note"),
+    );
+    if (pendingViews.length === 0) return;
     setIssuingDocs(true);
     try {
+      // הזמנה קבועה וירטואלית חייבת רשומת `orders` אמיתית לפני שאפשר להפיק לה תעודה
+      // (PRD §4.1) — ממששים כל שורה כזו קודם, ואז מפיקים על ה-id-ים האמיתיים.
+      const pendingOrderIds = await Promise.all(
+        pendingViews.map((v) => {
+          if (!v.isVirtual || !v.order.recurringId) return v.order.id;
+          return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
+        }),
+      );
       await issueDocuments(pendingOrderIds, "delivery_note");
     } finally {
       setIssuingDocs(false);
