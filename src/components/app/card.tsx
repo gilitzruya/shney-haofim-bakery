@@ -28,16 +28,6 @@ export function Card({
   );
 }
 
-/** Card header convention: title pinned to the start (right in RTL), chip to the end. */
-export function CardHeader({ title, chip }: { title: ReactNode; chip?: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-[13.5px] font-semibold text-foreground">{title}</span>
-      {chip}
-    </div>
-  );
-}
-
 export function EmptyState({
   title,
   description,

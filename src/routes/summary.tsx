@@ -488,7 +488,7 @@ function OrderSummaryPage() {
                   </div>
                 </div>
                 <QuantityStepper
-                  product={{ id: line.productId, unit: line.unit, minQty: 1, step: line.unit === "kg" ? 0.5 : 1, quickAdd: line.unit === "kg" ? 1 : 5, price: line.unitPrice, name: line.productName, available: true }}
+                  product={{ id: line.productId, unit: line.unit, minQty: 1, step: line.unit === "kg" ? 0.5 : 1, price: line.unitPrice, name: line.productName, available: true }}
                   qty={line.qty}
                   compact
                   onChange={(delta) => setQty(line.productId, Math.max(0, line.qty + delta))}

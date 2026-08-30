@@ -565,7 +565,6 @@ function NewProductForm({
       price: Math.round(parsedPrice * 100) / 100,
       minQty: Number.isNaN(parsedMin) ? defaultMin : parsedMin,
       step: unit === "kg" ? 0.5 : 1,
-      quickAdd: unit === "kg" ? 1 : 5,
       weightGrams: Number.isNaN(parsedWeight) ? undefined : parsedWeight,
       note: note.trim() ? note.trim() : undefined,
       imageFile: image.file,

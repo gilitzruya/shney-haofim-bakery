@@ -1,5 +1,4 @@
 import { findProduct } from "@/data/catalog";
-import type { OrderLine } from "@/data/seed";
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const HE_MONTHS = [
@@ -80,15 +79,15 @@ export function unitLabel(unit: "unit" | "kg"): string {
   return unit === "kg" ? 'ק"ג' : "יחידה";
 }
 
-export function priceLabel(price: number, unit: "unit" | "kg"): string {
-  return `${price.toFixed(2)} ₪ ל${unitLabel(unit)}`;
+/** צורת שורת פריטים גנרית ({productId, qty}, בלי מחיר) — משמשת מול הקטלוג החי
+ * (`findProduct`) ב-`linesTotal`/`linesCount` למטה ובתצוגת "העתקת הזמנה קודמת". */
+export interface OrderLine {
+  productId: string;
+  qty: number;
 }
 
-export const VAT_RATE = 0.18;
-
-/** Price excluding VAT (catalog prices include VAT). */
-export function priceExVat(price: number): number {
-  return price / (1 + VAT_RATE);
+export function priceLabel(price: number, unit: "unit" | "kg"): string {
+  return `${price.toFixed(2)} ₪ ל${unitLabel(unit)}`;
 }
 
 export function weightLabel(grams: number): string {
@@ -108,10 +107,6 @@ export function linesCount(lines: OrderLine[]): number {
 
 export function stepFor(product: { unit: "unit" | "kg"; step?: number }): number {
   return product.step ?? (product.unit === "kg" ? 0.5 : 1);
-}
-
-export function quickStepFor(product: { unit: "unit" | "kg"; quickAdd?: number }): number {
-  return product.quickAdd ?? (product.unit === "kg" ? 1 : 5);
 }
 
 export function minQtyFor(product: { unit: "unit" | "kg"; minQty?: number }): number {

@@ -7,22 +7,6 @@ export function priceFor(product: Product, overrides: Record<string, number> | u
   return typeof override === "number" ? override : product.price;
 }
 
-export function hasOverride(overrides: Record<string, number> | undefined, productId: string): boolean {
-  return typeof overrides?.[productId] === "number";
-}
-
-/** סה״כ שורות (טרם נשמרו) לפי תמחור הלקוח — לתצוגה מקדימה בלבד, לפני יצירת ההזמנה.
- * להזמנה קיימת יש לקרוא את ה-snapshot (`order_lines.unit_price`) ישירות, לא לחשב מחדש. */
-export function linesTotalFor(
-  lines: { productId: string; qty: number }[],
-  overrides: Record<string, number> | undefined,
-): number {
-  return lines.reduce((sum, l) => {
-    const p = findProduct(l.productId);
-    return p ? sum + priceFor(p, overrides) * l.qty : sum;
-  }, 0);
-}
-
 export interface OverrideEntry {
   product: Product;
   price: number;

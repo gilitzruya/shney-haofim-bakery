@@ -32,10 +32,6 @@ export function applyRuntimeCutoffRules(rules: CutoffRule[] | undefined): void {
   runtimeRules = normalizeCutoffRules(rules);
 }
 
-export function cutoffRules(): CutoffRule[] {
-  return runtimeRules;
-}
-
 export function cutoffRuleFor(weekday: number): CutoffRule {
   return runtimeRules[weekday] ?? DEFAULT_CUTOFF_RULES[weekday]!;
 }
@@ -90,10 +86,6 @@ let runtimeExceptions: CutoffException[] = [];
 
 export function applyRuntimeCutoffExceptions(list: CutoffException[] | undefined): void {
   runtimeExceptions = [...(list ?? [])].sort((a, b) => a.date.localeCompare(b.date));
-}
-
-export function cutoffExceptions(): CutoffException[] {
-  return runtimeExceptions;
 }
 
 export function cutoffExceptionFor(deliveryIso: string): CutoffException | undefined {

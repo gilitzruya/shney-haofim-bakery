@@ -1,13 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { tomorrowIso } from "@/lib/admin/dates";
-import { formatDate, formatWeekday, parseDate, toIso } from "@/lib/format";
-
-export function shiftIso(iso: string, days: number): string {
-  const d = parseDate(iso);
-  d.setDate(d.getDate() + days);
-  return toIso(d);
-}
+import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
+import { formatDate, formatWeekday } from "@/lib/format";
 
 /** בורר יום אספקה משותף למסכי הניהול. */
 export function ReportDateNav({

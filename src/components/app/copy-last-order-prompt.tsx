@@ -1,8 +1,7 @@
 import { Copy } from "lucide-react";
 
 import { Button } from "@/components/app/button";
-import { formatLongDate, linesCount } from "@/lib/format";
-import type { OrderLine } from "@/data/seed";
+import { formatLongDate, linesCount, type OrderLine } from "@/lib/format";
 
 type Props = {
   /** תאריך/פריטי ההזמנה הקודמת הספציפית — אם עוד לא ידוע איזו הזמנה תוצע (טרם נבחר

@@ -19,7 +19,6 @@ type ProductRow = {
   price: number;
   min_qty: number;
   step: number;
-  quick_add: number;
   available: boolean;
   unavailable_reason: string | null;
   weight_grams: number | null;
@@ -42,7 +41,6 @@ function toProduct(row: ProductRow): Product {
     price: row.price,
     minQty: row.min_qty,
     step: row.step,
-    quickAdd: row.quick_add,
     available: row.available,
     ...(row.unavailable_reason ? { unavailableReason: row.unavailable_reason } : {}),
     ...(row.sku ? { sku: row.sku } : {}),
@@ -62,7 +60,7 @@ async function fetchCatalog(): Promise<Category[]> {
       supabase
         .from("products")
         .select(
-          "id, category_id, name, sku, unit, price, min_qty, step, quick_add, available, unavailable_reason, weight_grams, note, image_path, position",
+          "id, category_id, name, sku, unit, price, min_qty, step, available, unavailable_reason, weight_grams, note, image_path, position",
         )
         .is("deleted_at", null)
         .order("position", { ascending: true }),
@@ -181,7 +179,6 @@ export interface ProductFormInput {
   price: number;
   minQty: number;
   step: number;
-  quickAdd?: number | undefined;
   weightGrams?: number | undefined;
   note?: string | undefined;
   imageFile?: File | undefined;
@@ -205,7 +202,6 @@ export function useAddProduct() {
           price: input.price,
           min_qty: input.minQty,
           step: input.step,
-          quick_add: input.quickAdd ?? (input.unit === "kg" ? 1 : 5),
           weight_grams: input.weightGrams ?? null,
           note: input.note ?? null,
           position: category?.products.length ?? 0,

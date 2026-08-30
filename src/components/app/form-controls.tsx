@@ -1,27 +1,5 @@
-import { ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
-import type { RoundId } from "@/data/catalog";
+import { WEEKDAY_LABELS } from "@/data/catalog";
 import { cn } from "@/lib/utils";
-
-export function RoundSelector({ value, onChange }: { value: RoundId | null; onChange: (id: RoundId) => void }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {ROUNDS.map((r) => (
-        <button
-          key={r.id}
-          type="button"
-          onClick={() => onChange(r.id)}
-          className={cn(
-            "flex items-center justify-between rounded-xl border px-3.5 py-3 text-start",
-            value === r.id ? "border-[1.5px] border-primary bg-primary-soft" : "border-border bg-card",
-          )}
-        >
-          <span className="text-[13.5px] font-semibold text-foreground">{r.label}</span>
-          <span className="text-[12px] text-muted-foreground">{r.time}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export function WeekdayChips({ value, onChange }: { value: number[]; onChange: (days: number[]) => void }) {
   const toggle = (day: number) =>

@@ -9,8 +9,6 @@ export interface Product {
   minQty: number;
   /** Regular +1 / -1 increment. */
   step: number;
-  /** Quick-add (+N) increment. */
-  quickAdd: number;
   available: boolean;
   unavailableReason?: string;
   /** Optional catalog item code (falls back to id). */

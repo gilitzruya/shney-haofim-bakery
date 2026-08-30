@@ -2,10 +2,8 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/data/catalog";
 import {
   clampQty,
-  formatPrice,
   formatQty,
   minQtyFor,
-  priceExVat,
   priceLabel,
   stepFor,
   unitLabel,

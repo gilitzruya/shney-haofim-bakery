@@ -418,7 +418,6 @@ export type Database = {
           note: string | null
           position: number
           price: number
-          quick_add: number
           sku: string | null
           step: number
           unavailable_reason: string | null
@@ -436,7 +435,6 @@ export type Database = {
           note?: string | null
           position?: number
           price: number
-          quick_add?: number
           sku?: string | null
           step?: number
           unavailable_reason?: string | null
@@ -454,7 +452,6 @@ export type Database = {
           note?: string | null
           position?: number
           price?: number
-          quick_add?: number
           sku?: string | null
           step?: number
           unavailable_reason?: string | null

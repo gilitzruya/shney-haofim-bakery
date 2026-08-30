@@ -1,9 +1,6 @@
 import { parseDate } from "@/lib/format";
 import { cutoffExceptionFor, cutoffRuleFor, formatTime } from "@/lib/admin/cutoff-rules";
 
-/** שעת סגירת ההזמנות (ברירת מחדל) */
-export const CUTOFF_HOUR = 12;
-
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 /**
