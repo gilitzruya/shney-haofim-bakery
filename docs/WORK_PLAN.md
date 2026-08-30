@@ -286,8 +286,8 @@ push** (גם ל-branch, לא רק ל-main) מקבל אוטומטית קישור 
 - בדיקות PWA וריבוי מכשירים.
 
 ### בדיקות בסוף השלב
-- [ ] חיפוש בקוד: אף אזכור ל-`localStorage`/`sessionStorage` (מלבד session של Supabase Auth), `bakery-demo-state`, `SEED_`, `resetDemoData`, `adminOrders`, `adminRecurring` — אפס תוצאות.
-- [ ] `knip`/בדיקת imports: אין קבצים או exports יתומים; `npm run build` ו-lint נקיים.
+- [x] חיפוש בקוד: אף אזכור ל-`localStorage`/`sessionStorage` (מלבד session של Supabase Auth), `bakery-demo-state`, `SEED_`, `resetDemoData`, `adminOrders`, `adminRecurring` — אפס תוצאות. *(נבדק: כל אזכורי localStorage/sessionStorage שנמצאו הם UI state לגיטימי — session של Supabase Auth, דחיית באנר התקנת PWA — לא שאריות דמו. `adminOrders`/`adminRecurring` שנמצאו הם רק שמות query key עצמאיים, לא ה-state הישן.)*
+- [x] `knip`/בדיקת imports: אין קבצים או exports יתומים; `npm run build` ו-lint נקיים. *(`bunx knip` הריץ 3 פעמים — 44 קבצים נמחקו (scaffold shadcn/ui + `admin-placeholder`/`batch-documents-bar`/`whatsapp-contact-link`/`use-mobile`/`data/seed.ts`), 35 תלויות npm הוסרו מ-`package.json`, ופונקציות/קבועים מתים ממוקדים (`RoundSelector`, `priceExVat`, `CardHeader`, `hasOverride`, `linesTotalFor`, `CUTOFF_HOUR`, `intakeTime`, כפילות `shiftIso`). כל שריד שנותר ברשימת knip אומת ידנית כשימוש פנימי לגיטימי (query keys, exports של shadcn עצמו, טיפוסים מיוצרים אוטומטית). `tsc --noEmit` ו-`bun run build` נקיים; lint על כל הקבצים שנגעו בהם נקי מלבד רעש ה-CRLF התיעודי משלב 5. בנוסף: תכונת `quickAdd` (שדה ב-DB/במודל הקטלוג שמעולם לא חובר לשום UI בצד הלקוח ולא הופיע ב-PRD) הוסרה כליל — מיגרציה `20260830000005_stage6_drop_quick_add.sql`, טיפוסים מיוצרים מחדש, ו-hooks/admin עודכנו; אומת ב-UI (הוספת/מחיקת מוצר, קטלוג לקוח עם stepper) שהכול עדיין עובד.)*
 - [ ] מעבר QA מלא על צ'קליסט ההתנהגויות (כל הבדיקות של שלבים 1-5 מורצות שוב פעם אחת ברצף).
 - [ ] בדיקה ויזואלית מסך-מסך מול האב-טיפוס (מובייל 393px + דסקטופ) — צילומי מסך משווים לכל מסך.
 - [ ] 👤 אישור ויזואלי סופי שלך על הצילומים המשווים — "זה נראה נכון".
