@@ -6,11 +6,10 @@ import { Button } from "@/components/app/button";
 import { TextInput } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { allProducts, catalogCategories, type Product } from "@/data/catalog";
-import type { Customer } from "@/data/admin-seed";
+import { useCustomerPriceMap, useSetCustomerPrice } from "@/hooks/use-customers";
 import { overrideEntriesFromMap } from "@/lib/admin/pricing";
 import { formatPrice, unitLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/store/app-store";
 
 const COLLAPSED_COUNT = 3;
 
@@ -38,20 +37,21 @@ function ProductAddRow({ product, onAdd, bare }: { product: Product; onAdd: () =
 
 /** מחירון מיוחד ללקוח — הצגה, הוספה, עריכה ומחיקה של חריגות מחיר. */
 export function SpecialPricesPanel({
-  customer,
+  customerId,
   draftOverrides,
   onDraftChange,
 }: {
-  /** לקוח קיים — שינויים נשמרים ישירות בחנות */
-  customer?: Customer;
+  /** מזהה לקוח קיים — שינויים נשמרים ישירות ב-DB */
+  customerId?: string;
   /** מצב טיוטה (לקוח חדש שטרם נשמר) */
   draftOverrides?: Record<string, number>;
   onDraftChange?: (productId: string, price: number | null) => void;
 }) {
-  const { setCustomerPriceOverride } = useStore();
-  const overrides = customer ? (customer.priceOverrides ?? {}) : (draftOverrides ?? {});
+  const liveOverrides = useCustomerPriceMap(customerId);
+  const setPrice = useSetCustomerPrice();
+  const overrides = customerId ? liveOverrides : (draftOverrides ?? {});
   const setOverride = (productId: string, price: number | null) => {
-    if (customer) setCustomerPriceOverride(customer.id, productId, price);
+    if (customerId) setPrice.mutate({ customerId, productId, price });
     else onDraftChange?.(productId, price);
   };
   const [query, setQuery] = useState("");

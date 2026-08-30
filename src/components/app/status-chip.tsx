@@ -1,13 +1,11 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import type { OrderStatus } from "@/data/seed";
+import type { OrderStatus } from "@/hooks/use-orders";
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   draft: "טיוטה",
   approved: "מאושרת",
-  needs_update: "דורשת עדכון",
-  reopened: "נפתחה מחדש",
   completed: "הושלמה",
   cancelled: "בוטלה",
 };
@@ -15,8 +13,6 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
 const STATUS_CLASS: Record<OrderStatus, string> = {
   draft: "bg-accent text-accent-foreground",
   approved: "bg-accent text-accent-foreground",
-  needs_update: "bg-accent-soft text-accent-foreground",
-  reopened: "bg-accent-soft text-accent-foreground",
   completed: "bg-secondary text-muted-foreground",
   cancelled: "bg-secondary text-muted-foreground",
 };

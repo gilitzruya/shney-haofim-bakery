@@ -1,23 +1,25 @@
-import type { Customer } from "@/data/admin-seed";
 import type { Product } from "@/data/catalog";
 import { findProduct } from "@/data/catalog";
-import type { OrderLine } from "@/data/seed";
 
-/** מחיר בפועל ללקוח: מחיר מיוחד אם קיים, אחרת מחיר הקטלוג. */
-export function priceFor(customer: Customer | undefined, product: Product): number {
-  const override = customer?.priceOverrides?.[product.id];
+/** מחיר בפועל ללקוח: מחיר מיוחד אם קיים (productId → price), אחרת מחיר הקטלוג. */
+export function priceFor(product: Product, overrides: Record<string, number> | undefined): number {
+  const override = overrides?.[product.id];
   return typeof override === "number" ? override : product.price;
 }
 
-export function hasOverride(customer: Customer | undefined, productId: string): boolean {
-  return typeof customer?.priceOverrides?.[productId] === "number";
+export function hasOverride(overrides: Record<string, number> | undefined, productId: string): boolean {
+  return typeof overrides?.[productId] === "number";
 }
 
-/** סה״כ שורות לפי תמחור הלקוח. */
-export function linesTotalFor(lines: OrderLine[], customer: Customer | undefined): number {
+/** סה״כ שורות (טרם נשמרו) לפי תמחור הלקוח — לתצוגה מקדימה בלבד, לפני יצירת ההזמנה.
+ * להזמנה קיימת יש לקרוא את ה-snapshot (`order_lines.unit_price`) ישירות, לא לחשב מחדש. */
+export function linesTotalFor(
+  lines: { productId: string; qty: number }[],
+  overrides: Record<string, number> | undefined,
+): number {
   return lines.reduce((sum, l) => {
     const p = findProduct(l.productId);
-    return p ? sum + priceFor(customer, p) * l.qty : sum;
+    return p ? sum + priceFor(p, overrides) * l.qty : sum;
   }, 0);
 }
 
@@ -26,12 +28,7 @@ export interface OverrideEntry {
   price: number;
 }
 
-/** רשימת החריגות של הלקוח בלבד, ממוינת לפי שם המוצר. */
-export function overrideEntries(customer: Customer | undefined): OverrideEntry[] {
-  return overrideEntriesFromMap(customer?.priceOverrides);
-}
-
-/** רשימת חריגות מתוך מפת מחירים (גם ללקוח שטרם נשמר). */
+/** רשימת חריגות מתוך מפת מחירים (productId → price), ממוינת לפי שם המוצר. */
 export function overrideEntriesFromMap(map: Record<string, number> | undefined): OverrideEntry[] {
   return Object.entries(map ?? {})
     .map(([productId, price]) => {

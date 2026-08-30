@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 
-import type { AdminOrderView, DaySummary } from "@/lib/admin/selectors";
+import type { AdminOrderView } from "@/hooks/use-orders";
+import type { DaySummary } from "@/lib/admin/selectors";
 import { formatDate, formatWeekday, formatPrice } from "@/lib/format";
 
 /** "₪8,740" — סכום קצר לתצוגת סיכום. */

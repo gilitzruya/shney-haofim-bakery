@@ -1,13 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
 import { CustomerInviteModal } from "@/components/admin/customer-invite-modal";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { Section } from "@/components/app/app-shell";
-import { useStore } from "@/store/app-store";
+import { useAddContact, useCreateCustomer, useGrantContactAccess, useSetCustomerPrice } from "@/hooks/use-customers";
+import { toE164 } from "@/lib/phone";
 
 export const Route = createFileRoute("/admin/customers/new")({
   head: () => ({
@@ -24,11 +26,16 @@ export const Route = createFileRoute("/admin/customers/new")({
 });
 
 function NewCustomerPage() {
-  const { addCustomer } = useStore();
+  const createCustomer = useCreateCustomer();
+  const addContact = useAddContact();
+  const grantAccess = useGrantContactAccess();
+  const setPrice = useSetCustomerPrice();
   const navigate = useNavigate();
-  const [invite, setInvite] = useState<{ customerId: string; name: string; phone: string } | null>(null);
-  const [appUrl, setAppUrl] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [inviteQueue, setInviteQueue] = useState<{ name: string; phone: string }[]>([]);
+  const [appUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
   const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
+  const [saving, setSaving] = useState(false);
 
   const setDraftOverride = (productId: string, price: number | null) =>
     setPriceOverrides((prev) => {
@@ -37,6 +44,12 @@ function NewCustomerPage() {
       else next[productId] = price;
       return next;
     });
+
+  const finishInvites = (id: string) => {
+    setCustomerId(null);
+    setInviteQueue([]);
+    void navigate({ to: "/admin/customers/$customerId", params: { customerId: id } });
+  };
 
   return (
     <AdminShell>
@@ -54,17 +67,48 @@ function NewCustomerPage() {
           initial={toFormValues()}
           submitLabel="שמירת הלקוח"
           onCancel={() => void navigate({ to: "/admin/customers" })}
-          onSubmit={(v) => {
-            const created = addCustomer({
-              code: v.code.trim() || undefined,
-              name: v.name,
-              address: v.address,
-              contacts: [{ name: v.contactName, phone: v.phone, email: v.email }],
-              allowedRounds: v.allowedRounds,
-              ...(Object.keys(priceOverrides).length ? { priceOverrides } : {}),
-            });
-            setAppUrl(typeof window === "undefined" ? "" : window.location.origin);
-            setInvite({ customerId: created.id, name: created.name, phone: v.phone.trim() });
+          onSubmit={async (v) => {
+            if (saving) return;
+            setSaving(true);
+            try {
+              const id = await createCustomer.mutateAsync({
+                code: v.code.trim() || undefined,
+                name: v.name,
+                address: v.address || undefined,
+                businessId: v.businessId || undefined,
+                deliveryNotes: v.deliveryNotes || undefined,
+                allowedRounds: v.allowedRounds,
+              });
+
+              for (const [productId, price] of Object.entries(priceOverrides)) {
+                await setPrice.mutateAsync({ customerId: id, productId, price });
+              }
+
+              const toInvite: { name: string; phone: string }[] = [];
+              for (const contact of v.contacts) {
+                await addContact.mutateAsync({
+                  customerId: id,
+                  input: {
+                    name: contact.name,
+                    phone: contact.phone,
+                    email: contact.email,
+                    isPrimary: contact.isPrimary,
+                  },
+                });
+                if (contact.requestAccess && contact.phone.trim()) {
+                  await grantAccess.mutateAsync({ customerId: id, phone: contact.phone });
+                  toInvite.push({ name: contact.name || v.name, phone: toE164(contact.phone) });
+                }
+              }
+
+              setCustomerId(id);
+              if (toInvite.length > 0) setInviteQueue(toInvite);
+              else finishInvites(id);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "שמירת הלקוח נכשלה");
+            } finally {
+              setSaving(false);
+            }
           }}
           extra={
             <div className="flex flex-col gap-2">
@@ -78,14 +122,17 @@ function NewCustomerPage() {
       </Section>
 
       <CustomerInviteModal
-        open={invite !== null}
-        customerName={invite?.name ?? ""}
-        phone={invite?.phone ?? ""}
+        open={inviteQueue.length > 0}
+        customerName={inviteQueue[0]?.name ?? ""}
+        phone={inviteQueue[0]?.phone ?? ""}
         appUrl={appUrl}
         onClose={() => {
-          const id = invite?.customerId;
-          setInvite(null);
-          if (id) void navigate({ to: "/admin/customers/$customerId", params: { customerId: id } });
+          const rest = inviteQueue.slice(1);
+          if (rest.length > 0) {
+            setInviteQueue(rest);
+            return;
+          }
+          if (customerId) finishInvites(customerId);
         }}
       />
     </AdminShell>

@@ -6,13 +6,19 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
+import { DateCalendar } from "@/components/app/date-calendar";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
 import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 
-import { formatPrice, linesTotal } from "@/lib/format";
-import { linesFromQuantities, useStore } from "@/store/app-store";
+import type { Product } from "@/data/catalog";
 import { useCatalog } from "@/hooks/use-catalog";
+import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
+import { useAddCartLines, useCartOrder, useMyOrders, useSetCartDateRound, useUpsertCartLine, type Order } from "@/hooks/use-orders";
+import { isCutoffPassed, israelNow } from "@/lib/cutoff";
+import { priceFor } from "@/lib/admin/pricing";
+import { formatPrice, linesTotal, parseDate } from "@/lib/format";
+import { linesFromQuantities as draftLinesFromQuantities, useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/catalog")({
   head: () => ({
@@ -35,10 +41,22 @@ function headerOffset() {
   return header ? Math.round(header.getBoundingClientRect().height) : 150;
 }
 
+/** מסך הקטלוג משותף היום לזרימת הזמנה חד-פעמית וגם לבניית הזמנה קבועה (אותו `draft`
+ * ב-store הישן). כל עוד יש `draft` פעיל — הוא תמיד ממצב קבוע (recurring_create/edit/
+ * onetime, שלב 4/5 טרם עברו ל-DB) — הנתיב הישן רץ ללא שינוי. אחרת, זו הזמנה חד-פעמית,
+ * שכולה כבר על ה-DB. */
 function CatalogPage() {
+  const { draft } = useStore();
+  return draft ? <RecurringCatalogPage /> : <OrderCatalogPage />;
+}
+
+/* ---------------------------------------------------------------------- */
+/* מצב קבוע — בורר מוצרים גרידא, בלי שאלת העתקה (לא רלוונטית לזרימה הזו). */
+/* ---------------------------------------------------------------------- */
+
+function RecurringCatalogPage() {
   const navigate = useNavigate();
-  const { copy } = Route.useSearch();
-  const { draft, orders, bumpQty, setQty, startOrderDraft } = useStore();
+  const { draft, bumpQty, setQty } = useStore();
   const { categories: CATEGORIES } = useCatalog();
   const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
   const [query, setQuery] = useState("");
@@ -46,47 +64,8 @@ function CatalogPage() {
   const lockRef = useRef(false);
 
   const quantities = draft?.quantities ?? {};
-  const total = useMemo(() => linesTotal(linesFromQuantities(quantities)), [quantities]);
+  const total = useMemo(() => linesTotal(draftLinesFromQuantities(quantities)), [quantities]);
   const selectedCount = Object.keys(quantities).length;
-
-  /** ההזמנה האחרונה עם מוצרים — לשאלת ההעתקה מעל הקטלוג */
-  const lastOrder = useMemo(
-    () =>
-      orders
-        .filter((o) => o.lines.length > 0 && o.status !== "cancelled" && o.status !== "draft")
-        .sort((a, b) => (a.date < b.date ? 1 : -1))[0],
-    [orders],
-  );
-  /** ההודעה נשאלת פעם אחת לכל סשן — אחרי "לא" לא חוזרים להציג אותה גם אם מאפסים כמויות */
-  const DISMISS_KEY = "copyPromptDismissed";
-  const [dismissed, setDismissed] = useState(true);
-  useEffect(() => {
-    if (copy === 1) {
-      sessionStorage.removeItem(DISMISS_KEY);
-      setDismissed(false);
-      return;
-    }
-    setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
-  }, [copy]);
-  const dismiss = () => {
-    sessionStorage.setItem(DISMISS_KEY, "1");
-    setDismissed(true);
-  };
-
-  const isEmptyNewOrder =
-    (!draft || (draft.mode !== "recurring_create" && draft.mode !== "recurring_edit")) && selectedCount === 0;
-  const askCopy = !!lastOrder && !dismissed && (copy === 1 || isEmptyNewOrder);
-
-  const closeCopyPrompt = () => {
-    dismiss();
-    if (copy === 1) navigate({ to: "/catalog", search: {}, replace: true });
-  };
-  const copyFromLast = () => {
-    if (lastOrder) startOrderDraft(draft?.date, draft?.round ?? "morning", lastOrder.lines);
-    dismiss();
-    navigate({ to: "/summary", replace: true });
-  };
-
 
   const searching = query.trim().length > 0;
   const searchResults = useMemo(() => {
@@ -95,17 +74,6 @@ function CatalogPage() {
     return CATEGORIES.flatMap((c) => c.products).filter((p) => p.name.includes(q));
   }, [query, CATEGORIES]);
 
-  // Prevent background scrolling while the copy prompt is open.
-  useEffect(() => {
-    if (!askCopy) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [askCopy]);
-
-  // Scroll-spy: highlight the category currently in view.
   useEffect(() => {
     if (searching) return;
     const onScroll = () => {
@@ -135,8 +103,6 @@ function CatalogPage() {
       const top = node.getBoundingClientRect().top + window.scrollY - headerOffset() - 6;
       window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
     };
-    // Run after the tab strip finishes its own (horizontal) adjustment so the
-    // measured header height and section position are final.
     requestAnimationFrame(scrollToSection);
     window.setTimeout(scrollToSection, 120);
     window.setTimeout(() => {
@@ -224,15 +190,344 @@ function CatalogPage() {
           </Button>
         </div>
       </div>
-      {askCopy && lastOrder ? (
-        <CopyLastOrderPrompt
-          date={lastOrder.date}
-          lines={lastOrder.lines}
-          onConfirm={copyFromLast}
-          onDecline={closeCopyPrompt}
-        />
-      ) : null}
     </AppShell>
   );
 }
 
+/* ---------------------------------------------------------------------- */
+/* הזמנה חד-פעמית — DB-backed, כולל שאלת ההעתקה לפי החלטה 11.               */
+/* ---------------------------------------------------------------------- */
+
+/** בוחר איזו הזמנה קודמת להציע להעתקה, לפי יום השבוע של תאריך היעד (החלטה 11):
+ * יעד ביום שישי -> ההזמנה האחרונה ליום שישי; יעד ביום אחר -> האחרונה שאינה שישי;
+ * נופל חזרה להזמנה האחרונה בכלל אם אין התאמה לאותה "קטגוריית יום". */
+function pickCopyCandidate(orders: Order[], targetIso: string): Order | undefined {
+  const candidates = orders.filter((o) => o.status !== "draft" && o.status !== "cancelled" && o.lines.length > 0);
+  const targetIsFriday = parseDate(targetIso).getDay() === 5;
+  const isFridayOrder = (o: Order) => o.date !== null && parseDate(o.date).getDay() === 5;
+  const byDateDesc = (a: Order, b: Order) => (b.date ?? "").localeCompare(a.date ?? "");
+
+  const sameCategory = candidates.filter((o) => isFridayOrder(o) === targetIsFriday).sort(byDateDesc);
+  if (sameCategory[0]) return sameCategory[0];
+  return candidates.slice().sort(byDateDesc)[0];
+}
+
+const DISMISS_KEY = "copyPromptDismissed";
+
+function OrderCatalogPage() {
+  const navigate = useNavigate();
+  const { copy } = Route.useSearch();
+  const { auth } = Route.useRouteContext();
+  const { categories: CATEGORIES } = useCatalog();
+  const myPrices = useMyPrices();
+  const { customer } = useMyCustomer();
+  const { cart, isLoading: cartLoading } = useCartOrder();
+  const { orders } = useMyOrders();
+  const upsertLine = useUpsertCartLine();
+  const addLines = useAddCartLines();
+  const setDateRound = useSetCartDateRound();
+
+  const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
+  const [query, setQuery] = useState("");
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const lockRef = useRef(false);
+
+  const quantities = useMemo(() => {
+    const q: Record<string, number> = {};
+    for (const line of cart?.lines ?? []) q[line.productId] = line.qty;
+    return q;
+  }, [cart]);
+  const total = useMemo(
+    () => (cart?.lines ?? []).reduce((sum, l) => sum + l.qty * l.unitPrice, 0),
+    [cart],
+  );
+  const selectedCount = Object.keys(quantities).length;
+
+  const lastOrder = useMemo(
+    () => orders.filter((o) => o.status !== "cancelled" && o.status !== "draft" && o.lines.length > 0)[0],
+    [orders],
+  );
+  const [dismissed, setDismissed] = useState(true);
+  useEffect(() => {
+    if (copy === 1) {
+      sessionStorage.removeItem(DISMISS_KEY);
+      setDismissed(false);
+      return;
+    }
+    setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
+  }, [copy]);
+  const dismiss = () => {
+    sessionStorage.setItem(DISMISS_KEY, "1");
+    setDismissed(true);
+  };
+
+  const isEmptyCart = selectedCount === 0;
+  const [copyStep, setCopyStep] = useState<"ask" | "date" | null>(null);
+  const [copyDate, setCopyDate] = useState<string | null>(null);
+  const [copyRound, setCopyRound] = useState<"morning" | "noon">("morning");
+  const [copying, setCopying] = useState(false);
+  const askCopy = !cartLoading && !!lastOrder && !dismissed && (copy === 1 || isEmptyCart) && copyStep === null;
+  useEffect(() => {
+    if (askCopy) setCopyStep("ask");
+  }, [askCopy]);
+
+  const closeCopyFlow = () => {
+    dismiss();
+    setCopyStep(null);
+    if (copy === 1) navigate({ to: "/catalog", search: {}, replace: true });
+  };
+
+  const confirmCopyDate = async () => {
+    if (!copyDate || !auth?.customerId || copying) return;
+    setCopying(true);
+    try {
+      const candidate = pickCopyCandidate(orders, copyDate);
+      const cartId = await addLines.mutateAsync({
+        customerId: auth.customerId,
+        lines: candidate?.lines ?? [],
+      });
+      await setDateRound.mutateAsync({ orderId: cartId, date: copyDate, round: copyRound });
+      dismiss();
+      setCopyStep(null);
+      navigate({ to: "/summary", search: { order: cartId } as never, replace: true });
+    } finally {
+      setCopying(false);
+    }
+  };
+
+  const searching = query.trim().length > 0;
+  const pricedCategories = useMemo(
+    () =>
+      CATEGORIES.map((c) => ({
+        ...c,
+        products: c.products.map((p): Product => ({ ...p, price: priceFor(p, myPrices) })),
+      })),
+    [CATEGORIES, myPrices],
+  );
+  const searchResults = useMemo(() => {
+    const q = query.trim();
+    if (!q) return [];
+    return pricedCategories.flatMap((c) => c.products).filter((p) => p.name.includes(q));
+  }, [query, pricedCategories]);
+
+  useEffect(() => {
+    if (!askCopy) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [askCopy]);
+
+  useEffect(() => {
+    if (searching || copyStep) return;
+    const onScroll = () => {
+      if (lockRef.current) return;
+      const anchor = headerOffset() + 12;
+      let current = pricedCategories[0]?.id ?? "";
+      for (const c of pricedCategories) {
+        const el = sectionRefs.current[c.id];
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= anchor) current = c.id;
+      }
+      setCategory((prev) => (prev === current ? prev : current));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [searching, pricedCategories, copyStep]);
+
+  const goToCategory = (id: string) => {
+    setCategory(id);
+    const el = sectionRefs.current[id];
+    if (!el) return;
+    lockRef.current = true;
+    const scrollToSection = () => {
+      const node = sectionRefs.current[id];
+      if (!node) return;
+      const top = node.getBoundingClientRect().top + window.scrollY - headerOffset() - 6;
+      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+    };
+    requestAnimationFrame(scrollToSection);
+    window.setTimeout(scrollToSection, 120);
+    window.setTimeout(() => {
+      lockRef.current = false;
+    }, 900);
+  };
+
+  const changeQty = (product: Product, nextQty: number) => {
+    if (!auth?.customerId) return;
+    upsertLine.mutate({
+      customerId: auth.customerId,
+      line: {
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku ?? null,
+        unit: product.unit,
+        qty: nextQty,
+        unitPrice: product.price,
+      },
+    });
+  };
+
+  // לקוח חסום עדיין רואה הכול (היסטוריה, הזמנות קיימות) — רק נקודת הכניסה להזמנה חדשה
+  // חסומה, עם הסבר (החלטה 13). זו נקודת הכניסה היחידה להזמנה חדשה בצד הלקוח, אז חוסמים
+  // את כל המסך במקום כפתור בודד.
+  if (customer?.blocked) {
+    return (
+      <AppShell>
+        <AppHeader>
+          <PageTitleBar title="בחירת מוצרים" backTo="/" />
+        </AppHeader>
+        <Section className="pb-10">
+          <EmptyState
+            title="החשבון חסום זמנית"
+            description="לא ניתן לפתוח הזמנה חדשה כרגע. לבירור, פנו למאפייה דרך דף יצירת הקשר."
+            action={<Button onClick={() => navigate({ to: "/contact" })}>לדף יצירת הקשר</Button>}
+          />
+        </Section>
+      </AppShell>
+    );
+  }
+
+  if (copyStep === "date") {
+    const now = israelNow();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const maxDate = new Date(today.getFullYear(), today.getMonth() + 2, today.getDate());
+    const askRound = !!customer?.allowedRounds.includes("noon");
+
+    return (
+      <AppShell>
+        <AppHeader>
+          <PageTitleBar title="לאיזה תאריך?" onBack={() => setCopyStep("ask")} />
+        </AppHeader>
+        <Section className="pb-28">
+          <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">בחירת מועד אספקה</h2>
+          <DateCalendar
+            value={copyDate}
+            onSelect={setCopyDate}
+            isEnabled={(iso, d) =>
+              d.getTime() > today.getTime() && d.getTime() <= maxDate.getTime() && d.getDay() !== 6 && !isCutoffPassed(iso)
+            }
+          />
+          {askRound ? (
+            <div className="mt-4 flex flex-col gap-2">
+              <div className="text-[12px] font-semibold text-muted-foreground">סבב אספקה</div>
+              <div className="flex gap-2">
+                {(["morning", "noon"] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setCopyRound(r)}
+                    className={`flex-1 rounded-xl border px-3.5 py-3 text-[13.5px] font-semibold ${
+                      copyRound === r ? "border-[1.5px] border-primary bg-primary-soft text-foreground" : "border-border bg-card text-foreground"
+                    }`}
+                  >
+                    {r === "morning" ? "סבב ראשון" : "סבב שני"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </Section>
+        <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
+          <div className="mx-auto flex max-w-5xl gap-2.5">
+            <Button variant="secondary" size="lg" className="font-semibold" onClick={closeCopyFlow}>
+              דילוג
+            </Button>
+            <Button size="lg" className="flex-1" disabled={!copyDate} loading={copying} onClick={() => void confirmCopyDate()}>
+              המשך
+            </Button>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <AppHeader>
+        <PageTitleBar title="בחירת מוצרים" />
+        {searching ? null : (
+          <div className="mx-auto w-full max-w-5xl px-3.5 pb-2.5 md:px-5">
+            <Tabs
+              tabs={pricedCategories.map((c) => ({ id: c.id, label: c.name }))}
+              value={category}
+              onChange={goToCategory}
+            />
+          </div>
+        )}
+        <div className="mx-auto w-full max-w-5xl px-3.5 pb-1 md:px-5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="חיפוש מוצר"
+              className="h-[42px] w-full rounded-xl border border-border bg-card pe-9 ps-3.5 text-[13px] text-foreground outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+      </AppHeader>
+      <Section className="pb-28">
+        <div className="mt-3.5">
+          {searching ? (
+            searchResults.length === 0 ? (
+              <EmptyState title="לא נמצאו מוצרים" description="נסו לחפש בשם אחר או לבחור קטגוריה." />
+            ) : (
+              searchResults.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  qty={quantities[p.id] ?? 0}
+                  onChange={(delta) => changeQty(p, (quantities[p.id] ?? 0) + delta)}
+                  onSetQty={(qty) => changeQty(p, qty)}
+                />
+              ))
+            )
+          ) : (
+            pricedCategories.map((c) => (
+              <section
+                key={c.id}
+                ref={(el) => {
+                  sectionRefs.current[c.id] = el;
+                }}
+                className="pt-1"
+              >
+                <h2 className="mb-2 mt-2 text-[14px] font-bold text-foreground">{c.name}</h2>
+                {c.products.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    qty={quantities[p.id] ?? 0}
+                    onChange={(delta) => changeQty(p, (quantities[p.id] ?? 0) + delta)}
+                    onSetQty={(qty) => changeQty(p, qty)}
+                  />
+                ))}
+              </section>
+            ))
+          )}
+        </div>
+      </Section>
+
+      <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
+        <div className="mx-auto flex max-w-5xl items-center gap-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-semibold text-foreground">{selectedCount} מוצרים נבחרו</div>
+            <div className="text-[15px] font-bold text-foreground">
+              {formatPrice(total)} <span className="text-[10.5px] font-normal text-muted-foreground">(לפני מע״מ)</span>
+            </div>
+          </div>
+          <Button size="lg" disabled={selectedCount === 0} onClick={() => navigate({ to: "/summary" })}>
+            <ShoppingBasket className="size-4" />
+            מעבר לסל ההזמנה
+          </Button>
+        </div>
+      </div>
+
+      {copyStep === "ask" ? (
+        <CopyLastOrderPrompt onConfirm={() => setCopyStep("date")} onDecline={closeCopyFlow} />
+      ) : null}
+    </AppShell>
+  );
+}

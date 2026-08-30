@@ -22,11 +22,11 @@ import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
 import { Section } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/button";
 import { Chip } from "@/components/app/status-chip";
-import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
-import { intakeTime, tomorrowIso } from "@/lib/admin/dates";
-import { ordersForDate, summarizeDay } from "@/lib/admin/selectors";
+import { orderDate, useAdminOrdersForDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
+import { tomorrowIso } from "@/lib/admin/dates";
+import { summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
-import { formatDate, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
+import { formatDate, formatIsraelTime, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/")({
@@ -49,21 +49,16 @@ export const Route = createFileRoute("/admin/")({
 type PrintTarget = "production" | "distribution" | null;
 
 function AdminHomePage() {
-  const { hydrated, issueDocuments, documentsForOrder } = useStore();
+  const { issueDocuments, documentsForOrder } = useStore();
   const date = tomorrowIso();
-  const views = useAllAdminOrderViews();
+  const { views: tomorrowViews, isLoading: loadingTomorrow } = useAdminOrdersForDate(date);
+  const { views: recentViews, isLoading: loadingRecent } = useRecentAdminOrders();
+  const { views: stalledDrafts, isLoading: loadingDrafts } = useAdminStalledDrafts();
+  const hydrated = !loadingTomorrow && !loadingRecent && !loadingDrafts;
 
   const [issuingDocs, setIssuingDocs] = useState(false);
 
-  const summary = useMemo(() => {
-    const forDate = views.filter((v) => ordersForDate([v.order], date).length > 0);
-    return summarizeDay(forDate, date);
-  }, [views, date]);
-
-  const tomorrowViews = useMemo(
-    () => views.filter((v) => v.order.date === date && v.order.status !== "cancelled" && v.order.status !== "draft"),
-    [views, date],
-  );
+  const summary = useMemo(() => summarizeDay(tomorrowViews, date), [tomorrowViews, date]);
   const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
   const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
 
@@ -99,11 +94,7 @@ function AdminHomePage() {
       },
     );
     const pendingOrderIds = tomorrowViews
-      .filter((v) => {
-        if (v.order.status === "cancelled" || v.order.status === "draft") return false;
-        const existing = documentsForOrder(v.order.id).find((d) => d.type === "delivery_note");
-        return !existing;
-      })
+      .filter((v) => !documentsForOrder(v.order.id).find((d) => d.type === "delivery_note"))
       .map((v) => v.order.id);
     if (pendingOrderIds.length === 0) return;
     setIssuingDocs(true);
@@ -115,21 +106,11 @@ function AdminHomePage() {
   };
 
   const todayIntake = useMemo(
-    () =>
-      views
-        .filter((v) => v.order.status !== "cancelled" && v.order.status !== "draft")
-        .map((v) => ({ view: v, time: intakeTime(v.order.id) }))
-        .sort((a, b) => b.time.localeCompare(a.time)),
-    [views],
+    () => recentViews.map((view) => ({ view, time: formatIsraelTime(view.order.createdAt) })),
+    [recentViews],
   );
   const [intakeExpanded, setIntakeExpanded] = useState(false);
   const visibleIntake = intakeExpanded ? todayIntake : todayIntake.slice(0, 3);
-
-  const attention = useMemo(() => {
-    const drafts = views.filter((v) => v.order.status === "draft").length;
-    const flagged = views.filter((v) => v.order.status === "needs_update").length;
-    return { drafts, flagged, missingNotes: 0 };
-  }, [views]);
 
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   useEffect(() => {
@@ -197,7 +178,7 @@ function AdminHomePage() {
                       {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      הזמנה ל{formatWeekday(view.order.date)} · {formatShortDateNumeric(view.order.date)}
+                      הזמנה ל{formatWeekday(orderDate(view.order))} · {formatShortDateNumeric(orderDate(view.order))}
                     </span>
                   </span>
                   <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{time}</span>
@@ -224,24 +205,15 @@ function AdminHomePage() {
         </div>
 
 
-        {hydrated && attention.drafts + attention.flagged + attention.missingNotes > 0 ? (
+        {hydrated && stalledDrafts.length > 0 ? (
           <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
             <h2 className="text-[16px] font-bold text-primary">דורש טיפול</h2>
             <div className="mt-2">
-              {attention.drafts > 0 ? (
-                <AttentionRow
-                  icon={<AlertTriangle className="size-[18px] text-destructive" />}
-                  text={`${attention.drafts} טיוטות עדיין לא אושרו`}
-                  count={attention.drafts}
-                />
-              ) : null}
-              {attention.flagged > 0 ? (
-                <AttentionRow
-                  icon={<AlertTriangle className="size-[18px] text-accent-foreground" />}
-                  text={attention.flagged === 1 ? "הזמנה אחת עם חריגה" : `${attention.flagged} הזמנות עם חריגה`}
-                  count={attention.flagged}
-                />
-              ) : null}
+              <AttentionRow
+                icon={<AlertTriangle className="size-[18px] text-destructive" />}
+                text={`${stalledDrafts.length} טיוטות עדיין לא אושרו`}
+                count={stalledDrafts.length}
+              />
             </div>
           </div>
         ) : null}

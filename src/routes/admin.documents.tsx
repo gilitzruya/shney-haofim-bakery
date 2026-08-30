@@ -4,7 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { Section } from "@/components/app/app-shell";
 import { Card, EmptyState } from "@/components/app/card";
-import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
+import { orderDate, useOrdersByIds } from "@/hooks/use-orders";
 import { DOCUMENT_TYPE_LABELS, accountingAdapter } from "@/lib/admin/accounting";
 import { formatDate, formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin/documents")({
 
 function AdminDocumentsPage() {
   const { documents, hydrated } = useStore();
-  const views = useAllAdminOrderViews();
+  const { viewsById, isLoading } = useOrdersByIds(documents.map((d) => d.orderId));
   const adapter = accountingAdapter();
 
   return (
@@ -46,14 +46,14 @@ function AdminDocumentsPage() {
         </Card>
 
         <div className="mt-3 flex flex-col gap-2">
-          {!hydrated ? null : documents.length === 0 ? (
+          {!hydrated || isLoading ? null : documents.length === 0 ? (
             <EmptyState
               title="לא הופקו מסמכים"
               description="אפשר להפיק תעודת משלוח ממסך ההזמנות או מפירוט הזמנה."
             />
           ) : (
             documents.map((doc) => {
-              const view = views.find((v) => v.order.id === doc.orderId);
+              const view = viewsById.get(doc.orderId);
               return (
                 <Card key={doc.id} className="flex items-center gap-2.5">
                   <div className="min-w-0 flex-1">
@@ -65,7 +65,7 @@ function AdminDocumentsPage() {
                     </div>
                     <div className="mt-1 text-[11.5px] text-muted-foreground">
                       {DOCUMENT_TYPE_LABELS[doc.type]}
-                      {view ? ` · אספקה ${formatDate(view.order.date)} · ${formatPrice(view.total)}` : ""}
+                      {view ? ` · אספקה ${formatDate(orderDate(view.order))} · ${formatPrice(view.total)}` : ""}
                     </div>
                     {doc.error ? (
                       <div className="mt-1 text-[11.5px] text-destructive">{doc.error}</div>

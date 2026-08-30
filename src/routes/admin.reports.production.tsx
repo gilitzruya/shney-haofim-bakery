@@ -9,11 +9,10 @@ import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { FilterChips } from "@/components/app/tabs";
 import { ROUNDS, roundLabel, type RoundId } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
+import { useAdminOrdersForDate } from "@/hooks/use-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { buildProductionReport } from "@/lib/admin/reports";
 import { formatDate, formatQty, formatWeekday, unitLabel } from "@/lib/format";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/reports/production")({
   head: () => ({
@@ -32,11 +31,11 @@ export const Route = createFileRoute("/admin/reports/production")({
 type RoundFilter = RoundId | "all";
 
 function ProductionReportPage() {
-  const { hydrated } = useStore();
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundFilter>("all");
 
-  const views = useAdminOrdersForDate(date);
+  const { views, isLoading } = useAdminOrdersForDate(date);
+  const hydrated = !isLoading;
   const filtered = useMemo(
     () => views.filter((v) => round === "all" || v.order.round === round),
     [views, round],
@@ -91,53 +90,48 @@ function ProductionReportPage() {
                   {group.categoryName}
                 </h2>
                 <ul className="flex flex-col">
-                  {group.rows.map((row) => {
-                    const img = row.product.imageUrl;
-                    return (
-                      <li
-                        key={row.product.id}
-                        className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5 last:border-b-0"
-                      >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-muted">
-                            {img ? (
-                              <img
-                                src={img}
-                                alt={row.product.name}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <span className="text-[10px] font-bold text-muted-foreground">?</span>
-                            )}
+                  {group.rows.map((row) => (
+                    <li
+                      key={row.productId}
+                      className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5 last:border-b-0"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-muted">
+                          {row.imageUrl ? (
+                            <img
+                              src={row.imageUrl}
+                              alt={row.productName}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="text-[10px] font-bold text-muted-foreground">?</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-[13.5px] font-semibold text-heading">
+                            {row.productName}
                           </div>
-                          <div className="min-w-0">
-                            <div className="truncate text-[13.5px] font-semibold text-heading">
-                              {row.product.name}
+                          {row.sku ? (
+                            <div className="text-[11px] text-muted-foreground">קוד {row.sku}</div>
+                          ) : null}
+                          {round === "all" ? (
+                            <div className="mt-0.5 text-[11px] text-muted-foreground">
+                              {ROUNDS.filter((r) => (row.byRound[r.id] ?? 0) > 0)
+                                .map((r) => roundLabel(r.id))
+                                .join(" · ")}
                             </div>
-                            {row.product.sku ? (
-                              <div className="text-[11px] text-muted-foreground">קוד {row.product.sku}</div>
-                            ) : null}
-                            {round === "all" ? (
-                              <div className="mt-0.5 text-[11px] text-muted-foreground">
-                                {ROUNDS.filter((r) => (row.byRound[r.id] ?? 0) > 0)
-                                  .map((r) => roundLabel(r.id))
-                                  .join(" · ")}
-                              </div>
-                            ) : null}
-                          </div>
+                          ) : null}
                         </div>
-                        <div className="shrink-0 text-left">
-                          <span className="text-[15px] font-bold text-heading">
-                            {formatQty(row.qty, row.product.unit)}
-                          </span>
-                          <span className="ms-1 text-[11px] text-muted-foreground">
-                            {unitLabel(row.product.unit)}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
+                      </div>
+                      <div className="shrink-0 text-left">
+                        <span className="text-[15px] font-bold text-heading">
+                          {formatQty(row.qty, row.unit)}
+                        </span>
+                        <span className="ms-1 text-[11px] text-muted-foreground">{unitLabel(row.unit)}</span>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               </section>
             ))

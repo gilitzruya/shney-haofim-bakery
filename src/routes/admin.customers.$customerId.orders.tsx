@@ -5,8 +5,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminOrderList } from "@/components/admin/order-list";
 import { Section } from "@/components/app/app-shell";
 import { Card, EmptyState } from "@/components/app/card";
-import { SELF_CUSTOMER_ID } from "@/data/admin-seed";
-import { useAllAdminOrderViews } from "@/hooks/use-admin-orders";
+import { useCustomer } from "@/hooks/use-customers";
+import { useCustomerOrders } from "@/hooks/use-orders";
 import { formatPrice } from "@/lib/format";
 import { useStore } from "@/store/app-store";
 
@@ -26,14 +26,10 @@ export const Route = createFileRoute("/admin/customers/$customerId/orders")({
 
 function CustomerOrdersPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/orders" });
-  const { customers, hydrated, documents } = useStore();
-  const customer = customers.find((c) => c.id === customerId);
-  const allViews = useAllAdminOrderViews();
-
-  const views = allViews
-    .filter((v) => (v.order.customerId ?? SELF_CUSTOMER_ID) === customerId)
-    .filter((v) => v.order.status !== "draft")
-    .sort((a, b) => b.order.date.localeCompare(a.order.date));
+  const { documents } = useStore();
+  const { customer } = useCustomer(customerId);
+  const { views, isLoading } = useCustomerOrders(customerId);
+  const hydrated = !isLoading;
 
   const total = views.reduce((sum, v) => sum + v.total, 0);
   const latestDocFor = (orderId: string) =>

@@ -36,9 +36,9 @@ export function BakingSheet({ date, groups }: { date: string; groups: Production
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.product.id}>
+            <tr key={row.productId}>
               <th className="border border-black px-2 py-1.5 text-right text-[14px] font-bold">
-                {row.product.name}
+                {row.productName}
               </th>
               {ROUNDS.map((r) => (
                 <td key={r.id} className="border border-black px-2 py-1.5 text-center text-[14px] tabular-nums">

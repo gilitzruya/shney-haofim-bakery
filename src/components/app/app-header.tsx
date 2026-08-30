@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 import logo from "@/assets/bakery-logo.png";
+import { useMyCustomer } from "@/hooks/use-customers";
 import { supabase } from "@/lib/api/client";
 import { useStore } from "@/store/app-store";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,7 @@ const NAV = [
 
 export function AppHeader({ children }: { children?: React.ReactNode | undefined }) {
   const [open, setOpen] = useState(false);
-  const { business } = useStore();
+  const { customer } = useMyCustomer();
 
   return (
     <header className="sticky top-0 z-20 bg-canvas shadow-header">
@@ -38,7 +39,7 @@ export function AppHeader({ children }: { children?: React.ReactNode | undefined
           </button>
           <div className="text-right">
             <div className="text-[10px] text-muted-foreground">שלום,</div>
-            <div className="text-xs font-semibold text-foreground md:text-[13px]">{business.name}</div>
+            <div className="text-xs font-semibold text-foreground md:text-[13px]">{customer?.name ?? ""}</div>
           </div>
         </div>
         <Link to="/" className="flex min-w-0 items-center gap-2 no-underline">

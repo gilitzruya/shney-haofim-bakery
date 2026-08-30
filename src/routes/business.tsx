@@ -1,30 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
-import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
-import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
-import { useStore } from "@/store/app-store";
+import { useMyCustomer } from "@/hooks/use-customers";
 
 export const Route = createFileRoute("/business")({
   head: () => ({
     meta: [
       { title: "פרטי העסק — מאפיית שני האופים" },
-      { name: "description", content: "עדכון פרטי הלקוח העסקי: איש קשר, כתובת אספקה והערות קבועות." },
+      { name: "description", content: "פרטי הלקוח העסקי: איש קשר, כתובת אספקה והערות קבועות." },
       { property: "og:title", content: "פרטי העסק — מאפיית שני האופים" },
-      { property: "og:description", content: "נהלו את פרטי העסק וכתובת האספקה." },
+      { property: "og:description", content: "פרטי העסק וכתובת האספקה." },
     ],
   }),
   component: BusinessPage,
 });
 
+/** תצוגה בלבד — רק בעל המאפייה עורך פרטי לקוח/עסק (החלטה 17, PRD §2.7). */
 function BusinessPage() {
-  const { business, saveBusiness } = useStore();
-  const [form, setForm] = useState(business);
-  const set = (key: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [key]: value }));
+  const { customer } = useMyCustomer();
+  const contact = customer?.contacts[0];
 
   return (
     <AppShell>
@@ -33,49 +29,37 @@ function BusinessPage() {
       </AppHeader>
       <Section className="pb-28">
         <Card className="bg-card-muted">
-          <div className="text-[13.5px] font-semibold text-foreground">{business.name}</div>
-          <div className="mt-0.5 text-[12px] text-muted-foreground">ח.פ. {business.businessId}</div>
+          <div className="text-[13.5px] font-semibold text-foreground">{customer?.name ?? ""}</div>
+          {customer?.businessId ? (
+            <div className="mt-0.5 text-[12px] text-muted-foreground">ח.פ. {customer.businessId}</div>
+          ) : null}
         </Card>
 
         <div className="mt-4 flex flex-col gap-4">
-          <FormField label="שם העסק">
-            <TextInput value={form.name} onChange={(e) => set("name")(e.target.value)} />
-          </FormField>
-          <FormField label="ח.פ. / ע.מ.">
-            <TextInput value={form.businessId} onChange={(e) => set("businessId")(e.target.value)} inputMode="numeric" />
-          </FormField>
-          <FormField label="איש קשר">
-            <TextInput value={form.contactName} onChange={(e) => set("contactName")(e.target.value)} />
-          </FormField>
-          <FormField label="טלפון">
-            <TextInput value={form.phone} onChange={(e) => set("phone")(e.target.value)} inputMode="tel" dir="ltr" />
-          </FormField>
-          <FormField label="דוא״ל">
-            <TextInput value={form.email} onChange={(e) => set("email")(e.target.value)} inputMode="email" dir="ltr" />
-          </FormField>
-          <FormField label="כתובת לאספקה">
-            <TextInput value={form.address} onChange={(e) => set("address")(e.target.value)} />
-          </FormField>
-          <FormField label="הערות אספקה קבועות">
-            <TextArea value={form.deliveryNotes} onChange={(e) => set("deliveryNotes")(e.target.value)} />
-          </FormField>
+          <Field label="שם העסק" value={customer?.name} />
+          <Field label="ח.פ. / ע.מ." value={customer?.businessId ?? undefined} />
+          <Field label="איש קשר" value={contact?.name ?? undefined} />
+          <Field label="טלפון" value={contact?.phone ?? undefined} ltr />
+          <Field label="דוא״ל" value={contact?.email ?? undefined} ltr />
+          <Field label="כתובת לאספקה" value={customer?.address ?? undefined} />
+          <Field label="הערות אספקה קבועות" value={customer?.deliveryNotes ?? undefined} />
+        </div>
+
+        <div className="mt-5 rounded-xl border border-border bg-card-muted px-3.5 py-3 text-[12.5px] text-muted-foreground">
+          לעדכון הפרטים יש לפנות למאפייה — דרך דף יצירת הקשר.
         </div>
       </Section>
-
-      <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
-        <div className="mx-auto max-w-5xl">
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => {
-              saveBusiness(form);
-              toast.success("פרטי העסק נשמרו");
-            }}
-          >
-            שמירת הפרטים
-          </Button>
-        </div>
-      </div>
     </AppShell>
+  );
+}
+
+function Field({ label, value, ltr }: { label: string; value: string | undefined; ltr?: boolean }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[12px] font-semibold text-muted-foreground">{label}</span>
+      <span className="text-[14px] text-foreground" dir={ltr ? "ltr" : undefined}>
+        {value || "לא הוזן"}
+      </span>
+    </div>
   );
 }

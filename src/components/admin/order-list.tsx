@@ -6,8 +6,7 @@ import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import type { AdminDocument } from "@/lib/admin/accounting";
 import { StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
-import { intakeTime } from "@/lib/admin/dates";
-import type { AdminOrderView } from "@/lib/admin/selectors";
+import { orderDate, type AdminOrderView } from "@/hooks/use-orders";
 import { formatDate, formatPrice } from "@/lib/format";
 
 /** רשימת הזמנות: כרטיסים במובייל, טבלה בדסקטופ. */
@@ -62,7 +61,7 @@ function OrderRowCard({
               <div className="truncate text-[14.5px] font-bold text-heading">{view.customerName}</div>
               <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                 {showDate ? (
-                  <span className="font-medium text-foreground">{formatDate(view.order.date)}</span>
+                  <span className="font-medium text-foreground">{formatDate(orderDate(view.order))}</span>
                 ) : null}
                 <span>{roundLabel(view.order.round)}</span>
               </div>
@@ -126,7 +125,7 @@ function OrdersTable({
             <tr key={v.order.id} className="border-b border-border last:border-b-0">
               <td className="px-4 py-3 font-semibold text-heading">{v.customerName}</td>
               {showDate ? (
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(v.order.date)}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(orderDate(v.order))}</td>
               ) : null}
               <td className="px-4 py-3 text-muted-foreground">{roundLabel(v.order.round)}</td>
               <td className="px-4 py-3 text-muted-foreground">{v.itemsCount}</td>

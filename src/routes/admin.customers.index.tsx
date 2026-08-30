@@ -7,7 +7,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { TextInput } from "@/components/app/form-controls";
-import { useStore } from "@/store/app-store";
+import { useCustomers } from "@/hooks/use-customers";
 
 export const Route = createFileRoute("/admin/customers/")({
   head: () => ({
@@ -24,13 +24,14 @@ export const Route = createFileRoute("/admin/customers/")({
 });
 
 function AdminCustomersPage() {
-  const { customers, hydrated } = useStore();
+  const { customers, isLoading } = useCustomers();
+  const hydrated = !isLoading;
   const [query, setQuery] = useState("");
 
   const list = useMemo(() => {
     const q = query.trim();
     const sorted = [...customers].sort((a, b) => a.name.localeCompare(b.name, "he"));
-    return q ? sorted.filter((c) => c.name.includes(q) || c.address.includes(q)) : sorted;
+    return q ? sorted.filter((c) => c.name.includes(q) || (c.address ?? "").includes(q)) : sorted;
   }, [customers, query]);
 
   return (

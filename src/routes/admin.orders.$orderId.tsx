@@ -14,7 +14,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
@@ -22,7 +21,8 @@ import { Card, EmptyState } from "@/components/app/card";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct, roundLabel } from "@/data/catalog";
-import { useAdminOrderView } from "@/hooks/use-admin-orders";
+import { useAdminOrderView, useAdminUpdateOrderLines, useCancelOrder, useRestoreOrder, orderDate, type CartLineInput } from "@/hooks/use-orders";
+import { useCustomerPriceMap } from "@/hooks/use-customers";
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { priceFor } from "@/lib/admin/pricing";
@@ -45,8 +45,12 @@ export const Route = createFileRoute("/admin/orders/$orderId")({
 
 function AdminOrderDetailPage() {
   const { orderId } = useParams({ from: "/admin/orders/$orderId" });
-  const view = useAdminOrderView(orderId);
-  const { documents, issueDocument, updateOrderAsAdmin } = useStore();
+  const { view } = useAdminOrderView(orderId);
+  const { documents, issueDocument } = useStore();
+  const updateLines = useAdminUpdateOrderLines();
+  const cancelOrder = useCancelOrder();
+  const restoreOrder = useRestoreOrder();
+  const priceMap = useCustomerPriceMap(view?.order.customerId);
   const [issuing, setIssuing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -55,8 +59,6 @@ function AdminOrderDetailPage() {
   const [confirmSave, setConfirmSave] = useState(false);
 
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
-
-  const customer = view?.customer;
 
   if (!view) {
     return (
@@ -70,32 +72,38 @@ function AdminOrderDetailPage() {
   }
 
   const { order } = view;
-  const contact = customer?.contacts[0];
   const isCancelled = order.status === "cancelled";
 
-  const cancelOrder = () => {
-    updateOrderAsAdmin(order.id, { status: "cancelled" });
+  const doCancel = () => {
+    cancelOrder.mutate(order.id);
     setEditing(false);
     setConfirmCancel(false);
     toast.success("ההזמנה בוטלה. הלקוח יראה את הביטול");
   };
 
-  const restoreOrder = () => {
-    updateOrderAsAdmin(order.id, { status: "approved" });
+  const doRestore = () => {
+    restoreOrder.mutate(order.id);
     toast.success("ההזמנה שוחזרה");
   };
 
-
-  const currentLines = editing
+  /** בעריכה: מחיר חי (מחירון הלקוח) לתצוגה מקדימה. שלא בעריכה: ה-snapshot של ההזמנה. */
+  const currentLines: CartLineInput[] = editing
     ? Object.entries(quantities)
         .filter(([, qty]) => qty > 0)
-        .map(([productId, qty]) => ({ productId, qty }))
+        .map(([productId, qty]) => {
+          const product = findProduct(productId);
+          return {
+            productId,
+            productName: product?.name ?? productId,
+            sku: product?.sku ?? null,
+            unit: product?.unit ?? "unit",
+            qty,
+            unitPrice: product ? priceFor(product, priceMap) : 0,
+          };
+        })
     : order.lines;
 
-  const total = currentLines.reduce((sum, l) => {
-    const p = findProduct(l.productId);
-    return p ? sum + priceFor(customer, p) * l.qty : sum;
-  }, 0);
+  const total = currentLines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
 
   const startEdit = () => {
     const map: Record<string, number> = {};
@@ -129,10 +137,17 @@ function AdminOrderDetailPage() {
   };
 
   const save = () => {
-    updateOrderAsAdmin(order.id, { lines: currentLines });
-    setEditing(false);
-    setConfirmSave(false);
-    toast.success("ההזמנה עודכנה. הלקוח יראה את השינוי");
+    updateLines.mutate(
+      { orderId: order.id, lines: currentLines },
+      {
+        onSuccess: () => {
+          setEditing(false);
+          setConfirmSave(false);
+          toast.success("ההזמנה עודכנה. הלקוח יראה את השינוי");
+        },
+        onError: () => toast.error("שמירת השינויים נכשלה"),
+      },
+    );
   };
 
   const promptSave = () => setConfirmSave(true);
@@ -162,27 +177,34 @@ function AdminOrderDetailPage() {
 
         <Card>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[14.5px] font-bold text-heading">{formatLongDate(order.date)}</span>
+            <span className="text-[14.5px] font-bold text-heading">{formatLongDate(orderDate(order))}</span>
             <StatusChip status={order.status} />
           </div>
           <div className="mt-1.5 text-[12px] text-muted-foreground">
             {roundLabel(order.round)} · {currentLines.length} פריטים
           </div>
-          {customer ? (
-            <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
+          <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
+            {view.customerAddress ? (
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-3.5 shrink-0" />
-                {customer.address}
+                {view.customerAddress}
               </span>
-              {contact ? (
-                <span className="flex items-center gap-1.5">
-                  <Phone className="size-3.5 shrink-0" />
-                  {contact.name} · {formatPhone(contact.phone)}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
+            ) : null}
+            {view.customerPhone ? (
+              <span className="flex items-center gap-1.5">
+                <Phone className="size-3.5 shrink-0" />
+                {formatPhone(view.customerPhone)}
+              </span>
+            ) : null}
+          </div>
         </Card>
+
+        {order.note ? (
+          <Card className="mt-3 bg-card-muted">
+            <div className="text-[11.5px] font-semibold text-muted-foreground">הערה למאפייה</div>
+            <div className="mt-1 text-[13px] text-foreground">{order.note}</div>
+          </Card>
+        ) : null}
 
         <div className="mt-4 mb-2 flex flex-col gap-2">
           {editing ? (
@@ -196,7 +218,7 @@ function AdminOrderDetailPage() {
                 הוספת מוצרים
               </button>
             </div>
-          ) : isCancelled ? null : (
+          ) : isCancelled || order.status === "completed" ? null : (
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -219,23 +241,19 @@ function AdminOrderDetailPage() {
           <h2 className="text-[15px] font-bold text-heading">מוצרים בהזמנה</h2>
         </div>
 
-
-
-
         <div className="flex flex-col gap-2">
           {currentLines.length === 0 ? (
             <EmptyState title="אין מוצרים בהזמנה" description="אפשר להוסיף מוצרים דרך החיפוש למעלה." />
           ) : (
             currentLines.map((line) => {
-              const product = findProduct(line.productId);
-              if (!product) return null;
-              const unitPrice = priceFor(customer, product);
+              const catalogProduct = findProduct(line.productId);
+              const imageUrl = catalogProduct?.imageUrl;
               return (
                 <Card key={line.productId} className="flex items-center gap-2.5">
-                  {product.imageUrl ? (
+                  {imageUrl ? (
                     <img
-                      src={product.imageUrl}
-                      alt={product.name}
+                      src={imageUrl}
+                      alt={line.productName}
                       loading="lazy"
                       className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"
                     />
@@ -243,22 +261,22 @@ function AdminOrderDetailPage() {
                     <ProductPlaceholder className="size-[56px]" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[15px] font-bold text-foreground">{product.name}</div>
+                    <div className="truncate text-[15px] font-bold text-foreground">{line.productName}</div>
                     <div className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      קוד פריט: <span className="font-semibold text-foreground">{product.sku ?? product.id}</span>
+                      קוד פריט: <span className="font-semibold text-foreground">{line.sku ?? line.productId}</span>
                     </div>
                     <div className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      {formatQty(line.qty, product.unit)} × {formatPrice(unitPrice)} ={" "}
-                      <span className="font-semibold text-foreground">{formatPrice(unitPrice * line.qty)}</span>
+                      {formatQty(line.qty, line.unit)} × {formatPrice(line.unitPrice)} ={" "}
+                      <span className="font-semibold text-foreground">{formatPrice(line.unitPrice * line.qty)}</span>
                     </div>
                   </div>
-                  {editing ? (
+                  {editing && catalogProduct ? (
                     <QuantityStepper
-                      product={product}
+                      product={catalogProduct}
                       qty={line.qty}
                       compact
-                      onChange={(delta) => setQty(product.id, clampQty(product, line.qty + delta))}
-                      onSetQty={(qty) => setQty(product.id, qty)}
+                      onChange={(delta) => setQty(line.productId, clampQty(catalogProduct, line.qty + delta))}
+                      onSetQty={(qty) => setQty(line.productId, qty)}
                     />
                   ) : null}
                 </Card>
@@ -276,7 +294,7 @@ function AdminOrderDetailPage() {
           </div>
         </Card>
 
-        {editing || isCancelled ? null : (
+        {editing || isCancelled || order.status === "completed" ? null : (
           <div className="mt-4 flex flex-col gap-2 rounded-[16px] border border-border bg-card p-3.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[13.5px] font-bold text-heading">תעודת משלוח</span>
@@ -317,12 +335,18 @@ function AdminOrderDetailPage() {
             <span className="text-[11.5px] text-muted-foreground">
               ההזמנה אינה נכללת בדוחות הייצור והחלוקה. אפשר לשחזר אותה במידת הצורך.
             </span>
-            <Button variant="secondary" size="lg" className="w-full md:w-auto" onClick={restoreOrder}>
+            <Button variant="secondary" size="lg" className="w-full md:w-auto" onClick={doRestore}>
               <RotateCcw className="size-4" />
               שחזור ההזמנה
             </Button>
           </div>
         )}
+
+        {order.status === "completed" ? (
+          <div className="mt-4 rounded-[16px] border border-border bg-card-muted p-3.5 text-[11.5px] text-muted-foreground">
+            ההזמנה הושלמה — תאריך האספקה חלף, ולא ניתן עוד לערוך, לבטל או לשחזר אותה.
+          </div>
+        ) : null}
       </Section>
 
       <AlertDialog open={confirmSave} onOpenChange={setConfirmSave}>
@@ -330,7 +354,9 @@ function AdminOrderDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>לאשר את השינויים בהזמנה?</AlertDialogTitle>
             <AlertDialogDescription>
-              <span className="block">ההזמנה של {view.customerName} לתאריך {formatLongDate(order.date)} תעודכן.</span>
+              <span className="block">
+                ההזמנה של {view.customerName} לתאריך {formatLongDate(orderDate(order))} תעודכן.
+              </span>
               {(() => {
                 const summary = saveSummary();
                 const parts = [];
@@ -358,17 +384,16 @@ function AdminOrderDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>לבטל את ההזמנה?</AlertDialogTitle>
             <AlertDialogDescription>
-              ההזמנה של {view.customerName} לתאריך {formatLongDate(order.date)} תסומן כמבוטלת ולא תיכלל בדוחות. הלקוח
-              יראה את הביטול.
+              ההזמנה של {view.customerName} לתאריך {formatLongDate(orderDate(order))} תסומן כמבוטלת ולא תיכלל
+              בדוחות. הלקוח יראה את הביטול.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:justify-start">
             <AlertDialogCancel>חזרה</AlertDialogCancel>
-            <AlertDialogAction onClick={cancelOrder}>ביטול ההזמנה</AlertDialogAction>
+            <AlertDialogAction onClick={doCancel}>ביטול ההזמנה</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       {editing ? (
         <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">

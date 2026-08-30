@@ -23,6 +23,8 @@ import { FormField, TextInput, WeekdayChips } from "@/components/app/form-contro
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { findProduct, ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
+import { useCustomer, useCustomerPriceMap } from "@/hooks/use-customers";
+import { useAdminCreateOrder } from "@/hooks/use-orders";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
@@ -50,9 +52,13 @@ function NewCustomerOrderPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/new-order" });
   const { type } = Route.useSearch();
   const isRecurring = type === "recurring";
-  const { customers, hydrated, addAdminOrder, addAdminRecurring } = useStore();
+  const { addAdminRecurring } = useStore();
+  const { customer, isLoading } = useCustomer(customerId);
+  const hydrated = !isLoading;
+  const priceMap = useCustomerPriceMap(customerId);
+  const createOrder = useAdminCreateOrder();
+  const { auth } = Route.useRouteContext();
   const navigate = useNavigate();
-  const customer = customers.find((c) => c.id === customerId);
 
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundId | null>(null);
@@ -78,7 +84,7 @@ function NewCustomerOrderPage() {
 
   const total = lines.reduce((sum, l) => {
     const p = findProduct(l.productId);
-    return p ? sum + priceFor(customer, p) * l.qty : sum;
+    return p ? sum + priceFor(p, priceMap) * l.qty : sum;
   }, 0);
 
   const setQty = (productId: string, qty: number) =>
@@ -103,7 +109,7 @@ function NewCustomerOrderPage() {
   const blocked = Boolean(customer.blocked);
 
   const create = () => {
-    if (!activeRound) return;
+    if (!activeRound || !auth) return;
     if (isRecurring) {
       addAdminRecurring({
         customerId: customer.id,
@@ -117,17 +123,31 @@ function NewCustomerOrderPage() {
       void navigate({ to: "/admin/customers/$customerId", params: { customerId } });
       return;
     }
-    const created = addAdminOrder({
-      customerId: customer.id,
-      date,
-      round: activeRound,
-      status: "approved",
-      lines,
-      createdFrom: "manual",
-    });
-    setConfirmCreate(false);
-    toast.success("ההזמנה נוצרה. הלקוח יראה אותה אצלו");
-    void navigate({ to: "/admin/orders/$orderId", params: { orderId: created.id } });
+    const orderLines = lines
+      .map((l) => {
+        const product = findProduct(l.productId);
+        if (!product) return null;
+        return {
+          productId: l.productId,
+          productName: product.name,
+          sku: product.sku ?? null,
+          unit: product.unit,
+          qty: l.qty,
+          unitPrice: priceFor(product, priceMap),
+        };
+      })
+      .filter((l): l is NonNullable<typeof l> => l !== null);
+    createOrder.mutate(
+      { customerId: customer.id, date, round: activeRound, createdBy: auth.userId, lines: orderLines },
+      {
+        onSuccess: (orderId) => {
+          setConfirmCreate(false);
+          toast.success("ההזמנה נוצרה. הלקוח יראה אותה אצלו");
+          void navigate({ to: "/admin/orders/$orderId", params: { orderId } });
+        },
+        onError: () => toast.error("יצירת ההזמנה נכשלה"),
+      },
+    );
   };
 
   if (adding) {
@@ -231,10 +251,10 @@ function NewCustomerOrderPage() {
                   <MapPin className="size-3.5 shrink-0" />
                   {customer.address}
                 </span>
-                {contact ? (
+                {contact?.phone ? (
                   <span className="flex items-center gap-1.5">
                     <Phone className="size-3.5 shrink-0" />
-                    {contact.name} · {formatPhone(contact.phone)}
+                    {contact.name ?? ""} · {formatPhone(contact.phone)}
                   </span>
                 ) : null}
               </div>
@@ -261,7 +281,7 @@ function NewCustomerOrderPage() {
                 lines.map((line) => {
                   const product = findProduct(line.productId);
                   if (!product) return null;
-                  const unitPrice = priceFor(customer, product);
+                  const unitPrice = priceFor(product, priceMap);
                   return (
                     <Card key={line.productId} className="flex items-center gap-2.5">
                       {product.imageUrl ? (

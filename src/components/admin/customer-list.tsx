@@ -4,7 +4,7 @@ import { ChevronLeft, Store } from "lucide-react";
 import { Card } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
-import type { Customer } from "@/data/admin-seed";
+import type { Customer } from "@/hooks/use-customers";
 
 function roundsLabel(customer: Customer): string {
   if (customer.allowedRounds.length === 0) return "ללא סבבים";
@@ -51,7 +51,7 @@ function CustomerRowCard({ customer }: { customer: Customer }) {
               {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
             </span>
             <span className="mt-0.5 truncate text-[11.5px] text-black">
-              {contact ? `${contact.name} · ${contact.phone}` : customer.address}
+              {contact ? [contact.name, contact.phone].filter(Boolean).join(" · ") : (customer.address ?? "")}
             </span>
             <span className="text-left text-[11px] text-muted-foreground">לצפייה ועריכה</span>
           </span>
@@ -85,9 +85,9 @@ function CustomersTable({ customers }: { customers: Customer[] }) {
               </td>
               <td className="px-4 py-2.5 font-semibold text-heading">{c.name}</td>
               <td className="px-4 py-2.5 text-muted-foreground">
-                {c.contacts[0] ? `${c.contacts[0].name} · ${c.contacts[0].phone}` : "—"}
+                {c.contacts[0] ? [c.contacts[0].name, c.contacts[0].phone].filter(Boolean).join(" · ") || "—" : "—"}
               </td>
-              <td className="px-4 py-2.5 text-muted-foreground">{c.address}</td>
+              <td className="px-4 py-2.5 text-muted-foreground">{c.address ?? "—"}</td>
               <td className="px-4 py-2.5 text-muted-foreground">{roundsLabel(c)}</td>
               <td className="px-4 py-2.5">
                 {c.blocked ? <Chip tone="error">חסום</Chip> : <Chip tone="muted">פעיל</Chip>}

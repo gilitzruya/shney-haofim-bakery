@@ -67,16 +67,6 @@ export function roundLabel(id: RoundId | string): string {
   return ROUNDS.find((r) => r.id === id)?.label ?? "";
 }
 
-export const BUSINESS = {
-  name: "מלון יהודה",
-  businessId: "514872365",
-  contactName: "רונית לוי",
-  phone: "052-4471290",
-  email: "orders@hotel-yehuda.co.il",
-  address: "דרך חברון 122, ירושלים",
-  deliveryNotes: "כניסת ספקים מהחניון האחורי, לקומה -1.",
-};
-
 export const BAKERY_CONTACT = {
   name: "מאפיית שני האופים",
   phone: "0528880383",

@@ -8,7 +8,7 @@ import { Button } from "@/components/app/button";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-admin-orders";
+import { useAdminOrdersForDate } from "@/hooks/use-orders";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
@@ -29,12 +29,13 @@ export const Route = createFileRoute("/admin/orders/")({
 });
 
 function AdminOrdersPage() {
-  const { hydrated, documents, issueDocuments } = useStore();
+  const { documents, issueDocuments } = useStore();
   const [issuing, setIssuing] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
   const [query, setQuery] = useState("");
 
-  const views = useAdminOrdersForDate(date);
+  const { views, isLoading } = useAdminOrdersForDate(date);
+  const hydrated = !isLoading;
   const filtered = useMemo(
     () => views.filter((v) => query.trim() === "" || v.customerName.includes(query.trim())),
     [views, query],

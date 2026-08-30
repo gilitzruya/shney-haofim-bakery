@@ -30,7 +30,7 @@ export const Route = createFileRoute("/recurring/$recurringId/")({
 function RecurringDetailsPage() {
   const { recurringId } = useParams({ from: "/recurring/$recurringId/" });
   const navigate = useNavigate();
-  const { getRecurring, pauseRecurring, reactivateRecurring, cancelRecurring, startOneTimeUpdate } = useStore();
+  const { getRecurring, pauseRecurring, reactivateRecurring, cancelRecurring } = useStore();
   const [cancelling, setCancelling] = useState(false);
   const rec = getRecurring(recurringId);
 
@@ -113,16 +113,6 @@ function RecurringDetailsPage() {
 
         {rec.status !== "cancelled" ? (
           <div className="mt-3 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                startOneTimeUpdate(rec.id);
-                navigate({ to: "/catalog" });
-              }}
-              className="w-full rounded-xl border border-border bg-card py-2.5 text-[12.5px] font-semibold text-foreground"
-            >
-              עדכון חד־פעמי לאספקה הקרובה
-            </button>
             <button
               type="button"
               onClick={() => {

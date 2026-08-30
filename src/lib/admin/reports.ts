@@ -1,8 +1,12 @@
-import { catalogCategories, findProduct, type Product, type RoundId } from "@/data/catalog";
-import type { AdminOrderView } from "@/lib/admin/selectors";
+import { catalogCategories, findProduct, type RoundId, type Unit } from "@/data/catalog";
+import type { AdminOrderView } from "@/hooks/use-orders";
 
 export interface ProductionRow {
-  product: Product;
+  productId: string;
+  productName: string;
+  sku: string | null;
+  unit: Unit;
+  imageUrl: string | undefined;
   qty: number;
   byRound: Record<string, number>;
 }
@@ -14,19 +18,31 @@ export interface ProductionGroup {
   itemsCount: number;
 }
 
-/** סיכום כמויות הייצור ליום אספקה, מקובץ לפי קטגוריה. */
+/** סיכום כמויות הייצור ליום אספקה, מקובץ לפי קטגוריה. שם/קוד/יחידה מגיעים מה-snapshot
+ * שנשמר בשורת ההזמנה (לא מהקטלוג החי) — קטגוריה ותמונה עדיין נגזרות מהקטלוג החי, כי
+ * אלה לא נתונים שצריך "להקפיא" בזמן ההזמנה. */
 export function buildProductionReport(views: AdminOrderView[]): ProductionGroup[] {
   const totals = new Map<string, ProductionRow>();
 
   for (const view of views) {
     for (const line of view.order.lines) {
       if (line.qty <= 0) continue;
-      const product = findProduct(line.productId);
-      if (!product) continue;
-      const row = totals.get(product.id) ?? { product, qty: 0, byRound: {} };
+      const catalogProduct = findProduct(line.productId);
+      if (!catalogProduct) continue; // אין קטגוריה חיה לשבץ אליה
+      const row =
+        totals.get(line.productId) ??
+        ({
+          productId: line.productId,
+          productName: line.productName,
+          sku: line.sku,
+          unit: line.unit,
+          imageUrl: catalogProduct.imageUrl,
+          qty: 0,
+          byRound: {},
+        } satisfies ProductionRow);
       row.qty += line.qty;
       row.byRound[view.order.round] = (row.byRound[view.order.round] ?? 0) + line.qty;
-      totals.set(product.id, row);
+      totals.set(line.productId, row);
     }
   }
 
@@ -46,7 +62,11 @@ export function buildProductionReport(views: AdminOrderView[]): ProductionGroup[
 }
 
 export interface DistributionLine {
-  product: Product;
+  productId: string;
+  productName: string;
+  sku: string | null;
+  unit: Unit;
+  imageUrl: string | undefined;
   qty: number;
 }
 
@@ -70,9 +90,14 @@ export function buildDistributionReport(views: AdminOrderView[]): DistributionGr
     const lines: DistributionLine[] = [];
     for (const line of view.order.lines) {
       if (line.qty <= 0) continue;
-      const product = findProduct(line.productId);
-      if (!product) continue;
-      lines.push({ product, qty: line.qty });
+      lines.push({
+        productId: line.productId,
+        productName: line.productName,
+        sku: line.sku,
+        unit: line.unit,
+        imageUrl: findProduct(line.productId)?.imageUrl,
+        qty: line.qty,
+      });
     }
     if (!lines.length) continue;
     const stops = byRound.get(view.order.round) ?? [];

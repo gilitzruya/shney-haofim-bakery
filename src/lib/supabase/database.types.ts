@@ -354,7 +354,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_id: string
-          delivery_date: string
+          delivery_date: string | null
           id: string
           note: string | null
           recurring_id: string | null
@@ -367,7 +367,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id: string
-          delivery_date: string
+          delivery_date?: string | null
           id?: string
           note?: string | null
           recurring_id?: string | null
@@ -380,7 +380,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string
-          delivery_date?: string
+          delivery_date?: string | null
           id?: string
           note?: string | null
           recurring_id?: string | null
@@ -562,6 +562,30 @@ export type Database = {
       fn_current_customer_id: { Args: never; Returns: string }
       fn_cutoff_at: { Args: { p_delivery_date: string }; Returns: string }
       fn_is_admin: { Args: never; Returns: boolean }
+      job_close_completed_orders: { Args: never; Returns: undefined }
+      job_expire_stale_drafts: { Args: never; Returns: undefined }
+      rpc_confirm_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          delivery_date: string | null
+          id: string
+          note: string | null
+          recurring_id: string | null
+          round: Database["public"]["Enums"]["round_id"]
+          source: Database["public"]["Enums"]["order_source"]
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "customer" | "admin"

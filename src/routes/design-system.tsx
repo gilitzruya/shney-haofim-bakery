@@ -11,7 +11,7 @@ import { Modal } from "@/components/app/modal";
 import { ProductCard, ProductPlaceholder } from "@/components/app/product-card";
 import { FormField, ProgressSteps, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { allProducts } from "@/data/catalog";
-import type { OrderStatus } from "@/data/seed";
+import type { OrderStatus } from "@/hooks/use-orders";
 
 export const Route = createFileRoute("/design-system")({
   head: () => ({
@@ -36,7 +36,7 @@ const TOKENS = [
   { name: "destructive", className: "bg-destructive" },
 ];
 
-const STATUSES: OrderStatus[] = ["draft", "approved", "needs_update", "reopened", "completed", "cancelled"];
+const STATUSES: OrderStatus[] = ["draft", "approved", "completed", "cancelled"];
 
 function DesignSystemPage() {
   const [tab, setTab] = useState("a");

@@ -62,6 +62,16 @@ export function formatPrice(value: number): string {
   return `${value.toFixed(2)} ₪`;
 }
 
+/** "14:32" — שעה בפורמט ישראל, מתוך חותמת זמן ISO (למשל `orders.created_at`). */
+export function formatIsraelTime(isoTimestamp: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jerusalem",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(isoTimestamp));
+}
+
 export function formatQty(qty: number, unit: "unit" | "kg"): string {
   return unit === "kg" ? qty.toFixed(1) : `${Math.round(qty)}`;
 }

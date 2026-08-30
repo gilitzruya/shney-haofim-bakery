@@ -7,8 +7,8 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { StatusChip } from "@/components/app/status-chip";
 import { Tabs } from "@/components/app/tabs";
-import { formatDate, formatPrice, linesCount, linesTotal } from "@/lib/format";
-import { useStore } from "@/store/app-store";
+import { useMyOrders } from "@/hooks/use-orders";
+import { formatDate, formatPrice } from "@/lib/format";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -25,12 +25,21 @@ export const Route = createFileRoute("/orders/")({
 type TabId = "open" | "history";
 
 function OrdersPage() {
-  const { orders } = useStore();
+  const { orders } = useMyOrders();
   const [tab, setTab] = useState<TabId>("open");
 
   const list = orders
-    .filter((o) => (tab === "open" ? !o.closed && o.status !== "cancelled" : o.closed || o.status === "cancelled"))
-    .sort((a, b) => (tab === "open" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)));
+    .filter((o) => (tab === "open" ? o.status === "draft" || o.status === "approved" : o.status === "completed" || o.status === "cancelled"))
+    .sort((a, b) => {
+      if (tab === "open") {
+        // טיוטות בלי תאריך (עגלה שטרם מולאה) קודם, ואז לפי תאריך עולה.
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return -1;
+        if (!b.date) return 1;
+        return a.date.localeCompare(b.date);
+      }
+      return (b.date ?? "").localeCompare(a.date ?? "");
+    });
 
   return (
     <AppShell>
@@ -61,27 +70,28 @@ function OrdersPage() {
               }
             />
           ) : (
-            list.map((order) => (
-              <Link key={order.id} to="/orders/$orderId" params={{ orderId: order.id }} className="no-underline">
-                <Card variant={order.closed ? "muted" : "active"}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13.5px] font-semibold text-foreground">{formatDate(order.date)}</span>
-                    <StatusChip status={order.status} />
-                  </div>
-                  <div className="mt-1 text-[12px] text-muted-foreground">
-                    {linesCount(order.lines)} מוצרים
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between">
-                    <span className="text-[11.5px] text-muted-foreground">
-                      {order.createdFrom === "recurring" ? "נוצרה מהזמנה קבועה" : "הזמנה ידנית"}
-                    </span>
-                    <span className="text-[13.5px] font-bold text-foreground">
-                      {formatPrice(linesTotal(order.lines))}
-                    </span>
-                  </div>
-                </Card>
-              </Link>
-            ))
+            list.map((order) => {
+              const total = order.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
+              return (
+                <Link key={order.id} to="/orders/$orderId" params={{ orderId: order.id }} className="no-underline">
+                  <Card variant={order.status === "completed" || order.status === "cancelled" ? "muted" : "active"}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[13.5px] font-semibold text-foreground">
+                        {order.date ? formatDate(order.date) : "טיוטה — טרם נבחר תאריך"}
+                      </span>
+                      <StatusChip status={order.status} />
+                    </div>
+                    <div className="mt-1 text-[12px] text-muted-foreground">{order.lines.length} מוצרים</div>
+                    <div className="mt-1.5 flex items-center justify-between">
+                      <span className="text-[11.5px] text-muted-foreground">
+                        {order.source === "recurring" ? "נוצרה מהזמנה קבועה" : order.source === "admin" ? "נוצרה על ידי המאפייה" : "הזמנה ידנית"}
+                      </span>
+                      <span className="text-[13.5px] font-bold text-foreground">{formatPrice(total)}</span>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })
           )}
         </div>
       </Section>

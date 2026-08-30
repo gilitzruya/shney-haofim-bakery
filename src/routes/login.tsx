@@ -9,6 +9,7 @@ import { Card } from "@/components/app/card";
 import { FormField, TextInput } from "@/components/app/form-controls";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/lib/api/client";
+import { toE164 } from "@/lib/phone";
 
 interface LoginSearch {
   redirect?: string;
@@ -31,14 +32,6 @@ export const Route = createFileRoute("/login")({
   }),
   component: LoginPage,
 });
-
-/** מנקה מספר טלפון ישראלי לפורמט בינלאומי E.164, כמו שה-API של Supabase Auth מצפה. */
-function toE164(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.startsWith("972")) return `+${digits}`;
-  if (digits.startsWith("0")) return `+972${digits.slice(1)}`;
-  return `+${digits}`;
-}
 
 function LoginPage() {
   const search = Route.useSearch();

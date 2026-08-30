@@ -5,8 +5,10 @@ import { formatLongDate, linesCount } from "@/lib/format";
 import type { OrderLine } from "@/data/seed";
 
 type Props = {
-  date: string;
-  lines: OrderLine[];
+  /** תאריך/פריטי ההזמנה הקודמת הספציפית — אם עוד לא ידוע איזו הזמנה תוצע (טרם נבחר
+   * תאריך ליעד ההעתקה, ראו PRD §3.2), משאירים ריק ומוצגת שאלה גנרית. */
+  date?: string | undefined;
+  lines?: OrderLine[] | undefined;
   onConfirm: () => void;
   onDecline: () => void;
 };
@@ -28,7 +30,9 @@ export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props
 
         <h2 className="mt-3 text-[16px] font-bold text-foreground">הזמנה חדשה</h2>
         <p className="mt-1 text-[13px] text-muted-foreground">
-          להתחיל מההזמנה הקודמת? {formatLongDate(date)} • {linesCount(lines)} מוצרים
+          {date && lines
+            ? `להתחיל מההזמנה הקודמת? ${formatLongDate(date)} • ${linesCount(lines)} מוצרים`
+            : "להתחיל מהזמנה קודמת שלכם?"}
         </p>
 
         <div className="mt-4 flex items-center gap-2.5">

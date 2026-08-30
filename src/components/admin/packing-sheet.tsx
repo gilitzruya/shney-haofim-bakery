@@ -32,8 +32,8 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
   const productMap = new Map<string, { name: string; code?: string | undefined }>();
   for (const stop of group.stops) {
     for (const line of stop.lines) {
-      if (!productMap.has(line.product.id)) {
-        productMap.set(line.product.id, { name: line.product.name, code: line.product.sku });
+      if (!productMap.has(line.productId)) {
+        productMap.set(line.productId, { name: line.productName, code: line.sku ?? undefined });
       }
     }
   }
@@ -42,12 +42,12 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
   const qtyOf = (stopIndex: number, productId: string) => {
     const stop = group.stops[stopIndex];
     if (!stop) return 0;
-    return stop.lines.find((l) => l.product.id === productId)?.qty ?? 0;
+    return stop.lines.find((l) => l.productId === productId)?.qty ?? 0;
   };
 
   const columnTotals = products.map((p) =>
     group.stops.reduce(
-      (sum, stop) => sum + (stop.lines.find((l) => l.product.id === p.id)?.qty ?? 0),
+      (sum, stop) => sum + (stop.lines.find((l) => l.productId === p.id)?.qty ?? 0),
       0,
     ),
   );
@@ -90,7 +90,7 @@ function RoundMatrix({ group }: { group: DistributionGroup }) {
           {group.stops.map((stop, i) => {
             return (
               <tr key={stop.view.order.id}>
-                <td className={`${cell} font-bold`}>{stop.view.customer?.code ?? ""}</td>
+                <td className={`${cell} font-bold`}>{stop.view.customerCode ?? ""}</td>
                 <th className={`${head} text-right`}>{stop.view.customerName}</th>
                 {products.map((p) => {
                   const qty = qtyOf(i, p.id);

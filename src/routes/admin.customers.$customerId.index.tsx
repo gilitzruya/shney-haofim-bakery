@@ -12,6 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
@@ -24,6 +25,17 @@ import { Modal } from "@/components/app/modal";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { roundLabel, WEEKDAY_LABELS } from "@/data/catalog";
+import {
+  useAddContact,
+  useCustomer,
+  useGrantContactAccess,
+  useRemoveContact,
+  useRevokeContactAccess,
+  useSetCustomerBlocked,
+  useUpdateContact,
+  useUpdateCustomer,
+} from "@/hooks/use-customers";
+import { toE164 } from "@/lib/phone";
 import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/customers/$customerId/")({
@@ -39,8 +51,6 @@ export const Route = createFileRoute("/admin/customers/$customerId/")({
   }),
   component: CustomerDetailPage,
 });
-
-
 
 /** שורת מידע קומפקטית בכרטיס הלקוח. */
 function InfoRow({ icon, label, value, ltr }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean }) {
@@ -59,11 +69,21 @@ function InfoRow({ icon, label, value, ltr }: { icon: React.ReactNode; label: st
 
 function CustomerDetailPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/" });
-  const { customers, hydrated, updateCustomer, setCustomerBlocked, adminRecurring, removeAdminRecurring } = useStore();
-  const customer = customers.find((c) => c.id === customerId);
+  const { customer, isLoading } = useCustomer(customerId);
+  const hydrated = !isLoading;
+  const updateCustomer = useUpdateCustomer();
+  const setBlocked = useSetCustomerBlocked();
+  const addContact = useAddContact();
+  const updateContact = useUpdateContact();
+  const removeContact = useRemoveContact();
+  const grantAccess = useGrantContactAccess();
+  const revokeAccess = useRevokeContactAccess();
+  const { adminRecurring, removeAdminRecurring } = useStore();
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
-  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteQueue, setInviteQueue] = useState<{ name: string; phone: string }[]>([]);
+  const [inviteFor, setInviteFor] = useState<{ name: string; phone: string } | null>(null);
   const [appUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
 
   if (!customer) {
@@ -89,6 +109,63 @@ function CustomerDetailPage() {
   const contact = customer.contacts[0];
   const recurring = adminRecurring.filter((r) => r.customerId === customer.id);
 
+  const saveForm = async (v: ReturnType<typeof toFormValues>) => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await updateCustomer.mutateAsync({
+        id: customer.id,
+        input: {
+          code: v.code.trim() || undefined,
+          name: v.name,
+          address: v.address || undefined,
+          businessId: v.businessId || undefined,
+          deliveryNotes: v.deliveryNotes || undefined,
+          allowedRounds: v.allowedRounds,
+        },
+      });
+
+      const originalById = new Map(customer.contacts.map((c) => [c.id, c]));
+      const keptIds = new Set(v.contacts.map((c) => c.id).filter((id): id is string => !!id));
+      const toInvite: { name: string; phone: string }[] = [];
+
+      for (const original of customer.contacts) {
+        if (!keptIds.has(original.id)) {
+          if (original.hasAccess && original.phone) await revokeAccess.mutateAsync({ customerId: customer.id, phone: original.phone });
+          await removeContact.mutateAsync({ customerId: customer.id, contactId: original.id });
+        }
+      }
+
+      for (const c of v.contacts) {
+        const input = { name: c.name, phone: c.phone, email: c.email, isPrimary: c.isPrimary };
+        if (c.id) {
+          await updateContact.mutateAsync({ customerId: customer.id, contactId: c.id, input });
+          const original = originalById.get(c.id);
+          if (c.requestAccess && !original?.hasAccess && c.phone.trim()) {
+            await grantAccess.mutateAsync({ customerId: customer.id, phone: c.phone });
+            toInvite.push({ name: c.name || customer.name, phone: toE164(c.phone) });
+          } else if (!c.requestAccess && original?.hasAccess && original.phone) {
+            await revokeAccess.mutateAsync({ customerId: customer.id, phone: original.phone });
+          }
+        } else {
+          await addContact.mutateAsync({ customerId: customer.id, input });
+          if (c.requestAccess && c.phone.trim()) {
+            await grantAccess.mutateAsync({ customerId: customer.id, phone: c.phone });
+            toInvite.push({ name: c.name || customer.name, phone: toE164(c.phone) });
+          }
+        }
+      }
+
+      setEditing(false);
+      toast.success("פרטי הלקוח נשמרו");
+      if (toInvite.length > 0) setInviteQueue(toInvite);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "שמירת הלקוח נכשלה");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <AdminShell>
       <Section className="pt-4 pb-12">
@@ -100,7 +177,6 @@ function CustomerDetailPage() {
           חזרה לרשימת הלקוחות
         </Link>
 
-        {/* כותרת נקייה */}
         <div className="mb-4 flex items-start gap-3">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card-muted text-[15px] font-bold text-heading">
             {customer.name.trim().charAt(0)}
@@ -119,20 +195,10 @@ function CustomerDetailPage() {
             initial={toFormValues(customer)}
             submitLabel="שמירת השינויים"
             onCancel={() => setEditing(false)}
-            onSubmit={(v) => {
-              updateCustomer(customer.id, {
-                code: v.code.trim() || undefined,
-                name: v.name,
-                address: v.address,
-                contacts: [{ name: v.contactName, phone: v.phone, email: v.email }],
-                allowedRounds: v.allowedRounds,
-              });
-              setEditing(false);
-            }}
+            onSubmit={(v) => void saveForm(v)}
           />
         ) : (
           <div className="flex flex-col gap-5">
-            {/* פרטי קשר */}
             <section className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-[13px] font-bold text-heading">פרטי הלקוח</h2>
@@ -161,7 +227,25 @@ function CustomerDetailPage() {
               </div>
             </section>
 
-            {/* פעולות שבעל המאפייה מבצע עבור הלקוח */}
+            {customer.contacts.length > 1 ? (
+              <section className="flex flex-col gap-2">
+                <h2 className="text-[13px] font-bold text-heading">אנשי קשר נוספים</h2>
+                <div className="divide-y divide-border overflow-hidden rounded-[12px] border border-border bg-card">
+                  {customer.contacts.slice(1).map((c) => (
+                    <div key={c.id} className="flex items-center gap-2 px-3 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[12.5px] font-semibold text-foreground">{c.name || "ללא שם"}</div>
+                        <div className="text-[11.5px] text-muted-foreground" dir="ltr">
+                          {c.phone}
+                        </div>
+                      </div>
+                      {c.hasAccess ? <Chip tone="neutral">יש גישה</Chip> : <Chip tone="muted">בלי גישה</Chip>}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <section className="flex flex-col gap-2">
               <h2 className="text-[13px] font-bold text-heading">פעולות בשם הלקוח</h2>
               <p className="-mt-1 text-[11.5px] text-muted-foreground">
@@ -222,19 +306,14 @@ function CustomerDetailPage() {
                     <span className="block text-[11px] text-muted-foreground">כל ההזמנות של הלקוח</span>
                   </span>
                 </Link>
-
               </div>
             </section>
 
-            {/* מחירון מיוחד ללקוח */}
             <section className="flex flex-col gap-2">
               <h2 className="text-[13px] font-bold text-heading">מחירים מיוחדים</h2>
-              <SpecialPricesPanel customer={customer} />
+              <SpecialPricesPanel customerId={customer.id} />
             </section>
 
-
-
-            {/* הזמנות קבועות קיימות */}
             {recurring.length ? (
               <section className="flex flex-col gap-2">
                 <h2 className="text-[13px] font-bold text-heading">הזמנות קבועות</h2>
@@ -262,7 +341,6 @@ function CustomerDetailPage() {
               </section>
             ) : null}
 
-            {/* ניהול הלקוח */}
             <section className="flex flex-col gap-2">
               <h2 className="text-[13px] font-bold text-heading">ניהול הלקוח</h2>
               <div className="rounded-[14px] border border-border bg-card px-4 py-3.5">
@@ -274,24 +352,28 @@ function CustomerDetailPage() {
                 <Button
                   variant="secondary"
                   className="mt-3 w-full md:w-auto font-semibold"
-                  onClick={() => (customer.blocked ? setCustomerBlocked(customer.id, false) : setConfirmBlock(true))}
+                  onClick={() =>
+                    customer.blocked
+                      ? setBlocked.mutate({ id: customer.id, blocked: false })
+                      : setConfirmBlock(true)
+                  }
                 >
                   {customer.blocked ? "שחרור חסימת הלקוח" : "חסימת הלקוח"}
                 </Button>
               </div>
             </section>
 
-            {/* שליחת פרטי התחברות בוואטסאפ */}
             <section className="flex flex-col gap-2">
               <h2 className="text-[13px] font-bold text-heading">פרטי התחברות</h2>
               <div className="rounded-[14px] border border-border bg-card px-4 py-3.5">
                 <div className="text-[12.5px] text-muted-foreground">
-                  שליחת הודעת וואטסאפ ללקוח עם שם משתמש, סיסמה זמנית וקישור לאפליקציה.
+                  שליחת הודעת וואטסאפ לאיש קשר עם קישור לאפליקציה ומספר הטלפון להתחברות.
                 </div>
                 <button
                   type="button"
-                  onClick={() => setInviteOpen(true)}
-                  className="mt-3 inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-[12px] bg-[#25D366] px-3 py-3 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+                  disabled={!contact?.phone}
+                  onClick={() => contact?.phone && setInviteFor({ name: contact.name || customer.name, phone: toE164(contact.phone) })}
+                  className="mt-3 inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-[12px] bg-[#25D366] px-3 py-3 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57] disabled:opacity-50"
                 >
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/20">
                     <WhatsAppIcon className="size-5" />
@@ -300,7 +382,6 @@ function CustomerDetailPage() {
                 </button>
               </div>
             </section>
-
           </div>
         )}
       </Section>
@@ -312,18 +393,26 @@ function CustomerDetailPage() {
         confirmLabel="חסימה"
         destructive
         onConfirm={() => {
-          setCustomerBlocked(customer.id, true);
+          setBlocked.mutate({ id: customer.id, blocked: true });
           setConfirmBlock(false);
         }}
         onClose={() => setConfirmBlock(false)}
       />
 
       <CustomerInviteModal
-        open={inviteOpen}
-        customerName={customer.name}
-        phone={customer.contacts[0]?.phone ?? ""}
+        open={inviteFor !== null}
+        customerName={inviteFor?.name ?? ""}
+        phone={inviteFor?.phone ?? ""}
         appUrl={appUrl}
-        onClose={() => setInviteOpen(false)}
+        onClose={() => setInviteFor(null)}
+      />
+
+      <CustomerInviteModal
+        open={inviteQueue.length > 0}
+        customerName={inviteQueue[0]?.name ?? ""}
+        phone={inviteQueue[0]?.phone ?? ""}
+        appUrl={appUrl}
+        onClose={() => setInviteQueue((q) => q.slice(1))}
       />
     </AdminShell>
   );
