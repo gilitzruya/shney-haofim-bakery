@@ -8,7 +8,7 @@ import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { roundLabel } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-orders";
+import { useAdminOrdersForDateWithRecurring } from "@/hooks/use-recurring";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { buildDistributionReport } from "@/lib/admin/reports";
 import { formatDate, formatPhone, formatPrice, formatQty, formatWeekday } from "@/lib/format";
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/admin/reports/distribution")({
 function DistributionReportPage() {
   const [date, setDate] = useState(() => tomorrowIso());
 
-  const { views, isLoading } = useAdminOrdersForDate(date);
+  const { views, isLoading } = useAdminOrdersForDateWithRecurring(date);
   const hydrated = !isLoading;
   const groups = useMemo(() => buildDistributionReport(views), [views]);
   const stopsCount = groups.reduce((sum, g) => sum + g.stops.length, 0);

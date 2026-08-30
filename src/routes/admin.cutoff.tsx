@@ -7,7 +7,6 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
-import { useStore } from "@/store/app-store";
 import { TextInput } from "@/components/app/form-controls";
 import { formatLongDate } from "@/lib/format";
 import {
@@ -17,6 +16,14 @@ import {
   type CutoffException,
   type CutoffRule,
 } from "@/lib/admin/cutoff-rules";
+import {
+  useCutoffExceptions,
+  useCutoffRules,
+  useRemoveCutoffException,
+  useResetCutoffRules,
+  useSaveCutoffException,
+  useUpdateCutoffRule,
+} from "@/hooks/use-cutoff";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/cutoff")({
@@ -42,7 +49,9 @@ export const Route = createFileRoute("/admin/cutoff")({
 const OFFSET_LABELS = ["באותו יום", "יום לפני", "יומיים לפני", "3 ימים לפני", "4 ימים לפני"];
 
 function AdminCutoffPage() {
-  const { cutoffRules, hydrated, updateCutoffRule, resetCutoffRules } = useStore();
+  const { cutoffRules, isLoading } = useCutoffRules();
+  const updateCutoffRule = useUpdateCutoffRule();
+  const resetCutoffRules = useResetCutoffRules();
   const [editing, setEditing] = useState<number | null>(null);
 
   return (
@@ -54,7 +63,7 @@ function AdminCutoffPage() {
         </p>
 
         <div className="mt-4 flex flex-col gap-2.5">
-          {!hydrated
+          {isLoading
             ? null
             : cutoffRules.map((rule) => (
                 <DayCard
@@ -64,9 +73,14 @@ function AdminCutoffPage() {
                   onEdit={() => setEditing(rule.weekday)}
                   onClose={() => setEditing(null)}
                   onSave={(patch) => {
-                    updateCutoffRule(rule.weekday, patch);
+                    updateCutoffRule.mutate(
+                      { weekday: rule.weekday, patch },
+                      {
+                        onSuccess: () =>
+                          toast.success(`מועד הסגירה ליום ${HE_WEEKDAYS[rule.weekday]} עודכן`),
+                      },
+                    );
                     setEditing(null);
-                    toast.success(`מועד הסגירה ליום ${HE_WEEKDAYS[rule.weekday]} עודכן`);
                   }}
                 />
               ))}
@@ -78,9 +92,10 @@ function AdminCutoffPage() {
           variant="secondary"
           className="mt-6 w-full md:w-auto"
           onClick={() => {
-            resetCutoffRules();
+            resetCutoffRules.mutate(undefined, {
+              onSuccess: () => toast.success("הכללים אופסו לברירת המחדל"),
+            });
             setEditing(null);
-            toast.success("הכללים אופסו לברירת המחדל");
           }}
         >
           <RotateCcw className="size-4" />
@@ -240,7 +255,9 @@ function DayCard({
 
 /** חריגות חד-פעמיות: חגים, ימים סגורים או מועד סגירה מוקדם לתאריך מסוים. */
 function ExceptionsSection() {
-  const { cutoffExceptions, hydrated, saveCutoffException, removeCutoffException } = useStore();
+  const { cutoffExceptions, isLoading } = useCutoffExceptions();
+  const saveCutoffException = useSaveCutoffException();
+  const removeCutoffException = useRemoveCutoffException();
   const [adding, setAdding] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [editDate, setEditDate] = useState<string | null>(null);
@@ -253,7 +270,7 @@ function ExceptionsSection() {
       </p>
 
       <div className="mt-3 flex flex-col gap-2.5">
-        {!hydrated ? null : cutoffExceptions.length === 0 && !adding ? (
+        {isLoading ? null : cutoffExceptions.length === 0 && !adding ? (
           <Card className="flex items-center gap-2 py-3 text-[12.5px] text-muted-foreground">
             <CalendarOff className="size-4" />
             אין כרגע תאריכים חריגים מוגדרים.
@@ -266,10 +283,11 @@ function ExceptionsSection() {
                 initial={e}
                 onCancel={() => setEditDate(null)}
                 onSave={(next) => {
-                  if (next.date !== e.date) removeCutoffException(e.date);
-                  saveCutoffException(next);
+                  if (next.date !== e.date) removeCutoffException.mutate(e.date);
+                  saveCutoffException.mutate(next, {
+                    onSuccess: () => toast.success("החריגה עודכנה"),
+                  });
                   setEditDate(null);
-                  toast.success("החריגה עודכנה");
                 }}
               />
             ) : (
@@ -315,9 +333,10 @@ function ExceptionsSection() {
           <ExceptionForm
             onCancel={() => setAdding(false)}
             onSave={(next) => {
-              saveCutoffException(next);
+              saveCutoffException.mutate(next, {
+                onSuccess: () => toast.success("התאריך החריג נשמר"),
+              });
               setAdding(false);
-              toast.success("התאריך החריג נשמר");
             }}
           />
         ) : (
@@ -346,9 +365,10 @@ function ExceptionsSection() {
                 variant="destructive"
                 className="flex-1 md:flex-initial md:w-auto"
                 onClick={() => {
-                  removeCutoffException(pendingDelete);
+                  removeCutoffException.mutate(pendingDelete, {
+                    onSuccess: () => toast.success("החריגה נמחקה"),
+                  });
                   setPendingDelete(null);
-                  toast.success("החריגה נמחקה");
                 }}
               >
                 מחיקה

@@ -566,6 +566,10 @@ export type Database = {
         Args: { p_date: string; p_patch: Json; p_recurring_id: string }
         Returns: string
       }
+      fn_next_document_number: {
+        Args: { p_type: Database["public"]["Enums"]["doc_type"] }
+        Returns: string
+      }
       fn_recurring_occurrences: {
         Args: { p_date: string }
         Returns: {

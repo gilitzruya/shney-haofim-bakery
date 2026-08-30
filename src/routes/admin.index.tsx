@@ -24,11 +24,12 @@ import { Spinner } from "@/components/app/button";
 import { Chip } from "@/components/app/status-chip";
 import { orderDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
+import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
+import { useOrdersRealtime } from "@/hooks/use-orders-realtime";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
 import { formatDate, formatIsraelTime, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -50,7 +51,9 @@ export const Route = createFileRoute("/admin/")({
 type PrintTarget = "production" | "distribution" | null;
 
 function AdminHomePage() {
-  const { issueDocuments, documentsForOrder } = useStore();
+  const { documents } = useDocuments();
+  const issueDocuments = useIssueDocuments();
+  const documentsForOrder = (orderId: string) => documents.filter((d) => d.orderId === orderId);
   const date = tomorrowIso();
   const { views: tomorrowViews, isLoading: loadingTomorrow } = useAdminOrdersForDateWithRecurring(date);
   const { views: recentViews, isLoading: loadingRecent } = useRecentAdminOrders();
@@ -109,7 +112,7 @@ function AdminHomePage() {
           return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
         }),
       );
-      await issueDocuments(pendingOrderIds, "delivery_note");
+      await issueDocuments.mutateAsync({ orderIds: pendingOrderIds, type: "delivery_note" });
     } finally {
       setIssuingDocs(false);
     }
@@ -122,13 +125,7 @@ function AdminHomePage() {
   const [intakeExpanded, setIntakeExpanded] = useState(false);
   const visibleIntake = intakeExpanded ? todayIntake : todayIntake.slice(0, 3);
 
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
-  useEffect(() => {
-    const now = new Date();
-    setUpdatedAt(
-      `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-    );
-  }, []);
+  const { refresh: refreshOrders, lastUpdatedAt } = useOrdersRealtime();
 
   return (
     <AdminShell>
@@ -165,10 +162,17 @@ function AdminHomePage() {
             <div className="min-w-0">
               <h2 className="text-[16px] font-bold text-primary">הזמנות שנכנסו היום</h2>
               <div className="mt-0.5 text-[11px] text-muted-foreground">
-                מתעדכן אוטומטית{updatedAt ? ` • עודכן לאחרונה ${updatedAt}` : ""}
+                מתעדכן אוטומטית{lastUpdatedAt ? ` • עודכן לאחרונה ${lastUpdatedAt}` : ""}
               </div>
             </div>
-            <RefreshCw className="size-4 shrink-0 text-primary" />
+            <button
+              type="button"
+              aria-label="רענון"
+              onClick={refreshOrders}
+              className="flex size-7 shrink-0 items-center justify-center rounded-full text-primary"
+            >
+              <RefreshCw className="size-4" />
+            </button>
           </div>
 
           <div className="mt-3">

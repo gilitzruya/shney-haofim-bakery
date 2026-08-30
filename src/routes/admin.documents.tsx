@@ -5,9 +5,9 @@ import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { Section } from "@/components/app/app-shell";
 import { Card, EmptyState } from "@/components/app/card";
 import { orderDate, useOrdersByIds } from "@/hooks/use-orders";
-import { DOCUMENT_TYPE_LABELS, accountingAdapter } from "@/lib/admin/accounting";
+import { useDocuments } from "@/hooks/use-documents";
+import { ACCOUNTING_CONNECTED, ACCOUNTING_PROVIDER_NAME, DOCUMENT_TYPE_LABELS } from "@/lib/admin/accounting";
 import { formatDate, formatPrice } from "@/lib/format";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/documents")({
   head: () => ({
@@ -24,9 +24,8 @@ export const Route = createFileRoute("/admin/documents")({
 });
 
 function AdminDocumentsPage() {
-  const { documents, hydrated } = useStore();
+  const { documents, isLoading: documentsLoading } = useDocuments();
   const { viewsById, isLoading } = useOrdersByIds(documents.map((d) => d.orderId));
-  const adapter = accountingAdapter();
 
   return (
     <AdminShell>
@@ -37,16 +36,16 @@ function AdminDocumentsPage() {
           <div className="flex items-center justify-between gap-2">
             <span className="text-[13px] font-bold text-heading">חיבור להנהלת חשבונות</span>
             <span className="text-[11.5px] text-muted-foreground">
-              {adapter.connected ? "מחובר" : "לא מחובר"}
+              {ACCOUNTING_CONNECTED ? "מחובר" : "לא מחובר"}
             </span>
           </div>
           <p className="mt-1 text-[11.5px] text-muted-foreground">
-            {adapter.name} — המסמכים נשמרים כרגע במערכת בלבד, ללא שליחה לספק החיצוני.
+            {ACCOUNTING_PROVIDER_NAME} — המסמכים נשמרים כרגע במערכת בלבד, ללא שליחה לספק החיצוני.
           </p>
         </Card>
 
         <div className="mt-3 flex flex-col gap-2">
-          {!hydrated || isLoading ? null : documents.length === 0 ? (
+          {documentsLoading || isLoading ? null : documents.length === 0 ? (
             <EmptyState
               title="לא הופקו מסמכים"
               description="אפשר להפיק תעודת משלוח ממסך ההזמנות או מפירוט הזמנה."

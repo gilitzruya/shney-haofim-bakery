@@ -30,9 +30,9 @@ import {
 } from "@/hooks/use-recurring";
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { OrderProductPicker } from "@/components/admin/order-product-picker";
+import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/orders/$orderId")({
   head: () => ({
@@ -187,7 +187,8 @@ function VirtualOccurrenceDetailPage({ recurringId, date }: { recurringId: strin
 
 function RealOrderDetailPage({ orderId }: { orderId: string }) {
   const { view } = useAdminOrderView(orderId);
-  const { documents, issueDocument } = useStore();
+  const { documents } = useDocuments();
+  const issueDocuments = useIssueDocuments();
   const updateLines = useAdminUpdateOrderLines();
   const cancelOrder = useCancelOrder();
   const restoreOrder = useRestoreOrder();
@@ -451,7 +452,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
                 onClick={async () => {
                   setIssuing(true);
                   try {
-                    await issueDocument(orderId);
+                    await issueDocuments.mutateAsync({ orderIds: [orderId] });
                   } finally {
                     setIssuing(false);
                   }

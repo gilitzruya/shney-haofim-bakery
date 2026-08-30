@@ -10,12 +10,12 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { AppStoreProvider } from "@/store/app-store";
 import { RecurringDraftProvider } from "@/store/recurring-draft";
 import { Toaster } from "@/components/ui/sonner";
 import { PwaInstallPrompt } from "@/components/app/pwa-install-prompt";
 import { getAuthContext } from "@/lib/auth/auth-context";
 import { useCatalog } from "@/hooks/use-catalog";
+import { useCutoffExceptions, useCutoffRules } from "@/hooks/use-cutoff";
 
 const LOGIN_PATH = "/login";
 const roleHome = (role: "customer" | "admin") => (role === "admin" ? "/admin" : "/catalog");
@@ -146,6 +146,15 @@ function CatalogSync() {
   return null;
 }
 
+/** אותו עיקרון כמו `CatalogSync`: `cutoffFor`/`isCutoffPassed` (`lib/cutoff.ts`) נצרכים
+ * סינכרונית מחוץ ל-React בכל מסך שמציג תאריכי אספקה (קטלוג, סיכום, הזמנות קבועות,
+ * דוחות ניהול) — לכן כללי הסגירה חייבים להיטען פעם אחת ברמת ה-root. */
+function CutoffSync() {
+  useCutoffRules();
+  useCutoffExceptions();
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -159,15 +168,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppStoreProvider>
-        <RecurringDraftProvider>
-          <CatalogSync />
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster position="bottom-center" dir="rtl" />
-          <PwaInstallPrompt />
-        </RecurringDraftProvider>
-      </AppStoreProvider>
+      <RecurringDraftProvider>
+        <CatalogSync />
+        <CutoffSync />
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="bottom-center" dir="rtl" />
+        <PwaInstallPrompt />
+      </RecurringDraftProvider>
     </QueryClientProvider>
   );
 }

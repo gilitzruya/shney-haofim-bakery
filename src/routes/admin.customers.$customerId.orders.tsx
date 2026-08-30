@@ -7,8 +7,8 @@ import { Section } from "@/components/app/app-shell";
 import { Card, EmptyState } from "@/components/app/card";
 import { useCustomer } from "@/hooks/use-customers";
 import { useCustomerOrders } from "@/hooks/use-orders";
+import { useDocuments } from "@/hooks/use-documents";
 import { formatPrice } from "@/lib/format";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/customers/$customerId/orders")({
   head: () => ({
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin/customers/$customerId/orders")({
 
 function CustomerOrdersPage() {
   const { customerId } = useParams({ from: "/admin/customers/$customerId/orders" });
-  const { documents } = useStore();
+  const { documents } = useDocuments();
   const { customer } = useCustomer(customerId);
   const { views, isLoading } = useCustomerOrders(customerId);
   const hydrated = !isLoading;

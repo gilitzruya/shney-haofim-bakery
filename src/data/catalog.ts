@@ -40,8 +40,8 @@ export const WEEKDAY_LABELS = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "
 
 /**
  * הקטלוג הפעיל נטען מ-Supabase (`useCatalog`, `src/hooks/use-catalog.ts`) ומוזן לכאן.
- * האינדקס הגלובלי הזה קיים כי `findProduct` נצרך גם מחוץ ל-React — ב-`app-store.tsx`'s
- * `bumpQty`/`setQty` וב-`lib/format.ts`'s `linesTotal` — שעדיין לא עברו ל-DB (שלב 3).
+ * האינדקס הגלובלי הזה קיים כי `findProduct` נצרך גם מחוץ ל-React — ב-`lib/format.ts`'s
+ * `linesTotal`, וב-`lib/admin/pricing.ts`/`lib/admin/reports.ts` בצד הניהול.
  */
 let runtimeCategories: Category[] = [];
 let productIndex = new Map<string, Product>();

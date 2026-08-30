@@ -78,8 +78,7 @@ async function fetchCatalog(): Promise<Category[]> {
 }
 
 /** קטלוג הקטגוריות/מוצרים מה-DB. מזין את אינדקס ה-runtime הגלובלי (`data/catalog.ts`),
- * שעדיין נצרך סינכרונית מחוץ ל-React (`app-store.tsx`'s `bumpQty`/`setQty`, `lib/format.ts`'s
- * `linesTotal`) עד שהעגלה/ההזמנות עצמן עוברות ל-DB בשלב 3. */
+ * שנצרך סינכרונית מחוץ ל-React (`lib/format.ts`'s `linesTotal`, ודוחות/תמחור הניהול). */
 export function useCatalog() {
   const query = useQuery({ queryKey: catalogQueryKey, queryFn: fetchCatalog });
 

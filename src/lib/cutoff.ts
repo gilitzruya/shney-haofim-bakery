@@ -41,6 +41,50 @@ export function formatCutoff(deliveryIso: string): string {
 }
 
 
+/** ה-offset (בדקות) של שעון ישראל מול UTC ברגע נתון — מתחשב בשעון קיץ. */
+function israelOffsetMinutes(utc: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jerusalem",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(utc);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"), get("second"));
+  return Math.round((asUtc - utc.getTime()) / 60000);
+}
+
+/** ממיר תאריך ("YYYY-MM-DD") + שעה ("HH:MM") בשעון ישראל למחרוזת UTC ISO — לשמירת חריגת סגירה עם מועד מותאם. */
+export function israelLocalToUtcIso(dateIso: string, time: string): string {
+  const [y, mo, d] = dateIso.split("-").map(Number);
+  const [h, mi] = time.split(":").map(Number);
+  let utcMs = Date.UTC(y ?? 1970, (mo ?? 1) - 1, d ?? 1, h ?? 0, mi ?? 0, 0);
+  for (let i = 0; i < 2; i++) {
+    const offset = israelOffsetMinutes(new Date(utcMs));
+    utcMs = Date.UTC(y ?? 1970, (mo ?? 1) - 1, d ?? 1, h ?? 0, mi ?? 0, 0) - offset * 60000;
+  }
+  return new Date(utcMs).toISOString();
+}
+
+/** מפרק מחרוזת UTC ISO לתאריך+שעה בשעון ישראל — לעריכה חוזרת של חריגת סגירה שנשמרה. */
+export function israelPartsFromIso(iso: string): { date: string; time: string } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jerusalem",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return { date: `${get("year")}-${get("month")}-${get("day")}`, time: `${get("hour")}:${get("minute")}` };
+}
+
 /** השעה הנוכחית לפי שעון ישראל (כאובייקט Date בשעון מקומי-וירטואלי) */
 export function israelNow(): Date {
   const parts = new Intl.DateTimeFormat("en-US", {

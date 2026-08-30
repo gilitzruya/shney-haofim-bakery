@@ -1,6 +1,7 @@
 /**
- * שכבת חיבור להנהלת חשבונות (ריווחית) — ממשק בלבד.
- * כרגע פועל מתאם מקומי (דמו) שמפיק מספרי מסמך ללא קריאות רשת.
+ * טיפוסי מסמכי הנהלת חשבונות (ריווחית) — ההפקה עצמה רצה בשרת (`edge_issue_document`,
+ * `src/hooks/use-documents.ts`), לא בדפדפן. שלב א׳: תעודות משלוח בלבד, במצב "לא מחובר"
+ * (PRD §2.8).
  */
 
 export type DocumentType = "delivery_note" | "invoice";
@@ -28,38 +29,6 @@ export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
   error: "שגיאה",
 };
 
-export interface IssueDocumentInput {
-  orderId: string;
-  type: DocumentType;
-}
-
-export interface IssueDocumentResult {
-  status: DocumentStatus;
-  number?: string | undefined;
-  error?: string | undefined;
-}
-
-export interface AccountingAdapter {
-  /** שם הספק המוצג במסכי הניהול */
-  name: string;
-  /** האם קיים חיבור פעיל לספק */
-  connected: boolean;
-  issueDocument: (input: IssueDocumentInput) => Promise<IssueDocumentResult>;
-}
-
-let counter = 1000;
-
-/** מתאם דמו מקומי — מחליף בהמשך במתאם ריווחית אמיתי. */
-export const localAccountingAdapter: AccountingAdapter = {
-  name: "ריווחית (הכנה)",
-  connected: false,
-  issueDocument: async ({ type }) => {
-    counter += 1;
-    const prefix = type === "delivery_note" ? "TM" : "INV";
-    return { status: "issued", number: `${prefix}-${counter}` };
-  },
-};
-
-export function accountingAdapter(): AccountingAdapter {
-  return localAccountingAdapter;
-}
+/** תצוגת מצב החיבור לספק במסך יומן המסמכים — עדיין לא מחובר (שלב א׳). */
+export const ACCOUNTING_PROVIDER_NAME = "ריווחית (הכנה)";
+export const ACCOUNTING_CONNECTED = false;

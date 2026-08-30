@@ -9,10 +9,10 @@ import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
+import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
-import { useStore } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin/orders/")({
   head: () => ({
@@ -29,7 +29,8 @@ export const Route = createFileRoute("/admin/orders/")({
 });
 
 function AdminOrdersPage() {
-  const { documents, issueDocuments } = useStore();
+  const { documents } = useDocuments();
+  const issueDocuments = useIssueDocuments();
   const [issuing, setIssuing] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
   const [query, setQuery] = useState("");
@@ -69,7 +70,7 @@ function AdminOrdersPage() {
           return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
         }),
       );
-      await issueDocuments(pendingIds);
+      await issueDocuments.mutateAsync({ orderIds: pendingIds });
     } finally {
       setIssuing(false);
     }

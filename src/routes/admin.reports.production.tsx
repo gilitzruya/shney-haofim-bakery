@@ -9,7 +9,7 @@ import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { FilterChips } from "@/components/app/tabs";
 import { ROUNDS, roundLabel, type RoundId } from "@/data/catalog";
-import { useAdminOrdersForDate } from "@/hooks/use-orders";
+import { useAdminOrdersForDateWithRecurring } from "@/hooks/use-recurring";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { buildProductionReport } from "@/lib/admin/reports";
 import { formatDate, formatQty, formatWeekday, unitLabel } from "@/lib/format";
@@ -34,7 +34,7 @@ function ProductionReportPage() {
   const [date, setDate] = useState(() => tomorrowIso());
   const [round, setRound] = useState<RoundFilter>("all");
 
-  const { views, isLoading } = useAdminOrdersForDate(date);
+  const { views, isLoading } = useAdminOrdersForDateWithRecurring(date);
   const hydrated = !isLoading;
   const filtered = useMemo(
     () => views.filter((v) => round === "all" || v.order.round === round),

@@ -5,7 +5,6 @@ import { useState } from "react";
 import logo from "@/assets/bakery-logo.png";
 import { useMyCustomer } from "@/hooks/use-customers";
 import { supabase } from "@/lib/api/client";
-import { useStore } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 
 async function logout() {
@@ -61,7 +60,6 @@ export function AppHeader({ children }: { children?: React.ReactNode | undefined
 }
 
 function SideMenu({ onClose }: { onClose: () => void }) {
-  const { resetDemoData } = useStore();
   return (
     <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true">
       <button
@@ -100,16 +98,6 @@ function SideMenu({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         <div className="mt-auto flex flex-col gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              resetDemoData();
-              onClose();
-            }}
-            className="rounded-xl border border-border bg-transparent px-3.5 py-3 text-[12.5px] font-semibold text-muted-foreground"
-          >
-            איפוס נתוני הדמו
-          </button>
           <button
             type="button"
             onClick={() => void logout()}
