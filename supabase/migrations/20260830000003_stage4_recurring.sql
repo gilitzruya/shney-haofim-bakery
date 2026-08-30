@@ -141,6 +141,15 @@ begin
 end;
 $$;
 
+-- Not calling this "unexposed" was wrong — Supabase grants EXECUTE on every new
+-- public-schema function to anon/authenticated directly via its default privileges (see
+-- 20260827000004_harden_functions.sql's comment), regardless of who it's granted to
+-- explicitly. This function has no admin check of its own (it trusts its callers below to
+-- have already done that) and is SECURITY DEFINER, so leaving the default grant in place
+-- would let anyone materialize or cancel any customer's recurring order directly. Revoke
+-- explicitly, same as every other trusted-only function in this codebase.
+revoke execute on function fn_materialize_recurring_occurrence_internal(uuid, date, jsonb) from public, anon, authenticated;
+
 -- rpc_materialize_recurring_occurrence: the admin-facing entry point (clicking edit/cancel
 -- on a virtual occurrence, or issuing a delivery note for one — PRD §4.1/§4.2/§4.3).
 create or replace function rpc_materialize_recurring_occurrence(
