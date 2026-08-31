@@ -340,7 +340,6 @@ create table products (
   price        numeric(10,2) not null check (price > 0),
   min_qty      numeric(10,2) not null default 1,
   step         numeric(10,2) not null default 1,
-  quick_add    numeric(10,2) not null default 5,
   available    boolean not null default true,
   unavailable_reason text,
   weight_grams int,

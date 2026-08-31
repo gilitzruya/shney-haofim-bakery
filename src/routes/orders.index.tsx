@@ -7,6 +7,7 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { StatusChip } from "@/components/app/status-chip";
 import { Tabs } from "@/components/app/tabs";
+import { useMyCustomer } from "@/hooks/use-customers";
 import { useMyOrders } from "@/hooks/use-orders";
 import { formatDate, formatPrice } from "@/lib/format";
 
@@ -26,6 +27,7 @@ type TabId = "open" | "history";
 
 function OrdersPage() {
   const { orders } = useMyOrders();
+  const { customer } = useMyCustomer();
   const [tab, setTab] = useState<TabId>("open");
 
   const list = orders
@@ -60,12 +62,24 @@ function OrdersPage() {
           {list.length === 0 ? (
             <EmptyState
               title={tab === "open" ? "אין הזמנות פתוחות" : "אין הזמנות בהיסטוריה"}
-              description={tab === "open" ? "אפשר להתחיל הזמנה חדשה בכל רגע." : undefined}
+              description={
+                tab === "open"
+                  ? customer?.blocked
+                    ? "החשבון חסום זמנית — לא ניתן לפתוח הזמנה חדשה כרגע."
+                    : "אפשר להתחיל הזמנה חדשה בכל רגע."
+                  : undefined
+              }
               action={
                 tab === "open" ? (
-                  <Link to="/catalog" className="no-underline">
-                    <Button>הזמנה חדשה</Button>
-                  </Link>
+                  customer?.blocked ? (
+                    <Link to="/contact" className="no-underline">
+                      <Button>לדף יצירת הקשר</Button>
+                    </Link>
+                  ) : (
+                    <Link to="/catalog" className="no-underline">
+                      <Button>הזמנה חדשה</Button>
+                    </Link>
+                  )
                 ) : undefined
               }
             />
