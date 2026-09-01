@@ -213,12 +213,19 @@ export function useAddProduct() {
         .single();
       if (error) throw error;
       if (input.imageFile && inserted) {
-        const path = await uploadProductImage(inserted.id, input.imageFile);
-        const { error: imgError } = await supabase
-          .from("products")
-          .update({ image_path: path })
-          .eq("id", inserted.id);
-        if (imgError) throw imgError;
+        try {
+          const path = await uploadProductImage(inserted.id, input.imageFile);
+          const { error: imgError } = await supabase
+            .from("products")
+            .update({ image_path: path })
+            .eq("id", inserted.id);
+          if (imgError) throw imgError;
+        } catch (imageStepError) {
+          // ההוספה כולה חייבת להיות atomic מנקודת המבט של המשתמש — אם התמונה נכשלת,
+          // "נכשל" צריך להיות אמיתי, לא מוצר יתום בלי תמונה ובלי שהמנהל יודע שהוא קיים.
+          await supabase.from("products").delete().eq("id", inserted.id);
+          throw imageStepError;
+        }
       }
     },
     onSuccess: invalidate,
