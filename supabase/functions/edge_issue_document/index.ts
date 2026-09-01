@@ -18,6 +18,14 @@ interface IssueRequest {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// הדפדפן שולח preflight (OPTIONS) לפני כל קריאה אמיתית — בלי הכותרות האלה הדפדפן חוסם
+// את הבקשה עוד לפני שהיא יוצאת, בלי קשר להרשאות בפועל (שנאכפות ע"י verify_jwt + RLS).
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 /** קריאת REST אל PostgREST תחת ה-JWT של הקורא (לא service_role) — RLS על documents
  * (admin-only) אוכפת הרשאות בפועל, לא רק ה-verify_jwt הכללי שנבדק לפני שהקוד מתחיל לרוץ. */
 async function postgrest(path: string, authHeader: string, init: RequestInit = {}) {
@@ -60,15 +68,25 @@ async function insertDocument(authHeader: string, row: Record<string, unknown>) 
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "method not allowed" }), { status: 405 });
+    return new Response(JSON.stringify({ error: "method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   let body: IssueRequest;
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "invalid JSON body" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "invalid JSON body" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const orderIds = Array.isArray(body.orderIds)
@@ -78,7 +96,7 @@ Deno.serve(async (req: Request) => {
 
   if (orderIds.length === 0) {
     return new Response(JSON.stringify({ results: [] }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -111,6 +129,6 @@ Deno.serve(async (req: Request) => {
   );
 
   return new Response(JSON.stringify({ results }), {
-    headers: { "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });

@@ -164,7 +164,10 @@ export function useReorderCategories() {
 
 async function uploadProductImage(productId: string, file: File): Promise<string> {
   const blob = await compressImageToBlob(file);
-  const path = `${productId}/${Date.now()}-${file.name}`;
+  // לא משתמשים בשם הקובץ המקורי במפתח האחסון — קובץ עם שם בעברית (או כל תו שאינו
+  // ASCII) גורם ל-Storage לדחות את ההעלאה עם 400. crypto.randomUUID() גם מבטל התנגשויות
+  // בין שתי העלאות באותה מילישנייה.
+  const path = `${productId}/${crypto.randomUUID()}.jpg`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: "image/jpeg",
   });
