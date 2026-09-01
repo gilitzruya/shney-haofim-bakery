@@ -53,7 +53,13 @@ function LoginPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone: toE164(phone) });
+    // shouldCreateUser: false — אין הרשמה עצמית באפליקציה הזו בכלל (גישה תמיד ניתנת
+    // מראש ע"י מנהל, ראו grantContactAccess/בוטסטראפ מנהלים). בלי זה, Supabase שולח קוד
+    // SMS אמיתי ויוצר חשבון לכל מספר שמישהו יקליד כאן, גם אם הוא לא קשור למאפייה בכלל.
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: toE164(phone),
+      options: { shouldCreateUser: false },
+    });
     setLoading(false);
     if (error) {
       toast.error("שליחת הקוד נכשלה — ודאו שהמספר רשום במערכת ונסו שוב.");
