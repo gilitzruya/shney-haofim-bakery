@@ -145,9 +145,7 @@ function AdminProductsPage() {
         <AlertDialogContent dir="rtl" className="text-right">
           <AlertDialogHeader>
             <AlertDialogTitle>למחוק את {categoryToRemove?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              הקטגוריה תוסר מהקטלוג. אפשר לשחזר אותה רק דרך פנייה למפתח, לא דרך המסך.
-            </AlertDialogDescription>
+            <AlertDialogDescription>הקטגוריה תוסר מהקטלוג.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ביטול</AlertDialogCancel>
