@@ -24,6 +24,16 @@ import { Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card } from "@/components/app/card";
 import { TextInput } from "@/components/app/form-controls";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAddCategory, useCatalog, useRemoveCategory, useReorderCategories } from "@/hooks/use-catalog";
 import type { Category } from "@/data/catalog";
 
@@ -48,6 +58,7 @@ function AdminProductsPage() {
   const removeCategoryMutation = useRemoveCategory();
   const reorderCategoriesMutation = useReorderCategories();
   const [newName, setNewName] = useState("");
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -63,10 +74,16 @@ function AdminProductsPage() {
     setNewName("");
   };
 
-  const removeCategory = (id: string) => {
-    removeCategoryMutation.mutate(id, {
+  const categoryToRemove = confirmRemoveId
+    ? catalog.find((c) => c.id === confirmRemoveId)
+    : undefined;
+
+  const removeCategory = () => {
+    if (!confirmRemoveId) return;
+    removeCategoryMutation.mutate(confirmRemoveId, {
       onError: (error) => toast.error(error instanceof Error ? error.message : "מחיקת הקטגוריה נכשלה"),
     });
+    setConfirmRemoveId(null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -112,7 +129,7 @@ function AdminProductsPage() {
                   <SortableCategoryCard
                     key={c.id}
                     category={c}
-                    onRemove={() => removeCategory(c.id)}
+                    onRemove={() => setConfirmRemoveId(c.id)}
                   />
                 ))}
               </SortableContext>
@@ -120,6 +137,24 @@ function AdminProductsPage() {
           )}
         </div>
       </Section>
+
+      <AlertDialog
+        open={!!confirmRemoveId}
+        onOpenChange={(open) => !open && setConfirmRemoveId(null)}
+      >
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>למחוק את {categoryToRemove?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              הקטגוריה תוסר מהקטלוג. אפשר לשחזר אותה רק דרך פנייה למפתח, לא דרך המסך.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction onClick={removeCategory}>מחיקת הקטגוריה</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminShell>
   );
 }

@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -96,18 +76,21 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           position: number
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           position: number
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           position?: number
@@ -418,6 +401,7 @@ export type Database = {
           note: string | null
           position: number
           price: number
+          quick_add: number
           sku: string | null
           step: number
           unavailable_reason: string | null
@@ -435,6 +419,7 @@ export type Database = {
           note?: string | null
           position?: number
           price: number
+          quick_add?: number
           sku?: string | null
           step?: number
           unavailable_reason?: string | null
@@ -452,6 +437,7 @@ export type Database = {
           note?: string | null
           position?: number
           price?: number
+          quick_add?: number
           sku?: string | null
           step?: number
           unavailable_reason?: string | null
@@ -749,9 +735,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["customer", "admin"],
@@ -765,4 +748,3 @@ export const Constants = {
     },
   },
 } as const
-

@@ -56,6 +56,7 @@ async function fetchCatalog(): Promise<Category[]> {
       supabase
         .from("categories")
         .select("id, name, position")
+        .is("deleted_at", null)
         .order("position", { ascending: true }),
       supabase
         .from("products")
@@ -118,17 +119,17 @@ export function useRenameCategory() {
   });
 }
 
+/** מחיקה רכה (כמו מוצרים) — לא DELETE אמיתי, כי קטגוריה שהיה בה אי פעם מוצר עדיין
+ * מוצבעת ע"י שורות המוצר המחוקות-רכות שלו (FK), שנשמרות בשביל היסטוריית הזמנות. */
 export function useRemoveCategory() {
   const invalidate = useInvalidateCatalog();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("categories").delete().eq("id", id);
-      if (error) {
-        if (error.code === "23503") {
-          throw new Error("אי אפשר למחוק קטגוריה שהיו בה מוצרים בעבר (גם אם נמחקו)");
-        }
-        throw error;
-      }
+      const { error } = await supabase
+        .from("categories")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
     },
     onSuccess: invalidate,
   });
