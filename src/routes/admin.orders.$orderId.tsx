@@ -300,6 +300,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
         <OrderProductPicker
           quantities={quantities}
           total={total}
+          priceMap={priceMap}
           onSetQty={(id, qty) => setQty(id, qty)}
           onBumpQty={(id, delta) => {
             const product = findProduct(id);

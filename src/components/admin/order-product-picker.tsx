@@ -6,7 +6,9 @@ import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
 import { ProductCard } from "@/components/app/product-card";
 import { Tabs } from "@/components/app/tabs";
+import type { Product } from "@/data/catalog";
 import { formatPrice } from "@/lib/format";
+import { priceFor } from "@/lib/admin/pricing";
 import { useCatalog } from "@/hooks/use-catalog";
 
 /** בורר מוצרים לצד הניהול — תצוגה זהה לקטלוג של הלקוח. */
@@ -16,14 +18,26 @@ export function OrderProductPicker({
   onBumpQty,
   onDone,
   total,
+  priceMap,
 }: {
   quantities: Record<string, number>;
   onSetQty: (productId: string, qty: number) => void;
   onBumpQty: (productId: string, delta: number) => void;
   onDone: () => void;
   total: number;
+  /** מחירון הלקוח (productId → price); מוצר בלי חריגה מוצג במחיר הקטלוג. */
+  priceMap: Record<string, number>;
 }) {
-  const { categories: CATEGORIES } = useCatalog();
+  const { categories: catalogCategories } = useCatalog();
+  // מחיר הלקוח בפועל גם בבורר, לא רק בסיכום.
+  const CATEGORIES = useMemo(
+    () =>
+      catalogCategories.map((c) => ({
+        ...c,
+        products: c.products.map((p): Product => ({ ...p, price: priceFor(p, priceMap) })),
+      })),
+    [catalogCategories, priceMap],
+  );
   const [category, setCategory] = useState(CATEGORIES[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
