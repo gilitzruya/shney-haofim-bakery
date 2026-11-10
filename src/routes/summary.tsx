@@ -255,10 +255,11 @@ function OrderSummaryPage() {
   // העגלה נמצאת דרך useCartOrder (מסונן ל-delivery_date is null) — אבל ברגע שבוחרים
   // תאריך בשלב "date" (למטה), או כשמגיעים לכאן כבר עם תאריך קבוע מזרימת ההעתקה
   // (?order=), היא כבר לא מתאימה לאותה שאילתה. שומרים את המזהה בנפרד ועוברים ל-useOrder
-  // (לא תלוי בתאריך) כדי לא "לאבד" את ההזמנה.
+  // (לא תלוי בתאריך) כדי לא "לאבד" את ההזמנה. מזהה מפורש (?order=) גובר תמיד — אחרת
+  // עגלה אחרת בלי תאריך הייתה מחליפה את ההזמנה שהלקוח עובד עליה.
   const [orderId, setOrderId] = useState<string | null>(explicitOrderId ?? null);
   useEffect(() => {
-    if (cart?.id && cart.id !== orderId) setOrderId(cart.id);
+    if (!orderId && cart?.id) setOrderId(cart.id);
   }, [cart?.id, orderId]);
   const { order, isLoading: orderLoading } = useOrder(orderId ?? undefined);
   const isLoading = cartLoading || (!!orderId && orderLoading);
@@ -270,6 +271,16 @@ function OrderSummaryPage() {
   const [step, setStep] = useState<"review" | "date">("review");
   const [pickDate, setPickDate] = useState<string | null>(null);
   const [pickRound, setPickRound] = useState<RoundId>("morning");
+
+  // הזמנה שכבר אינה טיוטה (אושרה/בוטלה/הושלמה) לא נערכת מכאן — למשל "חזרה" בדפדפן אחרי
+  // אישור, או קישור ישן. מעבירים לדף ההזמנה במקום להציג כפתורי עריכה שהשרת ידחה בשקט.
+  // בזמן אישור (submitting) לא מנווטים: confirm() מנווט בעצמו, ושני ניווטים ייצרו כניסה כפולה.
+  const orderStatus = order?.status;
+  const settledOrderId = order?.id;
+  useEffect(() => {
+    if (submitting || !settledOrderId || !orderStatus || orderStatus === "draft") return;
+    void navigate({ to: "/orders/$orderId", params: { orderId: settledOrderId }, replace: true });
+  }, [submitting, settledOrderId, orderStatus, navigate]);
 
   if (!isLoading && !order) {
     return (
@@ -309,6 +320,7 @@ function OrderSummaryPage() {
     upsertLine.mutate({
       customerId: auth.customerId,
       line: { ...line, qty },
+      orderId: order.id,
     });
   };
 
@@ -449,7 +461,7 @@ function OrderSummaryPage() {
           <h2 className="text-[15px] font-bold text-foreground">פריטי ההזמנה</h2>
           <button
             type="button"
-            onClick={() => navigate({ to: "/catalog" })}
+            onClick={() => navigate({ to: "/catalog", search: { order: order.id } as never })}
             className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-3.5 py-1.5 text-[12.5px] font-bold text-primary transition-opacity"
           >
             <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -528,7 +540,7 @@ function OrderSummaryPage() {
 
       <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
         <div className="mx-auto flex max-w-5xl gap-2.5">
-          <Button variant="secondary" size="lg" className="font-semibold" onClick={() => navigate({ to: "/catalog" })}>
+          <Button variant="secondary" size="lg" className="font-semibold" onClick={() => navigate({ to: "/catalog", search: { order: order.id } as never })}>
             עריכת מוצרים
           </Button>
           <Button

@@ -367,12 +367,22 @@ export interface CartLineInput {
   unitPrice: number;
 }
 
-/** עדכון כמות מוצר בעגלה — יוצר את העגלה אם עוד אין, מוחק שורה כש-qty=0. */
+/** עדכון כמות מוצר בעגלה — יוצר את העגלה אם עוד אין, מוחק שורה כש-qty=0.
+ * `orderId` מפורש מעדכן את אותה טיוטה בדיוק (גם כשכבר יש לה תאריך, למשל אחרי העתקת
+ * הזמנה) — בלעדיו הפונקציה מחפשת את העגלה בלי תאריך ויוצרת חדשה אם אין. */
 export function useUpsertCartLine() {
   const invalidate = useInvalidateOrders();
   return useMutation({
-    mutationFn: async ({ customerId, line }: { customerId: string; line: CartLineInput }) => {
-      const cartId = await getOrCreateCartOrderId(customerId);
+    mutationFn: async ({
+      customerId,
+      line,
+      orderId,
+    }: {
+      customerId: string;
+      line: CartLineInput;
+      orderId?: string | undefined;
+    }) => {
+      const cartId = orderId ?? (await getOrCreateCartOrderId(customerId));
       if (line.qty <= 0) {
         const { error } = await supabase
           .from("order_lines")
@@ -397,7 +407,8 @@ export function useUpsertCartLine() {
       if (error) throw error;
       return cartId;
     },
-    onSuccess: () => invalidate(),
+    // מזהה ההזמנה נדרש כדי לרענן גם את orderQueryKey שלה — הסיכום קורא דרכו.
+    onSuccess: (cartId) => invalidate(cartId),
   });
 }
 

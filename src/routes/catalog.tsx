@@ -14,7 +14,7 @@ import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 import type { Product } from "@/data/catalog";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
-import { useAddCartLines, useCartOrder, useMyOrders, useSetCartDateRound, useUpsertCartLine, type Order } from "@/hooks/use-orders";
+import { useAddCartLines, useCartOrder, useMyOrders, useOrder, useSetCartDateRound, useUpsertCartLine, type Order } from "@/hooks/use-orders";
 import { isCutoffPassed, israelNow } from "@/lib/cutoff";
 import { priceFor } from "@/lib/admin/pricing";
 import { formatPrice, parseDate } from "@/lib/format";
@@ -29,8 +29,12 @@ export const Route = createFileRoute("/catalog")({
       { property: "og:description", content: "בחרו מוצרים וכמויות מתוך קטלוג המאפייה." },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { copy?: 1 } =>
-    search["copy"] === 1 || search["copy"] === "1" ? { copy: 1 } : {},
+  // `order` — טיוטה מפורשת להמשך עבודה (חזרה מהסיכום אחרי העתקה, כשכבר יש לה תאריך ולכן
+  // `useCartOrder` לא מוצא אותה). בלעדיו הקטלוג עובד מול העגלה הפתוחה בלי תאריך.
+  validateSearch: (search: Record<string, unknown>): { copy?: 1; order?: string } => ({
+    ...(search["copy"] === 1 || search["copy"] === "1" ? { copy: 1 as const } : {}),
+    ...(typeof search["order"] === "string" ? { order: search["order"] } : {}),
+  }),
 
   component: CatalogPage,
 });
@@ -232,12 +236,17 @@ const DISMISS_KEY = "copyPromptDismissed";
 
 function OrderCatalogPage() {
   const navigate = useNavigate();
-  const { copy } = Route.useSearch();
+  const { copy, order: explicitOrderId } = Route.useSearch();
   const { auth } = Route.useRouteContext();
   const { categories: CATEGORIES } = useCatalog();
   const myPrices = useMyPrices();
   const { customer } = useMyCustomer();
-  const { cart, isLoading: cartLoading } = useCartOrder();
+  const { cart: openCart, isLoading: openCartLoading } = useCartOrder();
+  const { order: explicitOrder, isLoading: explicitLoading } = useOrder(explicitOrderId);
+  // טיוטה מפורשת תקפה רק כל עוד היא עדיין טיוטה; אחרת חוזרים לעגלה הפתוחה הרגילה.
+  const workingOrderId = explicitOrder?.status === "draft" ? explicitOrder.id : undefined;
+  const cart = workingOrderId ? explicitOrder : openCart;
+  const cartLoading = openCartLoading || (!!explicitOrderId && explicitLoading);
   const { orders } = useMyOrders();
   const upsertLine = useUpsertCartLine();
   const addLines = useAddCartLines();
@@ -282,7 +291,7 @@ function OrderCatalogPage() {
   const [copyDate, setCopyDate] = useState<string | null>(null);
   const [copyRound, setCopyRound] = useState<"morning" | "noon">("morning");
   const [copying, setCopying] = useState(false);
-  const askCopy = !cartLoading && !!lastOrder && !dismissed && (copy === 1 || isEmptyCart) && copyStep === null;
+  const askCopy = !cartLoading && !workingOrderId && !!lastOrder && !dismissed && (copy === 1 || isEmptyCart) && copyStep === null;
   useEffect(() => {
     if (askCopy) setCopyStep("ask");
   }, [askCopy]);
@@ -383,6 +392,7 @@ function OrderCatalogPage() {
         qty: nextQty,
         unitPrice: product.price,
       },
+      orderId: workingOrderId,
     });
   };
 
@@ -534,7 +544,11 @@ function OrderCatalogPage() {
               {formatPrice(total)} <span className="text-[10.5px] font-normal text-muted-foreground">(לפני מע״מ)</span>
             </div>
           </div>
-          <Button size="lg" disabled={selectedCount === 0} onClick={() => navigate({ to: "/summary" })}>
+          <Button
+            size="lg"
+            disabled={selectedCount === 0}
+            onClick={() => navigate({ to: "/summary", search: (workingOrderId ? { order: workingOrderId } : {}) as never })}
+          >
             <ShoppingBasket className="size-4" />
             מעבר לסל ההזמנה
           </Button>
