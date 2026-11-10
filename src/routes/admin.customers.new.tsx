@@ -72,7 +72,7 @@ function NewCustomerPage() {
             setSaving(true);
             try {
               const id = await createCustomer.mutateAsync({
-                code: v.code.trim() || undefined,
+                code: v.code,
                 name: v.name,
                 address: v.address || undefined,
                 businessId: v.businessId || undefined,

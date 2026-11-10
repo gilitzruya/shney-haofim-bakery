@@ -43,11 +43,9 @@ function CustomerRowCard({ customer }: { customer: Customer }) {
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="flex items-center gap-2">
               <span className="truncate text-[14.5px] font-bold text-heading">{customer.name}</span>
-              {customer.code ? (
-                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground" dir="ltr">
-                  {customer.code}
-                </span>
-              ) : null}
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground" dir="ltr">
+                {customer.code}
+              </span>
               {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
             </span>
             <span className="mt-0.5 truncate text-[11.5px] text-black">
@@ -81,7 +79,7 @@ function CustomersTable({ customers }: { customers: Customer[] }) {
           {customers.map((c) => (
             <tr key={c.id} className="border-b border-border last:border-b-0">
               <td className="px-4 py-2.5 text-muted-foreground" dir="ltr">
-                {c.code || "—"}
+                {c.code}
               </td>
               <td className="px-4 py-2.5 font-semibold text-heading">{c.name}</td>
               <td className="px-4 py-2.5 text-muted-foreground">

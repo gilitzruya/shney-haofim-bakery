@@ -17,7 +17,7 @@ export interface CustomerContact {
 
 export interface Customer {
   id: string;
-  code: string | null;
+  code: string;
   name: string;
   address: string | null;
   deliveryNotes: string | null;
@@ -35,7 +35,7 @@ export const customerPricesQueryKey = (customerId: string | null) =>
 
 type CustomerRow = {
   id: string;
-  code: string | null;
+  code: string;
   name: string;
   address: string | null;
   delivery_notes: string | null;
@@ -198,7 +198,7 @@ function useInvalidateCustomers() {
 }
 
 export interface CustomerFormInput {
-  code?: string | undefined;
+  code: string;
   name: string;
   address?: string | undefined;
   deliveryNotes?: string | undefined;
@@ -213,7 +213,7 @@ export function useCreateCustomer() {
       const { data, error } = await supabase
         .from("customers")
         .insert({
-          code: input.code || null,
+          code: input.code,
           name: input.name,
           address: input.address || null,
           delivery_notes: input.deliveryNotes || null,
@@ -236,7 +236,7 @@ export function useUpdateCustomer() {
       const { error } = await supabase
         .from("customers")
         .update({
-          code: input.code || null,
+          code: input.code,
           name: input.name,
           address: input.address || null,
           delivery_notes: input.deliveryNotes || null,

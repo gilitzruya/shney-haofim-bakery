@@ -171,7 +171,7 @@ export type Database = {
           allowed_rounds: Database["public"]["Enums"]["round_id"][]
           blocked: boolean
           business_id: string | null
-          code: string | null
+          code: string
           created_at: string
           delivery_notes: string | null
           id: string
@@ -182,7 +182,7 @@ export type Database = {
           allowed_rounds?: Database["public"]["Enums"]["round_id"][]
           blocked?: boolean
           business_id?: string | null
-          code?: string | null
+          code: string
           created_at?: string
           delivery_notes?: string | null
           id?: string
@@ -193,7 +193,7 @@ export type Database = {
           allowed_rounds?: Database["public"]["Enums"]["round_id"][]
           blocked?: boolean
           business_id?: string | null
-          code?: string | null
+          code?: string
           created_at?: string
           delivery_notes?: string | null
           id?: string

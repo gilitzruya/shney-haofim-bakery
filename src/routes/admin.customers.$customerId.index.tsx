@@ -117,7 +117,7 @@ function CustomerDetailPage() {
       await updateCustomer.mutateAsync({
         id: customer.id,
         input: {
-          code: v.code.trim() || undefined,
+          code: v.code,
           name: v.name,
           address: v.address || undefined,
           businessId: v.businessId || undefined,
@@ -185,7 +185,7 @@ function CustomerDetailPage() {
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[19px] font-bold text-heading">{customer.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
-              {customer.code ? <span dir="ltr">קוד לקוח {customer.code}</span> : null}
+              <span dir="ltr">קוד לקוח {customer.code}</span>
               {customer.blocked ? <Chip tone="error">חסום</Chip> : null}
             </div>
           </div>

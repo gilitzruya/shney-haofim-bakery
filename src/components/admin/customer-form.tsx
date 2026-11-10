@@ -97,6 +97,10 @@ export function CustomerForm({
     setValues((v) => ({ ...v, contacts: v.contacts.filter((_, i) => i !== index) }));
 
   const submit = () => {
+    if (!values.code.trim()) {
+      setError("יש להזין קוד לקוח");
+      return;
+    }
     if (!values.name.trim()) {
       setError("יש להזין שם לקוח");
       return;
@@ -107,7 +111,7 @@ export function CustomerForm({
       return;
     }
     setError(null);
-    onSubmit({ ...values, name: values.name.trim(), contacts });
+    onSubmit({ ...values, code: values.code.trim(), name: values.name.trim(), contacts });
   };
 
   return (
