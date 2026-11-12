@@ -26,7 +26,7 @@ import { orderDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
 import { useOrdersRealtime } from "@/hooks/use-orders-realtime";
-import { tomorrowIso } from "@/lib/admin/dates";
+import { intakeDayLabel, isNewOrder, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
 import { formatDate, formatIsraelTime, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
@@ -118,12 +118,25 @@ function AdminHomePage() {
     }
   };
 
-  const todayIntake = useMemo(
-    () => recentViews.map((view) => ({ view, time: formatIsraelTime(view.order.createdAt) })),
-    [recentViews],
+  // תג "חדש" פוקע בלי קשר לרענון נתונים — שעון מקומי בלבד, בלי קריאת רשת.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const recentIntake = useMemo(
+    () =>
+      recentViews.map((view) => ({
+        view,
+        day: intakeDayLabel(view.order.createdAt),
+        time: formatIsraelTime(view.order.createdAt),
+        isNew: isNewOrder(view.order.createdAt, nowMs),
+      })),
+    [recentViews, nowMs],
   );
   const [intakeExpanded, setIntakeExpanded] = useState(false);
-  const visibleIntake = intakeExpanded ? todayIntake : todayIntake.slice(0, 3);
+  const visibleIntake = intakeExpanded ? recentIntake : recentIntake.slice(0, 3);
 
   const { refresh: refreshOrders, lastUpdatedAt } = useOrdersRealtime();
 
@@ -160,7 +173,7 @@ function AdminHomePage() {
         <div className="mt-3 rounded-[22px] border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="text-[16px] font-bold text-primary">הזמנות שנכנסו היום</h2>
+              <h2 className="text-[16px] font-bold text-primary">הזמנות אחרונות</h2>
               <div className="mt-0.5 text-[11px] text-muted-foreground">
                 מתעדכן אוטומטית{lastUpdatedAt ? ` • עודכן לאחרונה ${lastUpdatedAt}` : ""}
               </div>
@@ -176,10 +189,10 @@ function AdminHomePage() {
           </div>
 
           <div className="mt-3">
-            {!hydrated || todayIntake.length === 0 ? (
-              <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות חדשות היום</div>
+            {!hydrated || recentIntake.length === 0 ? (
+              <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות עדיין</div>
             ) : (
-              visibleIntake.map(({ view, time }, index) => (
+              visibleIntake.map(({ view, day, time, isNew }) => (
                 <Link
                   key={view.order.id}
                   to="/admin/orders/$orderId"
@@ -189,13 +202,15 @@ function AdminHomePage() {
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-[13.5px] font-semibold text-foreground">{view.customerName}</span>
-                      {index === 0 ? <Chip tone="accent">חדש</Chip> : null}
+                      {isNew ? <Chip tone="accent">חדש</Chip> : null}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
                       הזמנה ל{formatWeekday(orderDate(view.order))} · {formatShortDateNumeric(orderDate(view.order))}
                     </span>
                   </span>
-                  <span className="shrink-0 text-[12px] text-muted-foreground tabular-nums">{time}</span>
+                  <span className="shrink-0 whitespace-nowrap text-[12px] text-muted-foreground tabular-nums">
+                    {day} · {time}
+                  </span>
                   <span className="w-[74px] shrink-0 text-end text-[13px] font-bold text-heading tabular-nums">
                     {formatPrice(view.total)}
                   </span>
@@ -205,14 +220,14 @@ function AdminHomePage() {
             )}
           </div>
 
-          {hydrated && todayIntake.length > 3 ? (
+          {hydrated && recentIntake.length > 3 ? (
             <button
               type="button"
               aria-expanded={intakeExpanded}
               onClick={() => setIntakeExpanded((v) => !v)}
               className="mt-2 flex w-full items-center justify-center gap-1.5 py-1 text-[12.5px] font-bold text-primary"
             >
-              {intakeExpanded ? "הצגה מצומצמת" : `לכל ההזמנות שנכנסו היום (${todayIntake.length})`}
+              {intakeExpanded ? "הצגה מצומצמת" : `לכל ההזמנות האחרונות (${recentIntake.length})`}
               <ChevronDown className={`size-4 transition-transform ${intakeExpanded ? "rotate-180" : ""}`} />
             </button>
           ) : null}
