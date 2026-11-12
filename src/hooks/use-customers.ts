@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/api/client";
-import { grantContactAccess, revokeContactAccess } from "@/lib/customers/access-server";
+import { deleteCustomer, grantContactAccess, revokeContactAccess } from "@/lib/customers/access-server";
 import type { RoundId } from "@/data/catalog";
 import { toE164 } from "@/lib/phone";
 
@@ -247,6 +247,15 @@ export function useUpdateCustomer() {
       if (error) throw error;
     },
     onSuccess: (_data, { id }) => invalidate(id),
+  });
+}
+
+export function useDeleteCustomer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => deleteCustomer({ data: { customerId: id } }),
+    // רק הרשימה: רענון כרטיס הלקוח שנמחק היה מציג "הלקוח לא נמצא" לרגע לפני המעבר לרשימה.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: customersQueryKey, exact: true }),
   });
 }
 

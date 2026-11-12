@@ -31,7 +31,7 @@ function AdminCustomersPage() {
   const list = useMemo(() => {
     const q = query.trim();
     const sorted = [...customers].sort((a, b) => a.name.localeCompare(b.name, "he"));
-    return q ? sorted.filter((c) => c.name.includes(q) || (c.address ?? "").includes(q)) : sorted;
+    return q ? sorted.filter((c) => c.name.includes(q) || c.code.includes(q)) : sorted;
   }, [customers, query]);
 
   return (
@@ -54,7 +54,7 @@ function AdminCustomersPage() {
             <TextInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="חיפוש לפי שם או כתובת"
+              placeholder="חיפוש לפי קוד לקוח או שם"
               aria-label="חיפוש לקוח"
               className="pe-9"
             />

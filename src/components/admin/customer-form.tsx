@@ -62,12 +62,15 @@ export function CustomerForm({
   submitLabel,
   onSubmit,
   onCancel,
+  onDelete,
   extra,
 }: {
   initial: CustomerFormValues;
   submitLabel: string;
   onSubmit: (values: CustomerFormValues) => void;
   onCancel?: (() => void) | undefined;
+  /** כשמסופק — מוצג כפתור "מחיקת הלקוח" (רק בעריכת לקוח קיים) */
+  onDelete?: (() => void) | undefined;
   /** תוכן נוסף שמוצג לפני כפתורי השמירה (למשל מחירון מיוחד) */
   extra?: ReactNode;
 }) {
@@ -271,6 +274,19 @@ export function CustomerForm({
           </Button>
         ) : null}
       </div>
+
+      {onDelete ? (
+        <div className="border-t border-border pt-3.5">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-destructive"
+          >
+            <Trash2 className="size-3.5" />
+            מחיקת הלקוח
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

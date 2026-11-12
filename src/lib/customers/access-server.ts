@@ -80,3 +80,41 @@ export const revokeContactAccess = createServerFn({ method: "POST" })
     const { error } = await admin.from("app_users").delete().eq("phone", toE164(data.phone));
     if (error) throw error;
   });
+
+/**
+ * Hard-deletes a customer. Refused when the customer has any order or recurring order:
+ * those rows reference `customers` without cascade on purpose (order history, reports and
+ * documents must keep working) — for such a customer the right action is blocking. The
+ * check runs first so a refusal never leaves the customer half-stripped of app access.
+ * Contacts and special prices go with the customer (`on delete cascade`); `app_users`
+ * rows are plain FKs, so they are removed here, via service_role (no RLS policy covers
+ * them). The `auth.users` rows stay, as in `revokeContactAccess`.
+ */
+export const deleteCustomer = createServerFn({ method: "POST" })
+  .validator((data: { customerId: string }) => data)
+  .handler(async ({ data }) => {
+    await requireAdminCaller();
+    const admin = createSupabaseAdminClient();
+
+    const { count: orderCount, error: ordersError } = await admin
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", data.customerId);
+    if (ordersError) throw ordersError;
+
+    const { count: recurringCount, error: recurringError } = await admin
+      .from("recurring_orders")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", data.customerId);
+    if (recurringError) throw recurringError;
+
+    if ((orderCount ?? 0) > 0 || (recurringCount ?? 0) > 0) {
+      throw new Error("ללקוח יש הזמנות במערכת, ולכן אי אפשר למחוק אותו. אפשר לחסום אותו במקום.");
+    }
+
+    const { error: accessError } = await admin.from("app_users").delete().eq("customer_id", data.customerId);
+    if (accessError) throw accessError;
+
+    const { error } = await admin.from("customers").delete().eq("id", data.customerId);
+    if (error) throw error;
+  });

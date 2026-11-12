@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   CalendarClock,
   ChevronRight,
@@ -28,6 +28,7 @@ import { roundLabel, WEEKDAY_LABELS } from "@/data/catalog";
 import {
   useAddContact,
   useCustomer,
+  useDeleteCustomer,
   useGrantContactAccess,
   useRemoveContact,
   useRevokeContactAccess,
@@ -74,6 +75,8 @@ function CustomerDetailPage() {
   const hydrated = !isLoading;
   const updateCustomer = useUpdateCustomer();
   const setBlocked = useSetCustomerBlocked();
+  const deleteCustomer = useDeleteCustomer();
+  const navigate = useNavigate();
   const addContact = useAddContact();
   const updateContact = useUpdateContact();
   const removeContact = useRemoveContact();
@@ -84,6 +87,7 @@ function CustomerDetailPage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [inviteQueue, setInviteQueue] = useState<{ name: string; phone: string }[]>([]);
   const [inviteFor, setInviteFor] = useState<{ name: string; phone: string } | null>(null);
   const [appUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
@@ -196,6 +200,7 @@ function CustomerDetailPage() {
             initial={toFormValues(customer)}
             submitLabel="שמירת השינויים"
             onCancel={() => setEditing(false)}
+            onDelete={() => setConfirmDelete(true)}
             onSubmit={(v) => void saveForm(v)}
           />
         ) : (
@@ -405,6 +410,29 @@ function CustomerDetailPage() {
           setConfirmBlock(false);
         }}
         onClose={() => setConfirmBlock(false)}
+      />
+
+      <Modal
+        open={confirmDelete}
+        title="מחיקת לקוח"
+        description={`למחוק את ${customer.name} לצמיתות? פרטי הלקוח, אנשי הקשר, המחירים המיוחדים והגישה לאפליקציה יימחקו, ואי אפשר לשחזר. לקוח שיש לו הזמנות במערכת לא ניתן למחיקה — אפשר לחסום אותו במקום.`}
+        confirmLabel="מחיקה"
+        destructive
+        loading={deleteCustomer.isPending}
+        onConfirm={() =>
+          deleteCustomer.mutate(customer.id, {
+            onSuccess: () => {
+              setConfirmDelete(false);
+              toast.success("הלקוח נמחק");
+              void navigate({ to: "/admin/customers" });
+            },
+            onError: (err) => {
+              setConfirmDelete(false);
+              toast.error(err instanceof Error ? err.message : "מחיקת הלקוח נכשלה");
+            },
+          })
+        }
+        onClose={() => setConfirmDelete(false)}
       />
 
       <CustomerInviteModal
