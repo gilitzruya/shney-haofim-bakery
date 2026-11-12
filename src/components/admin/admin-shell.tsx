@@ -29,7 +29,7 @@ export const ADMIN_NAV = [
 export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <AppShell>
-      <div className="relative z-10 flex min-h-screen w-full flex-col">
+      <div className="relative z-10 flex w-full flex-1 flex-col">
         <AdminHeader />
         {children}
       </div>

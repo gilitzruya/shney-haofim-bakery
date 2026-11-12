@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 
+import { CreditFooter } from "@/components/app/credit-footer";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/home-hero.jpg";
 
@@ -16,7 +17,8 @@ export function AppShell({ children, className }: { children: ReactNode; classNa
       />
       <div aria-hidden className="pointer-events-none fixed inset-0 bg-foreground/10" />
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[430px] flex-col md:max-w-[834px] lg:max-w-[1120px]">
-        {children}
+        <div className="flex flex-1 flex-col">{children}</div>
+        <CreditFooter />
       </div>
     </div>
   );
