@@ -13,8 +13,8 @@ function formatShortPrice(value: number): string {
   return `₪${String(rounded).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
 
-/** סיכום תפעולי גדול וברור של יום האספקה הקרוב, עם שלוש הזמנות ראשונות ואקורדיון. */
-export function TomorrowSummaryCard({
+/** סיכום תפעולי גדול וברור של יום העסקים הבא, עם שלוש הזמנות ראשונות ואקורדיון. */
+export function BusinessDaySummaryCard({
   summary,
   views,
 }: {
@@ -26,7 +26,7 @@ export function TomorrowSummaryCard({
 
   return (
     <div className="rounded-[22px] border border-border bg-card p-4 shadow-[0_16px_36px_-22px_rgba(74,31,45,0.45)] md:p-5">
-      <h2 className="text-[21px] leading-tight font-bold text-primary md:text-[24px]">הזמנות למחר</h2>
+      <h2 className="text-[21px] leading-tight font-bold text-primary md:text-[24px]">הזמנות ליום עסקים הבא</h2>
       <div className="mt-0.5 text-[12.5px] text-black">
         {formatWeekday(summary.date)}, {formatDate(summary.date)}
       </div>
@@ -41,7 +41,7 @@ export function TomorrowSummaryCard({
 
       <div className="mt-4">
         {views.length === 0 ? (
-          <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות למחר</div>
+          <div className="py-3 text-center text-[12.5px] text-muted-foreground">אין הזמנות ליום העסקים הבא</div>
         ) : (
           <div className="flex flex-col">
             {visibleOrders.map((view) => (
@@ -74,7 +74,7 @@ export function TomorrowSummaryCard({
             onClick={() => setExpanded((v) => !v)}
             className="mt-2 flex w-full items-center justify-center gap-1.5 py-1 text-[12.5px] font-bold text-primary"
           >
-            {expanded ? "הצגה מצומצמת" : `לכל ההזמנות של מחר (${views.length})`}
+            {expanded ? "הצגה מצומצמת" : `לכל ההזמנות של יום העסקים הבא (${views.length})`}
             <ChevronDown className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
           </button>
         ) : null}

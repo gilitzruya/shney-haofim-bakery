@@ -18,15 +18,16 @@ import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BakingSheet } from "@/components/admin/baking-sheet";
 import { PackingSheet } from "@/components/admin/packing-sheet";
-import { TomorrowSummaryCard } from "@/components/admin/tomorrow-summary-card";
+import { BusinessDaySummaryCard } from "@/components/admin/business-day-summary-card";
 import { Section } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/button";
 import { Chip } from "@/components/app/status-chip";
 import { orderDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
+import { useCutoffExceptions, useCutoffRules } from "@/hooks/use-cutoff";
 import { useOrdersRealtime } from "@/hooks/use-orders-realtime";
-import { intakeDayLabel, isNewOrder, tomorrowIso } from "@/lib/admin/dates";
+import { intakeDayLabel, isNewOrder, nextBusinessDayIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
 import { formatDate, formatIsraelTime, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
@@ -37,10 +38,10 @@ export const Route = createFileRoute("/admin/")({
       { title: "ניהול המאפייה — מאפיית שני האופים" },
       {
         name: "description",
-        content: "מסך הניהול היומי של המאפייה: סיכום ההזמנות למחר, דוח ייצור ודוח חלוקה.",
+        content: "מסך הניהול היומי של המאפייה: סיכום ההזמנות ליום העסקים הבא, דוח ייצור ודוח חלוקה.",
       },
       { property: "og:title", content: "ניהול המאפייה — מאפיית שני האופים" },
-      { property: "og:description", content: "סיכום ההזמנות למחר ופעולות תפעוליות יומיות." },
+      { property: "og:description", content: "סיכום ההזמנות ליום העסקים הבא ופעולות תפעוליות יומיות." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -54,18 +55,22 @@ function AdminHomePage() {
   const { documents } = useDocuments();
   const issueDocuments = useIssueDocuments();
   const documentsForOrder = (orderId: string) => documents.filter((d) => d.orderId === orderId);
-  const date = tomorrowIso();
-  const { views: tomorrowViews, isLoading: loadingTomorrow } = useAdminOrdersForDateWithRecurring(date);
+  // יום העסקים הבא (שישי ומוצ"ש ← ראשון, ערב חג ← היום שאחרי החג) לפי כללי הסגירה והחגים
+  // שהוגדרו בניהול. מחושב בכל רינדור, כדי שלא יתיישן אם הדף נשאר פתוח אחרי חצות.
+  const { cutoffRules, isLoading: loadingRules } = useCutoffRules();
+  const { cutoffExceptions, isLoading: loadingExceptions } = useCutoffExceptions();
+  const date = nextBusinessDayIso(cutoffRules, cutoffExceptions);
+  const { views: dayViews, isLoading: loadingDay } = useAdminOrdersForDateWithRecurring(date);
   const { views: recentViews, isLoading: loadingRecent } = useRecentAdminOrders();
   const { views: stalledDrafts, isLoading: loadingDrafts } = useAdminStalledDrafts();
-  const hydrated = !loadingTomorrow && !loadingRecent && !loadingDrafts;
+  const hydrated = !loadingRules && !loadingExceptions && !loadingDay && !loadingRecent && !loadingDrafts;
   const materialize = useMaterializeRecurringOccurrence();
 
   const [issuingDocs, setIssuingDocs] = useState(false);
 
-  const summary = useMemo(() => summarizeDay(tomorrowViews, date), [tomorrowViews, date]);
-  const productionGroups = useMemo(() => buildProductionReport(tomorrowViews), [tomorrowViews]);
-  const distributionGroups = useMemo(() => buildDistributionReport(tomorrowViews), [tomorrowViews]);
+  const summary = useMemo(() => summarizeDay(dayViews, date), [dayViews, date]);
+  const productionGroups = useMemo(() => buildProductionReport(dayViews), [dayViews]);
+  const distributionGroups = useMemo(() => buildDistributionReport(dayViews), [dayViews]);
 
   const [printTarget, setPrintTarget] = useState<PrintTarget>(null);
   const [printNonce, setPrintNonce] = useState(0);
@@ -98,7 +103,7 @@ function AdminHomePage() {
         duration: 5000,
       },
     );
-    const pendingViews = tomorrowViews.filter(
+    const pendingViews = dayViews.filter(
       (v) => v.isVirtual || !documentsForOrder(v.order.id).find((d) => d.type === "delivery_note"),
     );
     if (pendingViews.length === 0) return;
@@ -146,7 +151,7 @@ function AdminHomePage() {
       {printTarget === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
-        <TomorrowSummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? tomorrowViews : []} />
+        <BusinessDaySummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? dayViews : []} />
 
         <div className="mt-3 grid grid-cols-3 gap-3">
           <PrintReportButton

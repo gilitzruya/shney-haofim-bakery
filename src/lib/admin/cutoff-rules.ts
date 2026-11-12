@@ -92,3 +92,23 @@ export function cutoffExceptionFor(deliveryIso: string): CutoffException | undef
   return runtimeExceptions.find((e) => e.date === deliveryIso);
 }
 
+/**
+ * האם יש אספקה בתאריך — אותו כלל כמו `fn_cutoff_for` בשרת: חריגה סגורה (חג/יום סגור) ← לא;
+ * חריגה פתוחה עם מועד סגירה מותאם ← כן, גם אם היום בשבוע כבוי; אחרת לפי כלל היום בשבוע.
+ * מקבל את הכללים והחריגות במפורש (ולא את ה-runtime הגלובלי) כדי שהתוצאה לא תלויה בתזמון
+ * העדכון של האינדקס הגלובלי אחרי טעינת הנתונים.
+ */
+export function isBusinessDay(
+  deliveryIso: string,
+  weekday: number,
+  rules: CutoffRule[],
+  exceptions: CutoffException[],
+): boolean {
+  const exception = exceptions.find((e) => e.date === deliveryIso);
+  if (exception) {
+    if (!exception.open) return false;
+    if (exception.cutoffDate) return true;
+  }
+  return rules.find((r) => r.weekday === weekday)?.enabled ?? false;
+}
+
