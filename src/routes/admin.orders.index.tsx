@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, FileText, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { AdminOrderList } from "@/components/admin/order-list";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -10,6 +11,7 @@ import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
+import { latestIssuedDeliveryNote } from "@/lib/admin/accounting";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
@@ -56,8 +58,12 @@ function AdminOrdersPage() {
   const latestDocFor = (orderId: string) =>
     documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
-  /** הפקה לכל הזמנות היום שאין להן עדיין תעודת משלוח */
-  const pendingViews = filtered.filter((v) => v.isVirtual || !latestDocFor(v.order.id));
+  /** הפקה לכל הזמנות היום שנשלחו ושעוד אין להן תעודת משלוח שהופקה בהצלחה (כישלון ← ניסיון חוזר) */
+  const pendingViews = filtered.filter(
+    (v) =>
+      (v.order.status === "approved" || v.order.status === "completed") &&
+      (v.isVirtual || !latestIssuedDeliveryNote(documents, v.order.id)),
+  );
 
   const issueTargets = async () => {
     if (pendingViews.length === 0) return;
@@ -70,7 +76,11 @@ function AdminOrdersPage() {
           return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
         }),
       );
-      await issueDocuments.mutateAsync({ orderIds: pendingIds });
+      const { issued, failed } = await issueDocuments.mutateAsync({ orderIds: pendingIds });
+      if (failed === 0) toast.success(`הופקו ${issued} תעודות משלוח בריווחית`);
+      else toast.error(`הופקו ${issued} תעודות, ${failed} נכשלו — הפירוט ביומן המסמכים`);
+    } catch {
+      toast.error("הפקת תעודות המשלוח נכשלה");
     } finally {
       setIssuing(false);
     }

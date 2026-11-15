@@ -36,3 +36,6 @@ supabase/.temp
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase Edge Functions local secrets (Rivhit API token)
+supabase/functions/.env

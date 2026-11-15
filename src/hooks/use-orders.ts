@@ -27,6 +27,8 @@ export interface Order {
   recurringId: string | null;
   createdBy: string | null;
   createdAt: string;
+  /** מתעדכן בכל שינוי בהזמנה או בשורות שלה (טריגר ב-DB) — להשוואה מול תאריך הפקת התעודה. */
+  updatedAt: string;
   lines: OrderLine[];
 }
 
@@ -63,6 +65,7 @@ type OrderRow = {
   recurring_id: string | null;
   created_by: string | null;
   created_at: string;
+  updated_at: string;
   order_lines: OrderLineRow[];
 };
 
@@ -89,6 +92,7 @@ function toOrder(row: OrderRow): Order {
     recurringId: row.recurring_id,
     createdBy: row.created_by,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
     lines: (row.order_lines ?? []).map(toOrderLine),
   };
 }
@@ -109,7 +113,7 @@ export function orderDate(order: Order): string {
 }
 
 const ORDER_SELECT =
-  "id, customer_id, delivery_date, round, status, note, source, recurring_id, created_by, created_at, order_lines(product_id, product_name, sku, unit, qty, unit_price)";
+  "id, customer_id, delivery_date, round, status, note, source, recurring_id, created_by, created_at, updated_at, order_lines(product_id, product_name, sku, unit, qty, unit_price)";
 
 export const myOrdersQueryKey = ["orders", "mine"] as const;
 export const orderQueryKey = (id: string) => ["orders", id] as const;

@@ -31,6 +31,7 @@ import {
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
+import { latestIssuedDeliveryNote } from "@/lib/admin/accounting";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
 
@@ -199,8 +200,10 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
   const [adding, setAdding] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
+  const [confirmReissue, setConfirmReissue] = useState(false);
 
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
+  const issuedDoc = latestIssuedDeliveryNote(documents, orderId);
 
   if (!view) {
     return (
@@ -293,6 +296,24 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
   };
 
   const promptSave = () => setConfirmSave(true);
+
+  // התעודה בריווחית משקפת את ההזמנה כפי שהייתה ברגע ההפקה; עריכה/ביטול אחריה דורשים תעודה
+  // חדשה, ואת הישנה המנהל מבטל ידנית בריווחית (PRD החלטה 23).
+  const changedSinceIssued = !!issuedDoc && order.updatedAt > issuedDoc.createdAt;
+
+  const issue = async () => {
+    setConfirmReissue(false);
+    setIssuing(true);
+    try {
+      const { issued, firstError } = await issueDocuments.mutateAsync({ orderIds: [orderId] });
+      if (issued > 0) toast.success("תעודת המשלוח הופקה בריווחית");
+      else toast.error(firstError ?? "הפקת תעודת המשלוח נכשלה");
+    } catch {
+      toast.error("הפקת תעודת המשלוח נכשלה");
+    } finally {
+      setIssuing(false);
+    }
+  };
 
   if (editing && adding) {
     return (
@@ -444,30 +465,38 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
               <DocumentStatusChip document={doc} />
             </div>
             {doc?.error ? <span className="text-[11.5px] text-destructive">{doc.error}</span> : null}
+            {changedSinceIssued ? (
+              <span className="text-[11.5px] text-destructive">
+                ההזמנה השתנתה מאז שהופקה תעודה {issuedDoc?.number}. יש להפיק תעודה חדשה.
+              </span>
+            ) : null}
             <div className="flex flex-col gap-2 md:flex-row md:items-center">
               <Button
                 variant="secondary"
                 size="lg"
                 className="w-full md:w-auto"
                 loading={issuing}
-                onClick={async () => {
-                  setIssuing(true);
-                  try {
-                    await issueDocuments.mutateAsync({ orderIds: [orderId] });
-                  } finally {
-                    setIssuing(false);
-                  }
-                }}
+                onClick={() => (issuedDoc ? setConfirmReissue(true) : void issue())}
               >
                 <FileText className="size-4" />
-                {doc?.status === "issued" ? "הפקה מחדש" : "הפקת תעודת משלוח"}
+                {issuedDoc ? "הפקה מחדש" : "הפקת תעודת משלוח"}
               </Button>
+              {issuedDoc?.link ? (
+                <a
+                  href={issuedDoc.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[12px] font-semibold text-primary no-underline"
+                >
+                  צפייה בתעודה
+                </a>
+              ) : null}
               <Link to="/admin/documents" className="text-[12px] font-semibold text-primary no-underline">
                 ליומן המסמכים
               </Link>
             </div>
             <span className="text-[11px] text-muted-foreground">
-              המסמך נשמר במערכת בלבד. החיבור לריווחית יופעל בהמשך.
+              התעודה מופקת בריווחית עם המוצרים והמחירים שבהזמנה (לפני מע״מ).
             </span>
           </div>
         )}
@@ -478,6 +507,11 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
             <span className="text-[11.5px] text-muted-foreground">
               ההזמנה אינה נכללת בדוחות הייצור והחלוקה. אפשר לשחזר אותה במידת הצורך.
             </span>
+            {issuedDoc ? (
+              <span className="text-[11.5px] text-destructive">
+                להזמנה הופקה תעודת משלוח {issuedDoc.number} — יש לבטל אותה ידנית בריווחית.
+              </span>
+            ) : null}
             <Button variant="secondary" size="lg" className="w-full md:w-auto" onClick={doRestore}>
               <RotateCcw className="size-4" />
               שחזור ההזמנה
@@ -518,6 +552,22 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
           <AlertDialogFooter className="gap-2 sm:justify-start">
             <AlertDialogCancel>חזרה</AlertDialogCancel>
             <AlertDialogAction onClick={save}>אישור השינויים</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmReissue} onOpenChange={setConfirmReissue}>
+        <AlertDialogContent dir="rtl" className="text-right">
+          <AlertDialogHeader>
+            <AlertDialogTitle>להפיק תעודת משלוח חדשה?</AlertDialogTitle>
+            <AlertDialogDescription>
+              תופק בריווחית תעודה חדשה לפי ההזמנה כפי שהיא עכשיו. התעודה הקודמת ({issuedDoc?.number}
+              ) לא מתבטלת אוטומטית — יש לבטל אותה ידנית בריווחית.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:justify-start">
+            <AlertDialogCancel>חזרה</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void issue()}>הפקת תעודה חדשה</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

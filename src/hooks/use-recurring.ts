@@ -312,6 +312,7 @@ export function useRecurringOccurrencesForDate(date: string) {
             recurringId,
             createdBy: first.created_by,
             createdAt: first.created_at,
+            updatedAt: first.created_at,
             lines,
           },
           customerName: "",

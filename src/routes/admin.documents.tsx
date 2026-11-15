@@ -6,7 +6,7 @@ import { Section } from "@/components/app/app-shell";
 import { Card, EmptyState } from "@/components/app/card";
 import { orderDate, useOrdersByIds } from "@/hooks/use-orders";
 import { useDocuments } from "@/hooks/use-documents";
-import { ACCOUNTING_CONNECTED, ACCOUNTING_PROVIDER_NAME, DOCUMENT_TYPE_LABELS } from "@/lib/admin/accounting";
+import { ACCOUNTING_PROVIDER_NAME, DOCUMENT_TYPE_LABELS } from "@/lib/admin/accounting";
 import { formatDate, formatPrice } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/documents")({
@@ -35,12 +35,10 @@ function AdminDocumentsPage() {
         <Card className="bg-card-muted">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[13px] font-bold text-heading">חיבור להנהלת חשבונות</span>
-            <span className="text-[11.5px] text-muted-foreground">
-              {ACCOUNTING_CONNECTED ? "מחובר" : "לא מחובר"}
-            </span>
+            <span className="text-[11.5px] text-muted-foreground">מחובר</span>
           </div>
           <p className="mt-1 text-[11.5px] text-muted-foreground">
-            {ACCOUNTING_PROVIDER_NAME} — המסמכים נשמרים כרגע במערכת בלבד, ללא שליחה לספק החיצוני.
+            {ACCOUNTING_PROVIDER_NAME} — תעודות המשלוח מופקות ישירות בריווחית, כולל מחירים.
           </p>
         </Card>
 
@@ -70,15 +68,27 @@ function AdminDocumentsPage() {
                       <div className="mt-1 text-[11.5px] text-destructive">{doc.error}</div>
                     ) : null}
                   </div>
-                  {view ? (
-                    <Link
-                      to="/admin/orders/$orderId"
-                      params={{ orderId: doc.orderId }}
-                      className="shrink-0 text-[12.5px] font-semibold text-primary no-underline"
-                    >
-                      להזמנה
-                    </Link>
-                  ) : null}
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    {doc.link ? (
+                      <a
+                        href={doc.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12.5px] font-semibold text-primary no-underline"
+                      >
+                        צפייה בתעודה
+                      </a>
+                    ) : null}
+                    {view ? (
+                      <Link
+                        to="/admin/orders/$orderId"
+                        params={{ orderId: doc.orderId }}
+                        className="text-[12.5px] font-semibold text-primary no-underline"
+                      >
+                        להזמנה
+                      </Link>
+                    ) : null}
+                  </div>
                 </Card>
               );
             })

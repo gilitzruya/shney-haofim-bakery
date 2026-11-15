@@ -1,7 +1,6 @@
 /**
- * טיפוסי מסמכי הנהלת חשבונות (ריווחית) — ההפקה עצמה רצה בשרת (`edge_issue_document`,
- * `src/hooks/use-documents.ts`), לא בדפדפן. שלב א׳: תעודות משלוח בלבד, במצב "לא מחובר"
- * (PRD §2.8).
+ * טיפוסי מסמכי הנהלת חשבונות (ריווחית אונליין) — ההפקה עצמה רצה בשרת (`edge_issue_document`,
+ * `src/hooks/use-documents.ts`), לא בדפדפן. שלב א׳: תעודות משלוח בלבד (PRD §2.8, החלטה 23).
  */
 
 export type DocumentType = "delivery_note" | "invoice";
@@ -14,6 +13,8 @@ export interface AdminDocument {
   status: DocumentStatus;
   /** מספר המסמך במערכת החשבונות (כשהופק) */
   number?: string | undefined;
+  /** קישור ל-PDF של המסמך בריווחית (כשהופק) */
+  link?: string | undefined;
   error?: string | undefined;
   createdAt: string;
 }
@@ -29,6 +30,14 @@ export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
   error: "שגיאה",
 };
 
-/** תצוגת מצב החיבור לספק במסך יומן המסמכים — עדיין לא מחובר (שלב א׳). */
-export const ACCOUNTING_PROVIDER_NAME = "ריווחית (הכנה)";
-export const ACCOUNTING_CONNECTED = false;
+export const ACCOUNTING_PROVIDER_NAME = "ריווחית אונליין";
+
+/** התעודה האחרונה שהופקה בהצלחה להזמנה — `documents` ממוין מהחדש לישן. */
+export function latestIssuedDeliveryNote(
+  documents: AdminDocument[],
+  orderId: string,
+): AdminDocument | undefined {
+  return documents.find(
+    (d) => d.orderId === orderId && d.type === "delivery_note" && d.status === "issued",
+  );
+}

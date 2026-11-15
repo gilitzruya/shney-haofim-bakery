@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronLeft,
   FileText,
-  Info,
   Receipt,
   RefreshCw,
   Truck,
@@ -25,6 +24,7 @@ import { Chip } from "@/components/app/status-chip";
 import { orderDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
+import { latestIssuedDeliveryNote } from "@/lib/admin/accounting";
 import { useCutoffExceptions, useCutoffRules } from "@/hooks/use-cutoff";
 import { useOrdersRealtime } from "@/hooks/use-orders-realtime";
 import { intakeDayLabel, isNewOrder, nextBusinessDayIso } from "@/lib/admin/dates";
@@ -54,7 +54,6 @@ type PrintTarget = "production" | "distribution" | null;
 function AdminHomePage() {
   const { documents } = useDocuments();
   const issueDocuments = useIssueDocuments();
-  const documentsForOrder = (orderId: string) => documents.filter((d) => d.orderId === orderId);
   // יום העסקים הבא (שישי ומוצ"ש ← ראשון, ערב חג ← היום שאחרי החג) לפי כללי הסגירה והחגים
   // שהוגדרו בניהול. מחושב בכל רינדור, כדי שלא יתיישן אם הדף נשאר פתוח אחרי חצות.
   const { cutoffRules, isLoading: loadingRules } = useCutoffRules();
@@ -92,21 +91,17 @@ function AdminHomePage() {
 
   const handleIssueDeliveryNotes = async () => {
     if (issuingDocs) return;
-    toast(
-      <span className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
-        <Info className="size-4 text-primary" />
-        תעודות משלוח בדרך
-      </span>,
-      {
-        description:
-          "תעודות המשלוח יופקו אוטומטית בריווחית לאחר חיבור מלא למערכת. עד אז ההזמנה נרשמת כמוכנה למשלוח.",
-        duration: 5000,
-      },
-    );
+    // רק הזמנות שנשלחו (לא טיוטה/מבוטלת) ושעוד אין להן תעודה שהופקה בהצלחה — הפקה שנכשלה
+    // נשלחת שוב בלחיצה הבאה. הזמנה שנערכה אחרי ההפקה מופקת מחדש מפירוט ההזמנה בלבד.
     const pendingViews = dayViews.filter(
-      (v) => v.isVirtual || !documentsForOrder(v.order.id).find((d) => d.type === "delivery_note"),
+      (v) =>
+        (v.order.status === "approved" || v.order.status === "completed") &&
+        (v.isVirtual || !latestIssuedDeliveryNote(documents, v.order.id)),
     );
-    if (pendingViews.length === 0) return;
+    if (pendingViews.length === 0) {
+      toast("לכל ההזמנות כבר הופקו תעודות משלוח");
+      return;
+    }
     setIssuingDocs(true);
     try {
       // הזמנה קבועה וירטואלית חייבת רשומת `orders` אמיתית לפני שאפשר להפיק לה תעודה
@@ -117,7 +112,14 @@ function AdminHomePage() {
           return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
         }),
       );
-      await issueDocuments.mutateAsync({ orderIds: pendingOrderIds, type: "delivery_note" });
+      const { issued, failed } = await issueDocuments.mutateAsync({
+        orderIds: pendingOrderIds,
+        type: "delivery_note",
+      });
+      if (failed === 0) toast.success(`הופקו ${issued} תעודות משלוח בריווחית`);
+      else toast.error(`הופקו ${issued} תעודות, ${failed} נכשלו — הפירוט ביומן המסמכים`);
+    } catch {
+      toast.error("הפקת תעודות המשלוח נכשלה");
     } finally {
       setIssuingDocs(false);
     }

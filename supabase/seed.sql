@@ -18,22 +18,24 @@ insert into cutoff_rules (weekday, enabled, offset_days, cutoff_time) values
 insert into cutoff_exceptions (date, label, open, cutoff_at) values
   ('2026-12-25', 'בדיקה - יום סגור', false, null);
 
--- small test catalog (dev seed only, not the real product list)
+-- small test catalog (dev seed only, not the real product list). SKUs are numeric like the
+-- real ones (Rivhit item_id); 5/6/9/10 are plain (non-serial) items in Rivhit's public demo company.
 insert into categories (id, name, position) values
   ('c0000000-0000-0000-0000-000000000001', 'לחם', 1),
   ('c0000000-0000-0000-0000-000000000002', 'מאפים', 2);
 
 insert into products (id, category_id, name, sku, unit, price, weight_grams) values
-  ('90000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'לחם אחיד', 'BR-1', 'unit', 10.00, 750),
-  ('90000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000001', 'בגט', 'BR-2', 'unit', 8.00, 300),
-  ('90000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000002', 'קרואסון', 'PA-1', 'unit', 6.00, 80),
-  ('90000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000002', 'עוגת שוקולד', 'PA-2', 'kg',   60.00, null);
+  ('90000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'לחם אחיד', '5', 'unit', 10.00, 750),
+  ('90000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000001', 'בגט', '6', 'unit', 8.00, 300),
+  ('90000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000002', 'קרואסון', '9', 'unit', 6.00, 80),
+  ('90000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000002', 'עוגת שוקולד', '10', 'kg',   60.00, null);
 
--- test customers (fixed per WORK_PLAN §"משתמשי בדיקה קבועים")
+-- test customers (fixed per WORK_PLAN §"משתמשי בדיקה קבועים"). Codes 11/23/24 are customers that
+-- exist in Rivhit's public demo company, so local delivery notes can be issued against the test API.
 insert into customers (id, code, name, address, allowed_rounds, blocked) values
-  ('22222222-2222-2222-2222-222222222201', 'A', 'לקוח א׳ (בדיקה)', 'רחוב א׳ 1', '{morning,noon}', false),
-  ('22222222-2222-2222-2222-222222222202', 'B', 'לקוח ב׳ (בדיקה)', 'רחוב ב׳ 2', '{morning}',      false),
-  ('22222222-2222-2222-2222-222222222203', 'C', 'לקוח ג׳ (בדיקה, חסום)', 'רחוב ג׳ 3', '{morning}', true);
+  ('22222222-2222-2222-2222-222222222201', '11', 'לקוח א׳ (בדיקה)', 'רחוב א׳ 1', '{morning,noon}', false),
+  ('22222222-2222-2222-2222-222222222202', '23', 'לקוח ב׳ (בדיקה)', 'רחוב ב׳ 2', '{morning}',      false),
+  ('22222222-2222-2222-2222-222222222203', '24', 'לקוח ג׳ (בדיקה, חסום)', 'רחוב ג׳ 3', '{morning}', true);
 
 insert into customer_contacts (customer_id, name, phone, is_primary) values
   ('22222222-2222-2222-2222-222222222201', 'איש קשר ראשי - לקוח א׳', '+972500000002', true),

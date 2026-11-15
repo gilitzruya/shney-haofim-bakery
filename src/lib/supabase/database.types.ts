@@ -249,6 +249,7 @@ export type Database = {
           error: string | null
           external_id: string | null
           id: string
+          link: string | null
           number: string | null
           order_id: string
           status: Database["public"]["Enums"]["doc_status"]
@@ -259,6 +260,7 @@ export type Database = {
           error?: string | null
           external_id?: string | null
           id?: string
+          link?: string | null
           number?: string | null
           order_id: string
           status?: Database["public"]["Enums"]["doc_status"]
@@ -269,6 +271,7 @@ export type Database = {
           error?: string | null
           external_id?: string | null
           id?: string
+          link?: string | null
           number?: string | null
           order_id?: string
           status?: Database["public"]["Enums"]["doc_status"]
@@ -547,10 +550,6 @@ export type Database = {
       fn_is_admin: { Args: never; Returns: boolean }
       fn_materialize_recurring_occurrence_internal: {
         Args: { p_date: string; p_patch: Json; p_recurring_id: string }
-        Returns: string
-      }
-      fn_next_document_number: {
-        Args: { p_type: Database["public"]["Enums"]["doc_type"] }
         Returns: string
       }
       fn_recurring_occurrences: {
