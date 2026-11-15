@@ -11,7 +11,7 @@ import { ProductPlaceholder } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct } from "@/data/catalog";
 import { useCopyOrderAsNew, useDiscardCart, useOrder } from "@/hooks/use-orders";
-import { formatLongDate, formatPrice, formatQty } from "@/lib/format";
+import { formatLongDate, formatPrice, formatQty, orderNumberLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/orders/$orderId")({
   head: () => ({
@@ -77,6 +77,11 @@ function OrderDetailsPage() {
             </span>
             <StatusChip status={order.status} />
           </div>
+          {order.status === "draft" ? null : (
+            <div className="mt-1 text-[12px] text-muted-foreground tabular-nums">
+              {orderNumberLabel(order.number)}
+            </div>
+          )}
           {isApproved ? (
             <div className="mt-2.5 rounded-[10px] bg-accent-soft px-3 py-2 text-[11.5px] font-semibold text-accent-foreground">
               ההזמנה אושרה ונעולה. לשינויים יש לפנות למאפייה.

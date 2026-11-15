@@ -18,6 +18,7 @@ interface IssueRequest {
 
 interface OrderForDocument {
   id: string;
+  number: number;
   status: string;
   delivery_date: string;
   note: string | null;
@@ -86,7 +87,7 @@ async function postgrest(path: string, authHeader: string, init: RequestInit = {
 
 async function loadOrder(authHeader: string, orderId: string): Promise<OrderForDocument> {
   const select =
-    "id,status,delivery_date,note,updated_at,customer:customers(code,name),order_lines(sku,product_name,qty,unit_price)";
+    "id,number,status,delivery_date,note,updated_at,customer:customers(code,name),order_lines(sku,product_name,qty,unit_price)";
   const rows = (await postgrest(
     `orders?id=eq.${encodeURIComponent(orderId)}&select=${select}`,
     authHeader,
@@ -127,7 +128,8 @@ function buildDeliveryNote(order: OrderForDocument) {
     price_include_vat: false,
     currency_id: 1,
     ...(order.note && !IS_RIVHIT_TEST ? { comments: order.note.slice(0, 400) } : {}),
-    order: order.id.slice(0, 8),
+    // שדה "הזמנה" בתעודה = מספר ההזמנה שלנו (החלטה 24), כך שאפשר לקשר תעודה להזמנה באפליקציה.
+    order: String(order.number),
     // שורה לכל מוצר באפליקציה, גם כשכמה מוצרים חולקים מק"ט אחד בריווחית (בגלה בצל/פרג = 1160)
     // — השם והמחיר שלנו נשמרים כפי שהלקוח הזמין (החלטה 23). המק"ט אצלנו = "מס' פריט" בריווחית,
     // שהוא `item_id` (שדה המק"ט/`item_part_num` ריק אצל המאפייה). מספר שלא קיים ← שגיאה ‎-24

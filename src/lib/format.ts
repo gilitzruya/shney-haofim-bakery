@@ -61,6 +61,11 @@ export function formatPrice(value: number): string {
   return `${value.toFixed(2)} ₪`;
 }
 
+/** "הזמנה 1042" — ריק למופע וירטואלי של הזמנה קבועה (אין לו עדיין מספר; מוצג שם התג "קבועה"). */
+export function orderNumberLabel(number: number | null): string {
+  return number === null ? "" : `הזמנה ${number}`;
+}
+
 /** "14:32" — שעה בפורמט ישראל, מתוך חותמת זמן ISO (למשל `orders.created_at`). */
 export function formatIsraelTime(isoTimestamp: string): string {
   return new Intl.DateTimeFormat("en-GB", {

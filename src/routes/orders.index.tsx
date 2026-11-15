@@ -9,7 +9,7 @@ import { StatusChip } from "@/components/app/status-chip";
 import { Tabs } from "@/components/app/tabs";
 import { useMyCustomer } from "@/hooks/use-customers";
 import { useMyOrders } from "@/hooks/use-orders";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatDate, formatPrice, orderNumberLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -95,7 +95,12 @@ function OrdersPage() {
                       </span>
                       <StatusChip status={order.status} />
                     </div>
-                    <div className="mt-1 text-[12px] text-muted-foreground">{order.lines.length} מוצרים</div>
+                    <div className="mt-1 text-[12px] text-muted-foreground">
+                      {order.status === "draft" ? null : (
+                        <span className="tabular-nums">{orderNumberLabel(order.number)} · </span>
+                      )}
+                      {order.lines.length} מוצרים
+                    </div>
                     <div className="mt-1.5 flex items-center justify-between">
                       <span className="text-[11.5px] text-muted-foreground">
                         {order.source === "recurring" ? "נוצרה מהזמנה קבועה" : order.source === "admin" ? "נוצרה על ידי המאפייה" : "הזמנה ידנית"}

@@ -18,19 +18,27 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { BakingSheet } from "@/components/admin/baking-sheet";
 import { PackingSheet } from "@/components/admin/packing-sheet";
 import { BusinessDaySummaryCard } from "@/components/admin/business-day-summary-card";
+import { IssueDeliveryNotesDialog } from "@/components/admin/issue-delivery-notes-dialog";
 import { Section } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/button";
 import { Chip } from "@/components/app/status-chip";
-import { orderDate, useAdminStalledDrafts, useRecentAdminOrders } from "@/hooks/use-orders";
+import { orderDate, useAdminStalledDrafts, useRecentAdminOrders, type AdminOrderView } from "@/hooks/use-orders";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
-import { latestIssuedDeliveryNote } from "@/lib/admin/accounting";
+import { classifyForIssuing } from "@/lib/admin/accounting";
 import { useCutoffExceptions, useCutoffRules } from "@/hooks/use-cutoff";
 import { useOrdersRealtime } from "@/hooks/use-orders-realtime";
 import { intakeDayLabel, isNewOrder, nextBusinessDayIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
-import { formatDate, formatIsraelTime, formatPrice, formatShortDateNumeric, formatWeekday } from "@/lib/format";
+import {
+  formatDate,
+  formatIsraelTime,
+  formatPrice,
+  formatShortDateNumeric,
+  formatWeekday,
+  orderNumberLabel,
+} from "@/lib/format";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -66,6 +74,7 @@ function AdminHomePage() {
   const materialize = useMaterializeRecurringOccurrence();
 
   const [issuingDocs, setIssuingDocs] = useState(false);
+  const [confirmIssue, setConfirmIssue] = useState(false);
 
   const summary = useMemo(() => summarizeDay(dayViews, date), [dayViews, date]);
   const productionGroups = useMemo(() => buildProductionReport(dayViews), [dayViews]);
@@ -89,19 +98,20 @@ function AdminHomePage() {
   };
 
 
-  const handleIssueDeliveryNotes = async () => {
+  // רק הזמנות שנשלחו ושעוד אין להן תעודה שהופקה בהצלחה (הפקה שנכשלה נשלחת שוב). הזמנה שנערכה
+  // אחרי ההפקה מופקת מחדש מפירוט ההזמנה בלבד. ההפקה עצמה רק אחרי אישור בחלון — שם רואים לאילו
+  // הזמנות בדיוק, ואפשר להוריד סימון.
+  const handleIssueDeliveryNotes = () => {
     if (issuingDocs) return;
-    // רק הזמנות שנשלחו (לא טיוטה/מבוטלת) ושעוד אין להן תעודה שהופקה בהצלחה — הפקה שנכשלה
-    // נשלחת שוב בלחיצה הבאה. הזמנה שנערכה אחרי ההפקה מופקת מחדש מפירוט ההזמנה בלבד.
-    const pendingViews = dayViews.filter(
-      (v) =>
-        (v.order.status === "approved" || v.order.status === "completed") &&
-        (v.isVirtual || !latestIssuedDeliveryNote(documents, v.order.id)),
-    );
-    if (pendingViews.length === 0) {
+    if (classifyForIssuing(dayViews, documents).eligible.length === 0) {
       toast("לכל ההזמנות כבר הופקו תעודות משלוח");
       return;
     }
+    setConfirmIssue(true);
+  };
+
+  const issueSelected = async (pendingViews: AdminOrderView[]) => {
+    setConfirmIssue(false);
     setIssuingDocs(true);
     try {
       // הזמנה קבועה וירטואלית חייבת רשומת `orders` אמיתית לפני שאפשר להפיק לה תעודה
@@ -212,7 +222,8 @@ function AdminHomePage() {
                       {isNew ? <Chip tone="accent">חדש</Chip> : null}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      הזמנה ל{formatWeekday(orderDate(view.order))} · {formatShortDateNumeric(orderDate(view.order))}
+                      {orderNumberLabel(view.order.number)} ל{formatWeekday(orderDate(view.order))}{" "}
+                      · {formatShortDateNumeric(orderDate(view.order))}
                     </span>
                   </span>
                   <span className="shrink-0 whitespace-nowrap text-[12px] text-muted-foreground tabular-nums">
@@ -259,6 +270,15 @@ function AdminHomePage() {
           <ShortcutTile to="/admin/products" icon={<Croissant className="size-5" />} title="מוצרים" subtitle="ניהול מוצרים" />
         </div>
       </Section>
+
+      <IssueDeliveryNotesDialog
+        open={confirmIssue}
+        onOpenChange={setConfirmIssue}
+        date={date}
+        views={dayViews}
+        documents={documents}
+        onConfirm={(views) => void issueSelected(views)}
+      />
     </AdminShell>
   );
 }

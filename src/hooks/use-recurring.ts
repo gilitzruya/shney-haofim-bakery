@@ -303,6 +303,7 @@ export function useRecurringOccurrencesForDate(date: string) {
         return {
           order: {
             id: virtualOrderId(recurringId, date),
+            number: null,
             customerId: first.customer_id,
             date,
             round: first.round as RoundId,

@@ -7,7 +7,7 @@ import type { AdminDocument } from "@/lib/admin/accounting";
 import { Chip, StatusChip } from "@/components/app/status-chip";
 import { roundLabel } from "@/data/catalog";
 import { orderDate, type AdminOrderView } from "@/hooks/use-orders";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatDate, formatPrice, orderNumberLabel } from "@/lib/format";
 
 /** רשימת הזמנות: כרטיסים במובייל, טבלה בדסקטופ. */
 export function AdminOrderList({
@@ -67,6 +67,9 @@ function OrderRowCard({
                   <span className="font-medium text-foreground">{formatDate(orderDate(view.order))}</span>
                 ) : null}
                 <span>{roundLabel(view.order.round)}</span>
+                {view.order.number !== null ? (
+                  <span className="tabular-nums">{orderNumberLabel(view.order.number)}</span>
+                ) : null}
               </div>
             </div>
             <StatusChip status={view.order.status} />
@@ -131,6 +134,11 @@ function OrdersTable({
                   {v.customerName}
                   {v.order.source === "recurring" ? <Chip tone="muted">קבועה</Chip> : null}
                 </span>
+                {v.order.number !== null ? (
+                  <span className="block text-[11px] font-normal text-muted-foreground tabular-nums">
+                    {orderNumberLabel(v.order.number)}
+                  </span>
+                ) : null}
               </td>
               {showDate ? (
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(orderDate(v.order))}</td>

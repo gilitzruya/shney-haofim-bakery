@@ -31,9 +31,9 @@ import {
 import { DocumentStatusChip } from "@/components/admin/document-status-chip";
 import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
-import { latestIssuedDeliveryNote } from "@/lib/admin/accounting";
+import { deliveryNoteProblem, latestIssuedDeliveryNote } from "@/lib/admin/accounting";
 import { priceFor } from "@/lib/admin/pricing";
-import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
+import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty, orderNumberLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/orders/$orderId")({
   head: () => ({
@@ -200,7 +200,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
   const [adding, setAdding] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
-  const [confirmReissue, setConfirmReissue] = useState(false);
+  const [confirmIssue, setConfirmIssue] = useState(false);
 
   const doc = documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
   const issuedDoc = latestIssuedDeliveryNote(documents, orderId);
@@ -300,9 +300,11 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
   // התעודה בריווחית משקפת את ההזמנה כפי שהייתה ברגע ההפקה; עריכה/ביטול אחריה דורשים תעודה
   // חדשה, ואת הישנה המנהל מבטל ידנית בריווחית (PRD החלטה 23).
   const changedSinceIssued = !!issuedDoc && order.updatedAt > issuedDoc.createdAt;
+  // אותה בדיקה שהשרת עושה — מוצגת בחלון האישור לפני שנשלח משהו לריווחית.
+  const issueProblem = deliveryNoteProblem(view);
 
   const issue = async () => {
-    setConfirmReissue(false);
+    setConfirmIssue(false);
     setIssuing(true);
     try {
       const { issued, firstError } = await issueDocuments.mutateAsync({ orderIds: [orderId] });
@@ -345,7 +347,8 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
             <StatusChip status={order.status} />
           </div>
           <div className="mt-1.5 text-[12px] text-muted-foreground">
-            {roundLabel(order.round)} · {currentLines.length} פריטים
+            <span className="tabular-nums">{orderNumberLabel(order.number)}</span> · {roundLabel(order.round)} ·{" "}
+            {currentLines.length} פריטים
           </div>
           <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
             {view.customerAddress ? (
@@ -476,7 +479,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
                 size="lg"
                 className="w-full md:w-auto"
                 loading={issuing}
-                onClick={() => (issuedDoc ? setConfirmReissue(true) : void issue())}
+                onClick={() => setConfirmIssue(true)}
               >
                 <FileText className="size-4" />
                 {issuedDoc ? "הפקה מחדש" : "הפקת תעודת משלוח"}
@@ -556,18 +559,29 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={confirmReissue} onOpenChange={setConfirmReissue}>
+      <AlertDialog open={confirmIssue} onOpenChange={setConfirmIssue}>
         <AlertDialogContent dir="rtl" className="text-right">
           <AlertDialogHeader>
-            <AlertDialogTitle>להפיק תעודת משלוח חדשה?</AlertDialogTitle>
+            <AlertDialogTitle>{issuedDoc ? "להפיק תעודת משלוח חדשה?" : "להפיק תעודת משלוח?"}</AlertDialogTitle>
             <AlertDialogDescription>
-              תופק בריווחית תעודה חדשה לפי ההזמנה כפי שהיא עכשיו. התעודה הקודמת ({issuedDoc?.number}
-              ) לא מתבטלת אוטומטית — יש לבטל אותה ידנית בריווחית.
+              <span className="block">
+                תופק בריווחית תעודה ל{orderNumberLabel(order.number)} של {view.customerName} (קוד{" "}
+                {view.customerCode ?? "—"}) לתאריך{" "}
+                {formatLongDate(orderDate(order))}: {view.itemsCount} מוצרים, {formatPrice(view.total)} לפני מע״מ.
+              </span>
+              {issueProblem ? <span className="mt-1.5 block text-destructive">{issueProblem}</span> : null}
+              {issuedDoc ? (
+                <span className="mt-1.5 block">
+                  התעודה הקודמת ({issuedDoc.number}) לא מתבטלת אוטומטית — יש לבטל אותה ידנית בריווחית.
+                </span>
+              ) : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:justify-start">
             <AlertDialogCancel>חזרה</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void issue()}>הפקת תעודה חדשה</AlertDialogAction>
+            <AlertDialogAction disabled={!!issueProblem} onClick={() => void issue()}>
+              {issuedDoc ? "הפקת תעודה חדשה" : "הפקת תעודה"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

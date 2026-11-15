@@ -343,6 +343,7 @@ export type Database = {
           delivery_date: string | null
           id: string
           note: string | null
+          number: number
           recurring_id: string | null
           round: Database["public"]["Enums"]["round_id"]
           source: Database["public"]["Enums"]["order_source"]
@@ -356,6 +357,7 @@ export type Database = {
           delivery_date?: string | null
           id?: string
           note?: string | null
+          number?: never
           recurring_id?: string | null
           round: Database["public"]["Enums"]["round_id"]
           source?: Database["public"]["Enums"]["order_source"]
@@ -369,6 +371,7 @@ export type Database = {
           delivery_date?: string | null
           id?: string
           note?: string | null
+          number?: never
           recurring_id?: string | null
           round?: Database["public"]["Enums"]["round_id"]
           source?: Database["public"]["Enums"]["order_source"]
@@ -582,6 +585,7 @@ export type Database = {
           delivery_date: string | null
           id: string
           note: string | null
+          number: number
           recurring_id: string | null
           round: Database["public"]["Enums"]["round_id"]
           source: Database["public"]["Enums"]["order_source"]

@@ -7,7 +7,7 @@ import { Card, EmptyState } from "@/components/app/card";
 import { orderDate, useOrdersByIds } from "@/hooks/use-orders";
 import { useDocuments } from "@/hooks/use-documents";
 import { ACCOUNTING_PROVIDER_NAME, DOCUMENT_TYPE_LABELS } from "@/lib/admin/accounting";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatDate, formatPrice, orderNumberLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/documents")({
   head: () => ({
@@ -62,6 +62,7 @@ function AdminDocumentsPage() {
                     </div>
                     <div className="mt-1 text-[11.5px] text-muted-foreground">
                       {DOCUMENT_TYPE_LABELS[doc.type]}
+                      {view ? ` · ${orderNumberLabel(view.order.number)}` : ""}
                       {view ? ` · אספקה ${formatDate(orderDate(view.order))} · ${formatPrice(view.total)}` : ""}
                     </div>
                     {doc.error ? (

@@ -5,13 +5,15 @@ import { toast } from "sonner";
 
 import { AdminOrderList } from "@/components/admin/order-list";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { IssueDeliveryNotesDialog } from "@/components/admin/issue-delivery-notes-dialog";
 import { Button } from "@/components/app/button";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
 import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
-import { latestIssuedDeliveryNote } from "@/lib/admin/accounting";
+import type { AdminOrderView } from "@/hooks/use-orders";
+import { classifyForIssuing } from "@/lib/admin/accounting";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
@@ -34,6 +36,7 @@ function AdminOrdersPage() {
   const { documents } = useDocuments();
   const issueDocuments = useIssueDocuments();
   const [issuing, setIssuing] = useState(false);
+  const [confirmIssue, setConfirmIssue] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
   const [query, setQuery] = useState("");
 
@@ -58,20 +61,18 @@ function AdminOrdersPage() {
   const latestDocFor = (orderId: string) =>
     documents.find((d) => d.orderId === orderId && d.type === "delivery_note");
 
-  /** הפקה לכל הזמנות היום שנשלחו ושעוד אין להן תעודת משלוח שהופקה בהצלחה (כישלון ← ניסיון חוזר) */
-  const pendingViews = filtered.filter(
-    (v) =>
-      (v.order.status === "approved" || v.order.status === "completed") &&
-      (v.isVirtual || !latestIssuedDeliveryNote(documents, v.order.id)),
-  );
+  /** הזמנות היום (אחרי החיפוש) שנשלחו ושעוד אין להן תעודת משלוח שהופקה בהצלחה (כישלון ← ניסיון
+   * חוזר). ההפקה רק אחרי אישור בחלון, שבו אפשר להוריד סימון מהזמנות. */
+  const pendingViews = classifyForIssuing(filtered, documents).eligible;
 
-  const issueTargets = async () => {
-    if (pendingViews.length === 0) return;
+  const issueTargets = async (selectedViews: AdminOrderView[]) => {
+    setConfirmIssue(false);
+    if (selectedViews.length === 0) return;
     setIssuing(true);
     try {
       // מופע וירטואלי ממומש קודם — לתעודה חייב להיות order_id אמיתי (PRD §4.2).
       const pendingIds = await Promise.all(
-        pendingViews.map((v) => {
+        selectedViews.map((v) => {
           if (!v.isVirtual || !v.order.recurringId) return v.order.id;
           return materialize.mutateAsync({ recurringId: v.order.recurringId, date });
         }),
@@ -191,7 +192,7 @@ function AdminOrdersPage() {
           </div>
           <Button
             className="flex-1 md:flex-initial md:w-auto"
-            onClick={issueTargets}
+            onClick={() => setConfirmIssue(true)}
             loading={issuing}
             disabled={!hydrated || pendingViews.length === 0}
           >
@@ -204,6 +205,15 @@ function AdminOrdersPage() {
           </Button>
         </div>
       </div>
+
+      <IssueDeliveryNotesDialog
+        open={confirmIssue}
+        onOpenChange={setConfirmIssue}
+        date={date}
+        views={filtered}
+        documents={documents}
+        onConfirm={(views) => void issueTargets(views)}
+      />
     </AdminShell>
   );
 }

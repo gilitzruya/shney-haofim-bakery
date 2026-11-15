@@ -17,6 +17,8 @@ export interface OrderLine {
 
 export interface Order {
   id: string;
+  /** מספר הזמנה רץ (1001, 1002…) — null רק במופע וירטואלי של הזמנה קבועה, שעוד לא נשמר. */
+  number: number | null;
   customerId: string;
   /** null רק לעגלה פתוחה שעוד לא נבחר לה תאריך (טיוטה, ראו PRD §2.3). */
   date: string | null;
@@ -56,6 +58,7 @@ type OrderLineRow = {
 
 type OrderRow = {
   id: string;
+  number: number;
   customer_id: string;
   delivery_date: string | null;
   round: string;
@@ -83,6 +86,7 @@ function toOrderLine(row: OrderLineRow): OrderLine {
 function toOrder(row: OrderRow): Order {
   return {
     id: row.id,
+    number: row.number,
     customerId: row.customer_id,
     date: row.delivery_date,
     round: row.round as RoundId,
@@ -113,7 +117,7 @@ export function orderDate(order: Order): string {
 }
 
 const ORDER_SELECT =
-  "id, customer_id, delivery_date, round, status, note, source, recurring_id, created_by, created_at, updated_at, order_lines(product_id, product_name, sku, unit, qty, unit_price)";
+  "id, number, customer_id, delivery_date, round, status, note, source, recurring_id, created_by, created_at, updated_at, order_lines(product_id, product_name, sku, unit, qty, unit_price)";
 
 export const myOrdersQueryKey = ["orders", "mine"] as const;
 export const orderQueryKey = (id: string) => ["orders", id] as const;
