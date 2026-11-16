@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -49,6 +50,33 @@ export const Route = createFileRoute("/summary")({
 function SummaryPage() {
   const { draft } = useRecurringDraft();
   return draft ? <RecurringSummaryPage /> : <OrderSummaryPage />;
+}
+
+/** ה-stepper של השורה + כפתור הסרה בלחיצה אחת לידו (חשוב אחרי שכפול הזמנה קודמת, כשהכמויות
+ * גדולות ו-"−" עד 0 מייגע). בטלפון הכפתור יורד מתחת ל-stepper — באותה שורה הוא מכווץ את
+ * עמודת הטקסט עד ששם המוצר נחתך לגמרי. */
+function LineQtyControls({
+  productName,
+  onRemove,
+  children,
+}: {
+  productName: string;
+  onRemove: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex shrink-0 flex-col items-end gap-1.5 md:flex-row md:items-start md:gap-2">
+      {children}
+      <button
+        type="button"
+        aria-label={`הסרת ${productName} מההזמנה`}
+        onClick={onRemove}
+        className="flex size-[38px] shrink-0 items-center justify-center rounded-[11px] border border-border bg-card text-destructive"
+      >
+        <Trash2 className="size-4" />
+      </button>
+    </div>
+  );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,13 +208,15 @@ function RecurringSummaryPage() {
                       </span>
                     </div>
                   </div>
-                  <QuantityStepper
-                    product={product}
-                    qty={line.qty}
-                    compact
-                    onChange={(delta) => bumpQty(product.id, delta)}
-                    onSetQty={(qty) => setQty(product.id, qty)}
-                  />
+                  <LineQtyControls productName={product.name} onRemove={() => setQty(product.id, 0)}>
+                    <QuantityStepper
+                      product={product}
+                      qty={line.qty}
+                      compact
+                      onChange={(delta) => bumpQty(product.id, delta)}
+                      onSetQty={(qty) => setQty(product.id, qty)}
+                    />
+                  </LineQtyControls>
                 </Card>
               );
             })
@@ -317,11 +347,14 @@ function OrderSummaryPage() {
   const setQty = (productId: string, qty: number) => {
     const line = lines.find((l) => l.productId === productId);
     if (!line || !auth?.customerId) return;
-    upsertLine.mutate({
-      customerId: auth.customerId,
-      line: { ...line, qty },
-      orderId: order.id,
-    });
+    upsertLine.mutate(
+      {
+        customerId: auth.customerId,
+        line: { ...line, qty },
+        orderId: order.id,
+      },
+      { onError: () => toast.error("עדכון ההזמנה נכשל") },
+    );
   };
 
   const doDiscard = () => {
@@ -499,13 +532,15 @@ function OrderSummaryPage() {
                     <span className="font-semibold text-foreground">{formatPrice(line.unitPrice * line.qty)}</span>
                   </div>
                 </div>
-                <QuantityStepper
-                  product={{ id: line.productId, unit: line.unit, minQty: 1, step: line.unit === "kg" ? 0.5 : 1, price: line.unitPrice, name: line.productName, available: true }}
-                  qty={line.qty}
-                  compact
-                  onChange={(delta) => setQty(line.productId, Math.max(0, line.qty + delta))}
-                  onSetQty={(qty) => setQty(line.productId, qty)}
-                />
+                <LineQtyControls productName={line.productName} onRemove={() => setQty(line.productId, 0)}>
+                  <QuantityStepper
+                    product={{ id: line.productId, unit: line.unit, minQty: 1, step: line.unit === "kg" ? 0.5 : 1, price: line.unitPrice, name: line.productName, available: true }}
+                    qty={line.qty}
+                    compact
+                    onChange={(delta) => setQty(line.productId, Math.max(0, line.qty + delta))}
+                    onSetQty={(qty) => setQty(line.productId, qty)}
+                  />
+                </LineQtyControls>
               </Card>
             ))
           )}
