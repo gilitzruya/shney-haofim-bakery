@@ -175,7 +175,8 @@
   }
 
   .packing-sheet,
-  .baking-sheet {
+  .baking-sheet,
+  .order-sheet {
     break-after: avoid-page;
     page-break-after: avoid;
   }
@@ -192,7 +193,8 @@
   /* גיליונות ההדפסה מוצגים כבלוק רגיל — position: fixed גורם לדפדפן
      לשכפל את התוכן בכל עמוד מודפס. */
   .packing-sheet,
-  .baking-sheet {
+  .baking-sheet,
+  .order-sheet {
     position: static !important;
     inset: auto !important;
     z-index: auto !important;

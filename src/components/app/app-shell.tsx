@@ -9,13 +9,13 @@ import heroImage from "@/assets/home-hero.jpg";
 /** The mobile-first app canvas used by every screen in the handoff. */
 export function AppShell({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
-    <div dir="rtl" lang="he" className={cn("relative min-h-screen bg-background", className)}>
+    <div dir="rtl" lang="he" className={cn("relative min-h-screen bg-background print:bg-white", className)}>
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 bg-cover bg-center bg-no-repeat"
+        className="pointer-events-none fixed inset-0 bg-cover bg-center bg-no-repeat print:hidden"
         style={{ backgroundImage: `url(${heroImage})` }}
       />
-      <div aria-hidden className="pointer-events-none fixed inset-0 bg-foreground/10" />
+      <div aria-hidden className="pointer-events-none fixed inset-0 bg-foreground/10 print:hidden" />
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[430px] flex-col md:max-w-[834px] lg:max-w-[1120px]">
         <div className="flex flex-1 flex-col">{children}</div>
         <CreditFooter />

@@ -9,7 +9,7 @@ import { StatusChip } from "@/components/app/status-chip";
 import { Tabs } from "@/components/app/tabs";
 import { useMyCustomer } from "@/hooks/use-customers";
 import { useMyOrders } from "@/hooks/use-orders";
-import { formatDate, formatPrice, orderNumberLabel } from "@/lib/format";
+import { formatLongDate, formatPrice, orderNumberLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -91,7 +91,7 @@ function OrdersPage() {
                   <Card variant={order.status === "completed" || order.status === "cancelled" ? "muted" : "active"}>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[13.5px] font-semibold text-foreground">
-                        {order.date ? formatDate(order.date) : "טיוטה — טרם נבחר תאריך"}
+                        {order.date ? formatLongDate(order.date) : "טיוטה — טרם נבחר תאריך"}
                       </span>
                       <StatusChip status={order.status} />
                     </div>

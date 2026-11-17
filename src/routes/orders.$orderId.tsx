@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { Copy, Printer } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -7,9 +8,11 @@ import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Modal } from "@/components/app/modal";
+import { OrderSheet } from "@/components/app/order-sheet";
 import { ProductPlaceholder } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct } from "@/data/catalog";
+import { useMyCustomer } from "@/hooks/use-customers";
 import { useCopyOrderAsNew, useDiscardCart, useOrder } from "@/hooks/use-orders";
 import { formatLongDate, formatPrice, formatQty, orderNumberLabel } from "@/lib/format";
 
@@ -25,10 +28,15 @@ export const Route = createFileRoute("/orders/$orderId")({
   component: OrderDetailsPage,
 });
 
+/** כפתורי הפעולה בראש ההזמנה — אותו סגנון של "הוספת מוצרים" בסיכום. */
+const topActionClass =
+  "inline-flex shrink-0 items-center gap-1 rounded-full border border-primary bg-primary-soft px-3 py-1.5 text-[12px] font-bold text-primary";
+
 function OrderDetailsPage() {
   const { orderId } = useParams({ from: "/orders/$orderId" });
   const navigate = useNavigate();
   const { order, isLoading } = useOrder(orderId);
+  const { customer } = useMyCustomer();
   const { auth } = Route.useRouteContext();
   const discardCart = useDiscardCart();
   const copyAsNew = useCopyOrderAsNew();
@@ -60,7 +68,8 @@ function OrderDetailsPage() {
     if (!auth?.customerId) return;
     copyAsNew.mutate(
       { customerId: auth.customerId, source: order },
-      { onSuccess: () => navigate({ to: "/catalog" }) },
+      // ישר לסיכום (שם אפשר להסיר/לעדכן ולבחור מועד) — מזהה מפורש, כמו בזרימת ההעתקה בקטלוג.
+      { onSuccess: (cartId) => navigate({ to: "/summary", search: { order: cartId } }) },
     );
   };
 
@@ -69,7 +78,7 @@ function OrderDetailsPage() {
       <AppHeader>
         <PageTitleBar title="פרטי הזמנה" backTo="/orders" />
       </AppHeader>
-      <Section className="pb-28">
+      <Section className="pb-28 print:hidden">
         <Card>
           <div className="flex items-center justify-between gap-2">
             <span className="text-[15px] font-bold text-foreground">
@@ -77,11 +86,24 @@ function OrderDetailsPage() {
             </span>
             <StatusChip status={order.status} />
           </div>
-          {order.status === "draft" ? null : (
+          {isDraft ? null : (
             <div className="mt-1 text-[12px] text-muted-foreground tabular-nums">
               {orderNumberLabel(order.number)}
             </div>
           )}
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            <button type="button" onClick={copy} className={topActionClass}>
+              <Copy className="size-3.5" />
+              שכפול כהזמנה חדשה
+            </button>
+            {/* חלון ההדפסה של הדפדפן מכסה גם "שמירה כ-PDF" (הורדה) וגם שיתוף מהטלפון. */}
+            {isDraft ? null : (
+              <button type="button" onClick={() => window.print()} className={topActionClass}>
+                <Printer className="size-3.5" />
+                הדפסה / שמירה כ-PDF
+              </button>
+            )}
+          </div>
           {isApproved ? (
             <div className="mt-2.5 rounded-[10px] bg-accent-soft px-3 py-2 text-[11.5px] font-semibold text-accent-foreground">
               ההזמנה אושרה ונעולה. לשינויים יש לפנות למאפייה.
@@ -125,18 +147,16 @@ function OrderDetailsPage() {
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">המחירים אינם כוללים מע״מ.</div>
         </Card>
-
-        <button
-          type="button"
-          onClick={copy}
-          className="mt-3 w-full rounded-xl border border-border bg-card py-2.5 text-[12.5px] font-semibold text-foreground"
-        >
-          שכפול כהזמנה חדשה
-        </button>
       </Section>
 
+      <OrderSheet
+        order={order}
+        customerName={customer?.name ?? ""}
+        showRound={!!customer?.allowedRounds.includes("noon")}
+      />
+
       {isDraft ? (
-        <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5">
+        <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5 print:hidden">
           <div className="mx-auto flex max-w-5xl gap-2.5">
             <Button variant="secondary" size="lg" className="font-semibold" onClick={() => setCancelling(true)}>
               ביטול ההזמנה

@@ -68,7 +68,7 @@ function SideMenu({ onClose }: { onClose: () => void }) {
         onClick={onClose}
         className="absolute inset-0 bg-[rgba(32,21,24,0.5)]"
       />
-      <nav className="relative me-0 ms-auto flex h-full w-[264px] flex-col bg-canvas p-4 shadow-header">
+      <nav className="relative flex h-full w-[264px] flex-col bg-canvas p-4 shadow-header">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-[15px] font-bold text-heading">תפריט</span>
           <button
