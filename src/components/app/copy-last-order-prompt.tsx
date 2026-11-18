@@ -9,14 +9,19 @@ type Props = {
   date?: string | undefined;
   lines?: OrderLine[] | undefined;
   onConfirm: () => void;
+  /** "מאפס" — מרוקן את העגלה הפתוחה ומתחיל הזמנה ריקה. */
   onDecline: () => void;
+  /** לחיצה מחוץ לחלון — רק סוגרת, בלי לרוקן את העגלה (לחיצה מקרית לא מוחקת מוצרים). */
+  onDismiss: () => void;
+  /** בזמן ריקון העגלה — הכפתורים נעולים. */
+  busy?: boolean | undefined;
 };
 
 /** חלון מודאלי קצר: פתיחת הזמנה חדשה — להתחיל מההזמנה הקודמת או מאפס */
-export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props) {
+export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline, onDismiss, busy }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
-      <div className="absolute inset-0 bg-foreground/45" onClick={onDecline} aria-hidden />
+      <div className="absolute inset-0 bg-foreground/45" onClick={onDismiss} aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
@@ -35,10 +40,10 @@ export function CopyLastOrderPrompt({ date, lines, onConfirm, onDecline }: Props
         </p>
 
         <div className="mt-4 flex items-center gap-2.5">
-          <Button pill className="flex-1" onClick={onConfirm}>
+          <Button pill className="flex-1" disabled={busy} onClick={onConfirm}>
             כן, העתיקו
           </Button>
-          <Button variant="outline" pill className="flex-1" onClick={onDecline}>
+          <Button variant="outline" pill className="flex-1" disabled={busy} onClick={onDecline}>
             מאפס
           </Button>
         </div>

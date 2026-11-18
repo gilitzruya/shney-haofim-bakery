@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Search, ShoppingBasket } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
@@ -14,7 +15,16 @@ import { CopyLastOrderPrompt } from "@/components/app/copy-last-order-prompt";
 import type { Product } from "@/data/catalog";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
-import { useAddCartLines, useCartOrder, useMyOrders, useOrder, useSetCartDateRound, useUpsertCartLine, type Order } from "@/hooks/use-orders";
+import {
+  useAddCartLines,
+  useCartOrder,
+  useDiscardCart,
+  useMyOrders,
+  useOrder,
+  useSetCartDateRound,
+  useUpsertCartLine,
+  type Order,
+} from "@/hooks/use-orders";
 import { isCutoffPassed, israelNow } from "@/lib/cutoff";
 import { priceFor } from "@/lib/admin/pricing";
 import { formatPrice, parseDate } from "@/lib/format";
@@ -302,10 +312,28 @@ function OrderCatalogPage() {
     if (copy === 1) navigate({ to: "/catalog", search: {}, replace: true });
   };
 
+  // עגלה פתוחה (טיוטה בלי תאריך) לא פגה אף פעם (החלטה 15) — למשל אחרי "שכפול כהזמנה חדשה"
+  // שלא אושר. בלי לרוקן אותה, "מאפס" הציג שוב את המוצרים הישנים, ו"כן, העתיקו" הוסיף עליהם.
+  // החלון מוצג רק בלי טיוטה מפורשת (askCopy), כך שהעגלה כאן היא תמיד העגלה הפתוחה.
+  const discardCart = useDiscardCart();
+  const clearOpenCart = async () => {
+    if (openCart && openCart.lines.length > 0) await discardCart.mutateAsync(openCart.id);
+  };
+
+  const startFromScratch = async () => {
+    try {
+      await clearOpenCart();
+      closeCopyFlow();
+    } catch {
+      toast.error("איפוס ההזמנה נכשל — נסו שוב");
+    }
+  };
+
   const confirmCopyDate = async () => {
     if (!copyDate || !auth?.customerId || copying) return;
     setCopying(true);
     try {
+      await clearOpenCart();
       const candidate = pickCopyCandidate(orders, copyDate);
       const cartId = await addLines.mutateAsync({
         customerId: auth.customerId,
@@ -556,7 +584,12 @@ function OrderCatalogPage() {
       </div>
 
       {copyStep === "ask" ? (
-        <CopyLastOrderPrompt onConfirm={() => setCopyStep("date")} onDecline={closeCopyFlow} />
+        <CopyLastOrderPrompt
+          onConfirm={() => setCopyStep("date")}
+          onDecline={() => void startFromScratch()}
+          onDismiss={closeCopyFlow}
+          busy={discardCart.isPending}
+        />
       ) : null}
     </AppShell>
   );
