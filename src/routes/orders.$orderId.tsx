@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
+import { EmailOrderButton, WhatsAppOrderButton } from "@/components/app/order-share-buttons";
 import { Modal } from "@/components/app/modal";
 import { OrderSheet } from "@/components/app/order-sheet";
 import { ProductPlaceholder } from "@/components/app/product-card";
@@ -63,6 +64,8 @@ function OrderDetailsPage() {
   const isDraft = order.status === "draft";
   const isApproved = order.status === "approved";
   const total = order.lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
+  // סבב מוצג (בהדפסה ובמייל) רק ללקוח שמורשה ליותר מסבב אחד.
+  const showRound = !!customer?.allowedRounds.includes("noon");
 
   const copy = () => {
     if (!auth?.customerId) return;
@@ -86,11 +89,11 @@ function OrderDetailsPage() {
             </span>
             <StatusChip status={order.status} />
           </div>
-          {isDraft ? null : (
-            <div className="mt-1 text-[12px] text-muted-foreground tabular-nums">
-              {orderNumberLabel(order.number)}
-            </div>
-          )}
+          {/* אותו פורמט כמו בכרטיס ב"ההזמנות שלי"; לטיוטה אין עדיין מספר. */}
+          <div className="mt-1 text-[12px] text-muted-foreground tabular-nums">
+            {isDraft ? null : `${orderNumberLabel(order.number)} · `}
+            {order.lines.length} מוצרים
+          </div>
           <div className="mt-2.5 flex flex-wrap gap-2">
             <button type="button" onClick={copy} className={topActionClass}>
               <Copy className="size-3.5" />
@@ -98,10 +101,24 @@ function OrderDetailsPage() {
             </button>
             {/* חלון ההדפסה של הדפדפן מכסה גם "שמירה כ-PDF" (הורדה) וגם שיתוף מהטלפון. */}
             {isDraft ? null : (
-              <button type="button" onClick={() => window.print()} className={topActionClass}>
-                <Printer className="size-3.5" />
-                הדפסה / שמירה כ-PDF
-              </button>
+              <>
+                <button type="button" onClick={() => window.print()} className={topActionClass}>
+                  <Printer className="size-3.5" />
+                  הדפסה / שמירה כ-PDF
+                </button>
+                <EmailOrderButton
+                  order={order}
+                  customerName={customer?.name ?? ""}
+                  showRound={showRound}
+                  className={topActionClass}
+                />
+                <WhatsAppOrderButton
+                  order={order}
+                  customerName={customer?.name ?? ""}
+                  showRound={showRound}
+                  className={topActionClass}
+                />
+              </>
             )}
           </div>
           {isApproved ? (
@@ -129,7 +146,12 @@ function OrderDetailsPage() {
                   <ProductPlaceholder className="size-[56px]" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13.5px] font-semibold text-foreground">{line.productName}</div>
+                  <div className="flex min-w-0 items-baseline gap-1.5">
+                    <span className="truncate text-[13.5px] font-semibold text-foreground">{line.productName}</span>
+                    {line.sku ? (
+                      <span className="shrink-0 text-[11.5px] text-muted-foreground">קוד פריט: {line.sku}</span>
+                    ) : null}
+                  </div>
                   <div className="mt-0.5 text-[11.5px] text-muted-foreground">
                     {formatQty(line.qty, line.unit)} × {formatPrice(line.unitPrice)}
                   </div>
@@ -149,11 +171,7 @@ function OrderDetailsPage() {
         </Card>
       </Section>
 
-      <OrderSheet
-        order={order}
-        customerName={customer?.name ?? ""}
-        showRound={!!customer?.allowedRounds.includes("noon")}
-      />
+      <OrderSheet order={order} customerName={customer?.name ?? ""} showRound={showRound} />
 
       {isDraft ? (
         <div className="sticky bottom-0 border-t border-border bg-canvas px-3.5 py-3 md:px-5 print:hidden">
