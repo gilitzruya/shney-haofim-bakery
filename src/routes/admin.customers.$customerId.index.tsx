@@ -26,13 +26,18 @@ import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { roundLabel, WEEKDAY_LABELS } from "@/data/catalog";
 import {
+  activeBranches,
+  branchName,
+  useAddBranch,
   useAddContact,
   useCustomer,
+  useDeactivateBranch,
   useDeleteCustomer,
   useGrantContactAccess,
   useRemoveContact,
   useRevokeContactAccess,
   useSetCustomerBlocked,
+  useUpdateBranch,
   useUpdateContact,
   useUpdateCustomer,
 } from "@/hooks/use-customers";
@@ -82,6 +87,9 @@ function CustomerDetailPage() {
   const removeContact = useRemoveContact();
   const grantAccess = useGrantContactAccess();
   const revokeAccess = useRevokeContactAccess();
+  const addBranch = useAddBranch();
+  const updateBranch = useUpdateBranch();
+  const deactivateBranch = useDeactivateBranch();
   const { recurring } = useCustomerRecurring(customerId);
   const cancelRecurring = useCancelRecurring();
   const [editing, setEditing] = useState(false);
@@ -161,6 +169,19 @@ function CustomerDetailPage() {
         }
       }
 
+      // סניפים: שורה שהוסרה מושבתת (לא נמחקת — הזמנות ישנות מצביעות עליה), קיימת מתעדכנת, חדשה נוספת.
+      const keptBranchIds = new Set(v.branches.map((b) => b.id).filter((id): id is string => !!id));
+      for (const original of customer.branches) {
+        if (original.active && !keptBranchIds.has(original.id)) {
+          await deactivateBranch.mutateAsync({ customerId: customer.id, branchId: original.id });
+        }
+      }
+      for (const b of v.branches) {
+        const input = { name: b.name, address: b.address, deliveryNotes: b.deliveryNotes };
+        if (b.id) await updateBranch.mutateAsync({ customerId: customer.id, branchId: b.id, input });
+        else await addBranch.mutateAsync({ customerId: customer.id, input });
+      }
+
       setEditing(false);
       toast.success("פרטי הלקוח נשמרו");
       if (toInvite.length > 0) setInviteQueue(toInvite);
@@ -222,6 +243,15 @@ function CustomerDetailPage() {
                 <InfoRow icon={<Phone className="size-3.5" />} label="טלפון" value={contact?.phone || "לא הוזן"} ltr />
                 <InfoRow icon={<Mail className="size-3.5" />} label="דוא״ל" value={contact?.email || "לא הוזן"} ltr />
                 <InfoRow icon={<MapPin className="size-3.5" />} label="כתובת לאספקה" value={customer.address || "לא הוזנה"} />
+                {activeBranches(customer).length > 0 ? (
+                  <InfoRow
+                    icon={<MapPin className="size-3.5" />}
+                    label="סניפים"
+                    value={activeBranches(customer)
+                      .map((b) => (b.address ? `${b.name} (${b.address})` : b.name))
+                      .join(" · ")}
+                  />
+                ) : null}
                 {customer.allowedRounds.includes("noon") ? (
                   <div className="flex items-center gap-2 px-3 py-2">
                     <span className="text-muted-foreground">
@@ -336,7 +366,12 @@ function CustomerDetailPage() {
                         <div className="text-[11.5px] text-muted-foreground">
                           {r.weekdays.map((d) => WEEKDAY_LABELS[d]).join(", ") || "ללא ימים"} · {roundLabel(r.round)} ·{" "}
                           {linesCount(r.lines)} פריטים
+                          {branchName(customer, r.branchId) ? ` · סניף ${branchName(customer, r.branchId)}` : null}
                         </div>
+                        {/* תבנית מלפני שהוגדרו סניפים — עד שתשויך (בעריכה בצד הלקוח), ההזמנות ממנה יוצאות בלי סניף. */}
+                        {r.status !== "cancelled" && !r.branchId && activeBranches(customer).length > 0 ? (
+                          <div className="mt-0.5 text-[11.5px] font-semibold text-destructive">ללא סניף</div>
+                        ) : null}
                       </div>
                       {r.status !== "cancelled" ? (
                         <button

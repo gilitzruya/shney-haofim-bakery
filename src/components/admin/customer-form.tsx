@@ -18,6 +18,14 @@ export interface ContactFormValue {
   requestAccess: boolean;
 }
 
+export interface BranchFormValue {
+  /** מזהה סניף קיים — לא קיים עבור שורה חדשה שטרם נשמרה. */
+  id?: string | undefined;
+  name: string;
+  address: string;
+  deliveryNotes: string;
+}
+
 export interface CustomerFormValues {
   code: string;
   name: string;
@@ -26,6 +34,8 @@ export interface CustomerFormValues {
   deliveryNotes: string;
   allowedRounds: RoundId[];
   contacts: ContactFormValue[];
+  /** סניפים פעילים בלבד (החלטה 25) — שורה שהוסרה מושבתת בשמירה, לא נמחקת. */
+  branches: BranchFormValue[];
 }
 
 function emptyContact(isPrimary: boolean): ContactFormValue {
@@ -52,11 +62,15 @@ export function toFormValues(customer?: Customer): CustomerFormValues {
             requestAccess: c.hasAccess,
           }))
         : [emptyContact(true)],
+    branches: (customer?.branches ?? [])
+      .filter((b) => b.active)
+      .map((b) => ({ id: b.id, name: b.name, address: b.address ?? "", deliveryNotes: b.deliveryNotes ?? "" })),
   };
 }
 
 /** טופס פרטי לקוח — עמודה אחת במובייל, שתי עמודות בדסקטופ. רשימת אנשי קשר ניתנת
- * להרחבה (החלטה 20) — כל אחד עם טוגל "יש לו גישה" משלו. */
+ * להרחבה (החלטה 20) — כל אחד עם טוגל "יש לו גישה" משלו. רשימת סניפים (החלטה 25) — ריקה
+ * ללקוח רגיל; ברגע שיש סניף, בחירת סניף בהזמנה הופכת לחובה. */
 export function CustomerForm({
   initial,
   submitLabel,
@@ -99,6 +113,18 @@ export function CustomerForm({
   const removeContact = (index: number) =>
     setValues((v) => ({ ...v, contacts: v.contacts.filter((_, i) => i !== index) }));
 
+  const setBranch = (index: number, patch: Partial<BranchFormValue>) =>
+    setValues((v) => ({
+      ...v,
+      branches: v.branches.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+    }));
+
+  const addBranch = () =>
+    setValues((v) => ({ ...v, branches: [...v.branches, { name: "", address: "", deliveryNotes: "" }] }));
+
+  const removeBranch = (index: number) =>
+    setValues((v) => ({ ...v, branches: v.branches.filter((_, i) => i !== index) }));
+
   const submit = () => {
     if (!values.code.trim()) {
       setError("יש להזין קוד לקוח");
@@ -113,8 +139,14 @@ export function CustomerForm({
       setError("איש קשר עם גישה לאפליקציה חייב מספר טלפון");
       return;
     }
+    // שורה ריקה לגמרי (נוספה ולא מולאה) מתעלמים ממנה; שורה עם כתובת/הערה בלי שם — שגיאה.
+    const branches = values.branches.filter((b) => b.name.trim() || b.address.trim() || b.deliveryNotes.trim());
+    if (branches.some((b) => !b.name.trim())) {
+      setError("יש להזין שם לכל סניף");
+      return;
+    }
     setError(null);
-    onSubmit({ ...values, code: values.code.trim(), name: values.name.trim(), contacts });
+    onSubmit({ ...values, code: values.code.trim(), name: values.name.trim(), contacts, branches });
   };
 
   return (
@@ -256,6 +288,56 @@ export function CustomerForm({
               />
               יש לו גישה לאפליקציה
             </label>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[13.5px] font-bold text-foreground">סניפים</span>
+          <button
+            type="button"
+            onClick={addBranch}
+            className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary-soft px-2.5 py-1 text-[11.5px] font-bold text-primary"
+          >
+            <Plus className="size-3.5" />
+            הוספת סניף
+          </button>
+        </div>
+
+        {values.branches.length === 0 ? (
+          <div className="text-[12px] text-muted-foreground">
+            ללקוח אין סניפים. ללקוח עם סניפים, בחירת סניף בכל הזמנה היא חובה, ושם הסניף מופיע בתעודת המשלוח.
+          </div>
+        ) : null}
+
+        {values.branches.map((branch, index) => (
+          <div key={branch.id ?? `new-${index}`} className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-3.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[12px] font-semibold text-muted-foreground">סניף</span>
+              <button
+                type="button"
+                aria-label="הסרת סניף"
+                onClick={() => removeBranch(index)}
+                className="text-muted-foreground"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+            <div className="grid gap-2.5 md:grid-cols-3">
+              <FormField label="שם הסניף">
+                <TextInput value={branch.name} onChange={(e) => setBranch(index, { name: e.target.value })} />
+              </FormField>
+              <FormField label="כתובת">
+                <TextInput value={branch.address} onChange={(e) => setBranch(index, { address: e.target.value })} />
+              </FormField>
+              <FormField label="הערות אספקה">
+                <TextInput
+                  value={branch.deliveryNotes}
+                  onChange={(e) => setBranch(index, { deliveryNotes: e.target.value })}
+                />
+              </FormField>
+            </div>
           </div>
         ))}
       </div>

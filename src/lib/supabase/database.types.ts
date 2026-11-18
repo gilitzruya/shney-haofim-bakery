@@ -97,6 +97,44 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_branches: {
+        Row: {
+          active: boolean
+          address: string | null
+          created_at: string
+          customer_id: string
+          delivery_notes: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          customer_id: string
+          delivery_notes?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          customer_id?: string
+          delivery_notes?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_branches_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_contacts: {
         Row: {
           customer_id: string
@@ -337,6 +375,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          branch_id: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -351,6 +390,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -365,6 +405,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
@@ -379,6 +420,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_branch_fk"
+            columns: ["branch_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_branches"
+            referencedColumns: ["id", "customer_id"]
+          },
           {
             foreignKeyName: "orders_customer_id_fkey"
             columns: ["customer_id"]
@@ -407,7 +455,6 @@ export type Database = {
           note: string | null
           position: number
           price: number
-          quick_add: number
           sku: string | null
           step: number
           unavailable_reason: string | null
@@ -425,7 +472,6 @@ export type Database = {
           note?: string | null
           position?: number
           price: number
-          quick_add?: number
           sku?: string | null
           step?: number
           unavailable_reason?: string | null
@@ -443,7 +489,6 @@ export type Database = {
           note?: string | null
           position?: number
           price?: number
-          quick_add?: number
           sku?: string | null
           step?: number
           unavailable_reason?: string | null
@@ -498,6 +543,7 @@ export type Database = {
       }
       recurring_orders: {
         Row: {
+          branch_id: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -510,6 +556,7 @@ export type Database = {
           weekdays: number[]
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -522,6 +569,7 @@ export type Database = {
           weekdays: number[]
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
@@ -534,6 +582,13 @@ export type Database = {
           weekdays?: number[]
         }
         Relationships: [
+          {
+            foreignKeyName: "recurring_orders_branch_fk"
+            columns: ["branch_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_branches"
+            referencedColumns: ["id", "customer_id"]
+          },
           {
             foreignKeyName: "recurring_orders_customer_id_fkey"
             columns: ["customer_id"]
@@ -558,6 +613,7 @@ export type Database = {
       fn_recurring_occurrences: {
         Args: { p_date: string }
         Returns: {
+          branch_id: string
           created_at: string
           created_by: string
           customer_id: string
@@ -579,6 +635,7 @@ export type Database = {
       rpc_confirm_order: {
         Args: { p_order_id: string }
         Returns: {
+          branch_id: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -751,3 +808,4 @@ export const Constants = {
     },
   },
 } as const
+

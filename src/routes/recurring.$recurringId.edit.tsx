@@ -6,8 +6,9 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { EmptyState } from "@/components/app/card";
-import { FormField, TextArea, TextInput, WeekdayChips } from "@/components/app/form-controls";
+import { BranchPicker, FormField, TextArea, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ROUNDS, type RoundId } from "@/data/catalog";
+import { activeBranches, useMyCustomer } from "@/hooks/use-customers";
 import { useRecurring, useUpdateRecurringDetails } from "@/hooks/use-recurring";
 import { useRecurringDraft } from "@/store/recurring-draft";
 
@@ -34,6 +35,17 @@ function EditRecurringPage() {
   const [weekdays, setWeekdays] = useState<number[]>(rec?.weekdays ?? []);
   const [round, setRound] = useState<RoundId>(rec?.round ?? ROUNDS[0]!.id);
   const [note, setNote] = useState(rec?.note ?? "");
+  const [branchId, setBranchId] = useState<string | null>(rec?.branchId ?? null);
+
+  // תבנית שנוצרה לפני שהוגדרו ללקוח סניפים — כאן משייכים אותה (החלטה 25).
+  const { customer } = useMyCustomer();
+  const branches = activeBranches(customer);
+  const askBranch = branches.length > 0;
+  const pickedBranchId = branches.some((b) => b.id === branchId)
+    ? branchId
+    : branches.length === 1
+      ? (branches[0]?.id ?? null)
+      : null;
 
   if (!rec) {
     return (
@@ -53,13 +65,22 @@ function EditRecurringPage() {
 
   const save = () => {
     updateDetails.mutate(
-      { id: rec.id, input: { name: name.trim() || rec.name, weekdays, round, note } },
+      {
+        id: rec.id,
+        input: {
+          branchId: askBranch ? pickedBranchId : rec.branchId,
+          name: name.trim() || rec.name,
+          weekdays,
+          round,
+          note,
+        },
+      },
       {
         onSuccess: () => {
           toast.success("פרטי ההזמנה הקבועה נשמרו");
           navigate({ to: "/recurring/$recurringId", params: { recurringId: rec.id } });
         },
-        onError: () => toast.error("שמירת הפרטים נכשלה"),
+        onError: (err) => toast.error(err instanceof Error ? err.message : "שמירת הפרטים נכשלה"),
       },
     );
   };
@@ -75,6 +96,8 @@ function EditRecurringPage() {
             <TextInput value={name} onChange={(e) => setName(e.target.value)} />
           </FormField>
 
+          {askBranch ? <BranchPicker branches={branches} value={pickedBranchId} onChange={setBranchId} /> : null}
+
           <div>
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ימי אספקה</div>
             <WeekdayChips value={weekdays} onChange={setWeekdays} />
@@ -89,7 +112,7 @@ function EditRecurringPage() {
             onClick={() => {
               const quantities: Record<string, number> = {};
               for (const line of rec.lines) quantities[line.productId] = line.qty;
-              start("recurring_edit", { recurringId: rec.id, round, name, weekdays, note, quantities });
+              start("recurring_edit", { recurringId: rec.id, branchId: pickedBranchId, round, name, weekdays, note, quantities });
               navigate({ to: "/catalog" });
             }}
             className="w-full rounded-xl border border-border bg-card py-2.5 text-[12.5px] font-semibold text-foreground"
@@ -109,7 +132,8 @@ function EditRecurringPage() {
           >
             ביטול
           </Button>
-          <Button size="lg" className="flex-1" disabled={weekdays.length === 0} onClick={save}>
+          <Button size="lg" className="flex-1" disabled={weekdays.length === 0 || (askBranch && !pickedBranchId)}
+            onClick={save}>
             שמירת השינויים
           </Button>
         </div>

@@ -60,6 +60,7 @@ function orderText(
   return [
     bold(`${orderNumberLabel(order.number)} — מאפיית שני האופים`),
     `לקוח: ${customerName}`,
+    ...(order.branch ? [`סניף: ${order.branch.name}`] : []),
     `מועד אספקה: ${delivery}`,
     `סטטוס: ${STATUS_LABELS[order.status]}`,
     "",

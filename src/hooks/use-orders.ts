@@ -15,11 +15,19 @@ export interface OrderLine {
   unitPrice: number;
 }
 
+/** הסניף שההזמנה שייכת אליו (החלטה 25) — שם וכתובת להצגה; null ללקוח בלי סניפים. */
+export interface OrderBranch {
+  id: string;
+  name: string;
+  address: string | null;
+}
+
 export interface Order {
   id: string;
   /** מספר הזמנה רץ (1001, 1002…) — null רק במופע וירטואלי של הזמנה קבועה, שעוד לא נשמר. */
   number: number | null;
   customerId: string;
+  branch: OrderBranch | null;
   /** null רק לעגלה פתוחה שעוד לא נבחר לה תאריך (טיוטה, ראו PRD §2.3). */
   date: string | null;
   round: RoundId;
@@ -60,6 +68,7 @@ type OrderRow = {
   id: string;
   number: number;
   customer_id: string;
+  branch: OrderBranch | null;
   delivery_date: string | null;
   round: string;
   status: string;
@@ -88,6 +97,7 @@ function toOrder(row: OrderRow): Order {
     id: row.id,
     number: row.number,
     customerId: row.customer_id,
+    branch: row.branch ?? null,
     date: row.delivery_date,
     round: row.round as RoundId,
     status: row.status as OrderStatus,
@@ -117,7 +127,7 @@ export function orderDate(order: Order): string {
 }
 
 const ORDER_SELECT =
-  "id, number, customer_id, delivery_date, round, status, note, source, recurring_id, created_by, created_at, updated_at, order_lines(product_id, product_name, sku, unit, qty, unit_price)";
+  "id, number, customer_id, branch:customer_branches(id, name, address), delivery_date, round, status, note, source, recurring_id, created_by, created_at, updated_at, order_lines(product_id, product_name, sku, unit, qty, unit_price)";
 
 export const myOrdersQueryKey = ["orders", "mine"] as const;
 export const orderQueryKey = (id: string) => ["orders", id] as const;
@@ -449,10 +459,21 @@ export function useAddCartLines() {
 export function useSetCartDateRound() {
   const invalidate = useInvalidateOrders();
   return useMutation({
-    mutationFn: async ({ orderId, date, round }: { orderId: string; date: string; round: RoundId }) => {
+    mutationFn: async ({
+      orderId,
+      date,
+      round,
+      branchId,
+    }: {
+      orderId: string;
+      date: string;
+      round: RoundId;
+      /** null ללקוח בלי סניפים. ללקוח עם סניפים השרת דוחה אישור בלי סניף (החלטה 25). */
+      branchId: string | null;
+    }) => {
       const { error } = await supabase
         .from("orders")
-        .update({ delivery_date: date, round })
+        .update({ delivery_date: date, round, branch_id: branchId })
         .eq("id", orderId);
       if (error) throw error;
     },
@@ -591,6 +612,7 @@ export function useAdminUpdateOrderLines() {
 
 export interface AdminCreateOrderInput {
   customerId: string;
+  branchId: string | null;
   date: string;
   round: RoundId;
   note?: string | undefined;
@@ -608,6 +630,7 @@ export function useAdminCreateOrder() {
         .from("orders")
         .insert({
           customer_id: input.customerId,
+          branch_id: input.branchId,
           delivery_date: input.date,
           round: input.round,
           status: "approved",

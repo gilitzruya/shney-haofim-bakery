@@ -66,6 +66,7 @@ function OrderRowCard({
                 {showDate ? (
                   <span className="font-medium text-foreground">{formatDate(orderDate(view.order))}</span>
                 ) : null}
+                {view.order.branch ? <span>סניף {view.order.branch.name}</span> : null}
                 <span>{roundLabel(view.order.round)}</span>
                 {view.order.number !== null ? (
                   <span className="tabular-nums">{orderNumberLabel(view.order.number)}</span>
@@ -134,6 +135,9 @@ function OrdersTable({
                   {v.customerName}
                   {v.order.source === "recurring" ? <Chip tone="muted">קבועה</Chip> : null}
                 </span>
+                {v.order.branch ? (
+                  <span className="block text-[11px] font-normal text-muted-foreground">סניף {v.order.branch.name}</span>
+                ) : null}
                 {v.order.number !== null ? (
                   <span className="block text-[11px] font-normal text-muted-foreground tabular-nums">
                     {orderNumberLabel(v.order.number)}

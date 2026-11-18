@@ -24,6 +24,7 @@ interface OrderForDocument {
   note: string | null;
   updated_at: string;
   customer: { code: string; name: string } | null;
+  branch: { name: string; address: string | null } | null;
   order_lines: { sku: string | null; product_name: string; qty: number; unit_price: number }[];
 }
 
@@ -87,7 +88,7 @@ async function postgrest(path: string, authHeader: string, init: RequestInit = {
 
 async function loadOrder(authHeader: string, orderId: string): Promise<OrderForDocument> {
   const select =
-    "id,number,status,delivery_date,note,updated_at,customer:customers(code,name),order_lines(sku,product_name,qty,unit_price)";
+    "id,number,status,delivery_date,note,updated_at,customer:customers(code,name),branch:customer_branches(name,address),order_lines(sku,product_name,qty,unit_price)";
   const rows = (await postgrest(
     `orders?id=eq.${encodeURIComponent(orderId)}&select=${select}`,
     authHeader,
@@ -104,6 +105,15 @@ function toRivhitDate(isoDate: string): string {
 }
 
 const isDigits = (value: string) => /^\d+$/.test(value);
+
+/** שדה ההערות בתעודה: הסניף (החלטה 25) לפני הערת ההזמנה — כמו שבעל המאפייה רשם ידנית על
+ * תעודה ללקוח עם כמה סניפים. התעודה עצמה נשארת על שם הלקוח (אותו קוד בריווחית). */
+function deliveryNoteComments(order: OrderForDocument): string {
+  const branch = order.branch
+    ? `סניף: ${order.branch.name}${order.branch.address ? `, ${order.branch.address}` : ""}`
+    : "";
+  return [branch, order.note?.trim() ?? ""].filter(Boolean).join(" | ").slice(0, 400);
+}
 
 /** בונה את גוף `Document.New` — זורק שגיאה בעברית אם ההזמנה לא ניתנת להפקה. */
 function buildDeliveryNote(order: OrderForDocument) {
@@ -127,7 +137,8 @@ function buildDeliveryNote(order: OrderForDocument) {
     // המחירים אצלנו תמיד לפני מע"מ (כלל ברזל 6) — ריווחית מוסיפה את המע"מ במסמך.
     price_include_vat: false,
     currency_id: 1,
-    ...(order.note && !IS_RIVHIT_TEST ? { comments: order.note.slice(0, 400) } : {}),
+    // בטסט (חברת הדמו הציבורית) לא נשלחים הערה ולא סניף — ראו IS_RIVHIT_TEST.
+    ...(deliveryNoteComments(order) && !IS_RIVHIT_TEST ? { comments: deliveryNoteComments(order) } : {}),
     // שדה "הזמנה" בתעודה = מספר ההזמנה שלנו (החלטה 24), כך שאפשר לקשר תעודה להזמנה באפליקציה.
     order: String(order.number),
     // שורה לכל מוצר באפליקציה, גם כשכמה מוצרים חולקים מק"ט אחד בריווחית (בגלה בצל/פרג = 1160)

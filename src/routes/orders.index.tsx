@@ -101,6 +101,9 @@ function OrdersPage() {
                       )}
                       {order.lines.length} מוצרים
                     </div>
+                    {order.branch ? (
+                      <div className="mt-1 text-[12.5px] font-semibold text-foreground">סניף: {order.branch.name}</div>
+                    ) : null}
                     <div className="mt-1.5 flex items-center justify-between">
                       <span className="text-[11.5px] text-muted-foreground">
                         {order.source === "recurring" ? "נוצרה מהזמנה קבועה" : order.source === "admin" ? "נוצרה על ידי המאפייה" : "הזמנה ידנית"}

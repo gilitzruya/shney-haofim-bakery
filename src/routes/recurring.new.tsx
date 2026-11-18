@@ -6,9 +6,9 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { DateCalendar, TODAY_ISO } from "@/components/app/date-calendar";
-import { FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
+import { BranchPicker, FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { WEEKDAY_LABELS, type RoundId } from "@/data/catalog";
-import { useMyCustomer } from "@/hooks/use-customers";
+import { activeBranches, useMyCustomer } from "@/hooks/use-customers";
 import { useMyRecurring } from "@/hooks/use-recurring";
 import { formatCutoff, isCutoffPassed, upcomingStartOptions } from "@/lib/cutoff";
 import { formatLongDate } from "@/lib/format";
@@ -36,6 +36,7 @@ function NewRecurringPage() {
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [round, setRound] = useState<RoundId | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
+  const [branchId, setBranchId] = useState<string | null>(null);
 
   // בחירת סבב מתבצעת כאן, ורק ללקוח עם הרשאה לסבב שני — אחרים לא נשאלים ומקבלים
   // "סבב ראשון" אוטומטית (PRD §2.1/§3.7, החלטה 3).
@@ -43,6 +44,14 @@ function NewRecurringPage() {
   useEffect(() => {
     if (!askRound) setRound("morning");
   }, [askRound]);
+
+  // לקוח עם סניפים בוחר סניף (החלטה 25); סניף יחיד נבחר מראש.
+  const branches = activeBranches(customer);
+  const askBranch = branches.length > 0;
+  const onlyBranchId = branches.length === 1 ? (branches[0]?.id ?? null) : null;
+  useEffect(() => {
+    if (onlyBranchId) setBranchId(onlyBranchId);
+  }, [onlyBranchId]);
 
   const options = useMemo(() => upcomingStartOptions(weekdays, 4), [weekdays]);
   const firstAvailable = options.find((o) => !o.blocked) ?? null;
@@ -53,11 +62,13 @@ function NewRecurringPage() {
     recurring.forEach((r) => {
       if (r.status === "cancelled") return;
       if (!round || r.round !== round) return;
+      // הכלל בשרת הוא לכל סניף בנפרד — שני סניפים יכולים לקבל הזמנה קבועה באותו יום וסבב.
+      if (askBranch && r.branchId !== branchId) return;
       const days = r.weekdays.filter((d) => weekdays.includes(d));
       if (days.length > 0) out.push({ name: r.name, days });
     });
     return out;
-  }, [recurring, round, weekdays]);
+  }, [recurring, round, weekdays, askBranch, branchId]);
 
   const conflictDays = useMemo(
     () => Array.from(new Set(conflicts.flatMap((c) => c.days))).sort(),
@@ -70,6 +81,7 @@ function NewRecurringPage() {
 
   const missing: string[] = [];
   if (name.trim().length <= 1) missing.push("שם להזמנה הקבועה");
+  if (askBranch && !branchId) missing.push("סניף");
   if (weekdays.length === 0) missing.push("ימי אספקה");
   if (askRound && !round) missing.push("סבב אספקה");
   if (weekdays.length > 0 && round && !startDate) missing.push("תאריך התחלה");
@@ -88,6 +100,8 @@ function NewRecurringPage() {
           <FormField label="שם ההזמנה הקבועה" hint="לדוגמה: אספקת בוקר – חדר אוכל">
             <TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="שם ההזמנה" />
           </FormField>
+
+          {askBranch ? <BranchPicker branches={branches} value={branchId} onChange={setBranchId} /> : null}
 
           <div>
             <div className="mb-2 text-[12px] font-semibold text-muted-foreground">ימי אספקה</div>
@@ -193,7 +207,13 @@ function NewRecurringPage() {
             className="w-full"
             disabled={!valid}
             onClick={() => {
-              start("recurring_create", { round: round!, name: name.trim(), weekdays, startDate: startDate ?? undefined });
+              start("recurring_create", {
+                round: round!,
+                branchId: askBranch ? branchId : null,
+                name: name.trim(),
+                weekdays,
+                startDate: startDate ?? undefined,
+              });
               navigate({ to: "/catalog" });
             }}
           >

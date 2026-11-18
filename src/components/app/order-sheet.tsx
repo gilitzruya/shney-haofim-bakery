@@ -37,6 +37,12 @@ export function OrderSheet({
           <span className="font-bold">לקוח: </span>
           {customerName}
         </div>
+        {order.branch ? (
+          <div>
+            <span className="font-bold">סניף: </span>
+            {order.branch.name}
+          </div>
+        ) : null}
         <div>
           <span className="font-bold">מועד אספקה: </span>
           {order.date ? formatLongDate(order.date) : "טרם נבחר"}

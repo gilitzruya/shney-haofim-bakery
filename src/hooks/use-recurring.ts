@@ -14,6 +14,8 @@ export interface RecurringLine {
 export interface RecurringOrder {
   id: string;
   customerId: string;
+  /** הסניף (החלטה 25) — null ללקוח בלי סניפים, או לתבנית שנוצרה לפני שהוגדרו לו סניפים. */
+  branchId: string | null;
   name: string;
   /** 0 = ראשון … 6 = שבת */
   weekdays: number[];
@@ -31,6 +33,7 @@ type RecurringLineRow = { product_id: string; qty: number };
 type RecurringRow = {
   id: string;
   customer_id: string;
+  branch_id: string | null;
   name: string;
   weekdays: number[];
   round: string;
@@ -43,12 +46,13 @@ type RecurringRow = {
 };
 
 const RECURRING_SELECT =
-  "id, customer_id, name, weekdays, round, status, start_date, note, created_by, created_at, recurring_order_lines(product_id, qty)";
+  "id, customer_id, branch_id, name, weekdays, round, status, start_date, note, created_by, created_at, recurring_order_lines(product_id, qty)";
 
 function toRecurring(row: RecurringRow): RecurringOrder {
   return {
     id: row.id,
     customerId: row.customer_id,
+    branchId: row.branch_id,
     name: row.name,
     weekdays: row.weekdays,
     round: row.round as RoundId,
@@ -130,6 +134,7 @@ function useInvalidateRecurring() {
 
 export interface CreateRecurringInput {
   customerId: string;
+  branchId: string | null;
   name: string;
   weekdays: number[];
   round: RoundId;
@@ -147,6 +152,7 @@ export function useCreateRecurring() {
         .from("recurring_orders")
         .insert({
           customer_id: input.customerId,
+          branch_id: input.branchId,
           name: input.name,
           weekdays: input.weekdays,
           round: input.round,
@@ -174,6 +180,7 @@ export function useCreateRecurring() {
 }
 
 export interface RecurringDetailsInput {
+  branchId: string | null;
   name: string;
   weekdays: number[];
   round: RoundId;
@@ -188,6 +195,7 @@ export function useUpdateRecurringDetails() {
       const { error } = await supabase
         .from("recurring_orders")
         .update({
+          branch_id: input.branchId,
           name: input.name,
           weekdays: input.weekdays,
           round: input.round,
@@ -249,6 +257,7 @@ export function useCancelRecurring() {
 type OccurrenceRow = {
   recurring_id: string;
   customer_id: string;
+  branch_id: string | null;
   name: string;
   round: string;
   note: string | null;
@@ -305,6 +314,8 @@ export function useRecurringOccurrencesForDate(date: string) {
             id: virtualOrderId(recurringId, date),
             number: null,
             customerId: first.customer_id,
+            // שם/כתובת הסניף מתמלאים ב-useAdminOrdersForDateWithRecurring, יחד עם פרטי הלקוח.
+            branch: first.branch_id ? { id: first.branch_id, name: "", address: null } : null,
             date,
             round: first.round as RoundId,
             status: "approved",
@@ -345,14 +356,29 @@ export function useAdminOrdersForDateWithRecurring(date: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customers")
-        .select("id, name, code, address, customer_contacts(phone, is_primary)")
+        .select("id, name, code, address, customer_contacts(phone, is_primary), customer_branches(id, name, address)")
         .in("id", customerIds);
       if (error) throw error;
-      const map = new Map<string, { name: string; code: string | null; address: string | null; phone: string | null }>();
+      const map = new Map<
+        string,
+        {
+          name: string;
+          code: string | null;
+          address: string | null;
+          phone: string | null;
+          branches: { id: string; name: string; address: string | null }[];
+        }
+      >();
       for (const row of data ?? []) {
         const contacts = row.customer_contacts ?? [];
         const phone = contacts.find((c) => c.is_primary)?.phone ?? contacts[0]?.phone ?? null;
-        map.set(row.id, { name: row.name, code: row.code, address: row.address, phone });
+        map.set(row.id, {
+          name: row.name,
+          code: row.code,
+          address: row.address,
+          phone,
+          branches: row.customer_branches ?? [],
+        });
       }
       return map;
     },
@@ -360,8 +386,11 @@ export function useAdminOrdersForDateWithRecurring(date: string) {
 
   const enrichedVirtual = virtual.views.map((v) => {
     const info = customersQuery.data?.get(v.order.customerId);
+    const branchId = v.order.branch?.id;
+    const branch = branchId ? (info?.branches.find((b) => b.id === branchId) ?? null) : null;
     return {
       ...v,
+      order: { ...v.order, branch },
       customerName: info?.name ?? "לקוח לא ידוע",
       customerCode: info?.code ?? null,
       customerAddress: info?.address ?? null,

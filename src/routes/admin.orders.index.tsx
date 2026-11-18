@@ -44,7 +44,7 @@ function AdminOrdersPage() {
   const hydrated = !isLoading;
   const materialize = useMaterializeRecurringOccurrence();
   const filtered = useMemo(
-    () => views.filter((v) => query.trim() === "" || v.customerName.includes(query.trim())),
+    () => views.filter((v) => query.trim() === "" || v.customerName.includes(query.trim()) || !!v.order.branch?.name.includes(query.trim())),
     [views, query],
   );
   const summary = summarizeDay(filtered, date);

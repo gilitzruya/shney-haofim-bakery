@@ -12,6 +12,8 @@ export interface RecurringDraft {
   mode: RecurringDraftMode;
   /** מזהה ההזמנה הקבועה הנערכת, במצב עריכה. */
   recurringId?: string | undefined;
+  /** הסניף (החלטה 25) — null/undefined ללקוח בלי סניפים. */
+  branchId?: string | null | undefined;
   round: RoundId;
   name?: string | undefined;
   weekdays?: number[] | undefined;
@@ -22,6 +24,8 @@ export interface RecurringDraft {
 
 interface StartInput {
   recurringId?: string | undefined;
+  /** הסניף (החלטה 25) — null/undefined ללקוח בלי סניפים. */
+  branchId?: string | null | undefined;
   round: RoundId;
   name?: string | undefined;
   weekdays?: number[] | undefined;
@@ -47,6 +51,7 @@ export function RecurringDraftProvider({ children }: { children: ReactNode }) {
     setDraft({
       mode,
       recurringId: input.recurringId,
+      branchId: input.branchId,
       round: input.round,
       name: input.name,
       weekdays: input.weekdays,

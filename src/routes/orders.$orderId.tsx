@@ -94,6 +94,10 @@ function OrderDetailsPage() {
             {isDraft ? null : `${orderNumberLabel(order.number)} · `}
             {order.lines.length} מוצרים
           </div>
+          {/* שורה משלו ולא בסוף שורת המספר — ללקוח עם כמה סניפים זה הפרט החשוב (החלטה 25). */}
+          {order.branch ? (
+            <div className="mt-1 text-[13px] font-semibold text-foreground">סניף: {order.branch.name}</div>
+          ) : null}
           <div className="mt-2.5 flex flex-wrap gap-2">
             <button type="button" onClick={copy} className={topActionClass}>
               <Copy className="size-3.5" />

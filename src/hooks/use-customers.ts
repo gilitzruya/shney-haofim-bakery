@@ -15,6 +15,16 @@ export interface CustomerContact {
   hasAccess: boolean;
 }
 
+/** סניף של הלקוח (החלטה 25) — לקוח אחד בריווחית, שמזמינים עבור כמה סניפים שלו. */
+export interface CustomerBranch {
+  id: string;
+  name: string;
+  address: string | null;
+  deliveryNotes: string | null;
+  /** הסרה מהכרטיס = השבתה: סניף לא פעיל נשאר על הזמנות ישנות אבל לא מוצע לבחירה. */
+  active: boolean;
+}
+
 export interface Customer {
   id: string;
   code: string;
@@ -25,6 +35,22 @@ export interface Customer {
   allowedRounds: RoundId[];
   blocked: boolean;
   contacts: CustomerContact[];
+  /** כל הסניפים, כולל מושבתים (להצגת הזמנות ישנות) — לבחירה: `activeBranches`. */
+  branches: CustomerBranch[];
+}
+
+/** שם הסניף לפי מזהה (גם סניף מושבת — להצגת הזמנות ישנות), או null. */
+export function branchName(
+  customer: Pick<Customer, "branches"> | undefined,
+  branchId: string | null | undefined,
+): string | null {
+  if (!branchId) return null;
+  return customer?.branches.find((b) => b.id === branchId)?.name ?? null;
+}
+
+/** הסניפים שאפשר להזמין אליהם. ריק ← לקוח בלי סניפים, ובחירת סניף לא מוצגת בכלל. */
+export function activeBranches(customer: Pick<Customer, "branches"> | undefined): CustomerBranch[] {
+  return (customer?.branches ?? []).filter((b) => b.active);
 }
 
 export const customersQueryKey = ["customers"] as const;
@@ -32,6 +58,17 @@ export const customerQueryKey = (id: string) => ["customers", id] as const;
 export const myCustomerQueryKey = ["customers", "me"] as const;
 export const customerPricesQueryKey = (customerId: string | null) =>
   ["customer-prices", customerId] as const;
+
+type BranchRow = {
+  id: string;
+  name: string;
+  address: string | null;
+  delivery_notes: string | null;
+  active: boolean;
+  created_at: string;
+};
+
+const BRANCHES_SELECT = "customer_branches(id, name, address, delivery_notes, active, created_at)";
 
 type CustomerRow = {
   id: string;
@@ -42,6 +79,7 @@ type CustomerRow = {
   business_id: string | null;
   allowed_rounds: string[];
   blocked: boolean;
+  customer_branches?: BranchRow[] | undefined;
 };
 
 function toCustomer(row: CustomerRow, contacts: CustomerContact[] = []): Customer {
@@ -55,6 +93,16 @@ function toCustomer(row: CustomerRow, contacts: CustomerContact[] = []): Custome
     allowedRounds: row.allowed_rounds as RoundId[],
     blocked: row.blocked,
     contacts,
+    branches: (row.customer_branches ?? [])
+      .slice()
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .map((b) => ({
+        id: b.id,
+        name: b.name,
+        address: b.address,
+        deliveryNotes: b.delivery_notes,
+        active: b.active,
+      })),
   };
 }
 
@@ -94,7 +142,7 @@ export function useCustomers() {
       const { data, error } = await supabase
         .from("customers")
         .select(
-          "id, code, name, address, delivery_notes, business_id, allowed_rounds, blocked, customer_contacts(id, name, phone, email, is_primary)",
+          `id, code, name, address, delivery_notes, business_id, allowed_rounds, blocked, customer_contacts(id, name, phone, email, is_primary), ${BRANCHES_SELECT}`,
         )
         .order("name", { ascending: true });
       if (error) throw error;
@@ -127,7 +175,9 @@ export function useCustomer(id: string | undefined) {
     queryFn: async () => {
       const { data: row, error } = await supabase
         .from("customers")
-        .select("id, code, name, address, delivery_notes, business_id, allowed_rounds, blocked")
+        .select(
+          `id, code, name, address, delivery_notes, business_id, allowed_rounds, blocked, ${BRANCHES_SELECT}`,
+        )
         .eq("id", id as string)
         .single();
       if (error) throw error;
@@ -145,7 +195,9 @@ export function useMyCustomer() {
     queryFn: async () => {
       const { data: row, error } = await supabase
         .from("customers")
-        .select("id, code, name, address, delivery_notes, business_id, allowed_rounds, blocked")
+        .select(
+          `id, code, name, address, delivery_notes, business_id, allowed_rounds, blocked, ${BRANCHES_SELECT}`,
+        )
         .single();
       if (error) throw error;
       const contacts = await fetchContacts(row.id);
@@ -359,6 +411,69 @@ export function useRemoveContact() {
   return useMutation({
     mutationFn: async ({ customerId, contactId }: { customerId: string; contactId: string }) => {
       const { error } = await supabase.from("customer_contacts").delete().eq("id", contactId);
+      if (error) throw error;
+    },
+    onSuccess: (_data, { customerId }) => invalidate(customerId),
+  });
+}
+
+export interface BranchInput {
+  name: string;
+  address: string;
+  deliveryNotes: string;
+}
+
+export function useAddBranch() {
+  const invalidate = useInvalidateCustomers();
+  return useMutation({
+    mutationFn: async ({ customerId, input }: { customerId: string; input: BranchInput }) => {
+      const { error } = await supabase.from("customer_branches").insert({
+        customer_id: customerId,
+        name: input.name.trim(),
+        address: input.address.trim() || null,
+        delivery_notes: input.deliveryNotes.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_data, { customerId }) => invalidate(customerId),
+  });
+}
+
+export function useUpdateBranch() {
+  const invalidate = useInvalidateCustomers();
+  return useMutation({
+    mutationFn: async ({
+      customerId,
+      branchId,
+      input,
+    }: {
+      customerId: string;
+      branchId: string;
+      input: BranchInput;
+    }) => {
+      const { error } = await supabase
+        .from("customer_branches")
+        .update({
+          name: input.name.trim(),
+          address: input.address.trim() || null,
+          delivery_notes: input.deliveryNotes.trim() || null,
+        })
+        .eq("id", branchId);
+      if (error) throw error;
+    },
+    onSuccess: (_data, { customerId }) => invalidate(customerId),
+  });
+}
+
+/** הסרת סניף מהכרטיס — השבתה ולא מחיקה, כדי שהזמנות ישנות ישמרו על השיוך (החלטה 25). */
+export function useDeactivateBranch() {
+  const invalidate = useInvalidateCustomers();
+  return useMutation({
+    mutationFn: async ({ customerId, branchId }: { customerId: string; branchId: string }) => {
+      const { error } = await supabase
+        .from("customer_branches")
+        .update({ active: false })
+        .eq("id", branchId);
       if (error) throw error;
     },
     onSuccess: (_data, { customerId }) => invalidate(customerId),

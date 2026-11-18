@@ -26,6 +26,41 @@ export function WeekdayChips({ value, onChange }: { value: number[]; onChange: (
   );
 }
 
+/** בחירת סניף (החלטה 25) — באותו עיצוב כמו כפתורי הסבב. מוצג רק כשללקוח יש סניפים פעילים. */
+export function BranchPicker({
+  branches,
+  value,
+  onChange,
+}: {
+  branches: { id: string; name: string; address: string | null }[];
+  value: string | null;
+  onChange: (branchId: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-[12px] font-semibold text-muted-foreground">סניף</div>
+      <div className="grid grid-cols-2 gap-2">
+        {branches.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            onClick={() => onChange(b.id)}
+            className={cn(
+              "rounded-xl border px-3.5 py-3 text-start text-[13.5px] font-semibold text-foreground",
+              value === b.id ? "border-[1.5px] border-primary bg-primary-soft" : "border-border bg-card",
+            )}
+          >
+            <div>{b.name}</div>
+            {b.address ? (
+              <div className="mt-0.5 text-[11.5px] font-normal text-muted-foreground">{b.address}</div>
+            ) : null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function FormField({
   label,
   hint,

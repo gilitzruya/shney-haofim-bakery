@@ -7,13 +7,13 @@ import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { FormField, TextArea } from "@/components/app/form-controls";
+import { BranchPicker, FormField, TextArea } from "@/components/app/form-controls";
 import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { DateCalendar } from "@/components/app/date-calendar";
 
 import { findProduct, type RoundId } from "@/data/catalog";
-import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
+import { activeBranches, useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import {
   useCartOrder,
   useConfirmOrder,
@@ -130,6 +130,7 @@ function RecurringSummaryPage() {
       if (!auth?.customerId) return;
       await createRecurring.mutateAsync({
         customerId: auth.customerId,
+        branchId: draft.branchId ?? null,
         name: draft.name?.trim() || "הזמנה קבועה",
         weekdays: draft.weekdays ?? [],
         round: draft.round,
@@ -301,6 +302,7 @@ function OrderSummaryPage() {
   const [step, setStep] = useState<"review" | "date">("review");
   const [pickDate, setPickDate] = useState<string | null>(null);
   const [pickRound, setPickRound] = useState<RoundId>("morning");
+  const [pickBranch, setPickBranch] = useState<string | null>(null);
 
   // הזמנה שכבר אינה טיוטה (אושרה/בוטלה/הושלמה) לא נערכת מכאן — למשל "חזרה" בדפדפן אחרי
   // אישור, או קישור ישן. מעבירים לדף ההזמנה במקום להציג כפתורי עריכה שהשרת ידחה בשקט.
@@ -343,6 +345,10 @@ function OrderSummaryPage() {
   const total = lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
   const noteValue = note ?? order.note ?? "";
   const askRound = !!customer?.allowedRounds.includes("noon");
+  // לקוח עם סניפים חייב לבחור סניף (החלטה 25, נאכף גם בשרת); בלי סניפים — לא מוצג כלום.
+  const branches = activeBranches(customer);
+  const askBranch = branches.length > 0;
+  const pickedBranchName = branches.find((b) => b.id === pickBranch)?.name;
 
   const setQty = (productId: string, qty: number) => {
     const line = lines.find((l) => l.productId === productId);
@@ -392,6 +398,12 @@ function OrderSummaryPage() {
           <PageTitleBar title="מועד האספקה" onBack={() => setStep("review")} />
         </AppHeader>
         <Section className="pb-28">
+          {askBranch ? (
+            <div className="mt-4">
+              <BranchPicker branches={branches} value={pickBranch} onChange={setPickBranch} />
+            </div>
+          ) : null}
+
           <h2 className="mt-4 mb-2 text-[15px] font-bold text-foreground">בחירת מועד אספקה</h2>
           <DateCalendar
             value={pickDate}
@@ -439,15 +451,20 @@ function OrderSummaryPage() {
             <Button
               size="lg"
               className="flex-1"
-              disabled={!pickDate}
+              disabled={!pickDate || (askBranch && !pickBranch)}
               onClick={() => {
-                if (!pickDate) return;
+                if (!pickDate || (askBranch && !pickBranch)) return;
                 if (isCutoffPassed(pickDate)) {
                   setBlocked(`ההזמנות ל${formatDate(pickDate)} נסגרו ב${formatCutoff(pickDate)}. יש לבחור מועד אחר.`);
                   return;
                 }
                 setDateRound.mutate(
-                  { orderId: order.id, date: pickDate, round: askRound ? pickRound : "morning" },
+                  {
+                    orderId: order.id,
+                    date: pickDate,
+                    round: askRound ? pickRound : "morning",
+                    branchId: askBranch ? pickBranch : null,
+                  },
                   { onSuccess: () => setConfirming(true) },
                 );
               }}
@@ -460,7 +477,9 @@ function OrderSummaryPage() {
         <Modal
           open={confirming}
           title="לאשר את ההזמנה?"
-          description={`סה״כ ${formatPrice(total)} (לפני מע״מ)${pickDate ? ` · ${formatDate(pickDate)}` : ""}`}
+          description={`סה״כ ${formatPrice(total)} (לפני מע״מ)${pickDate ? ` · ${formatDate(pickDate)}` : ""}${
+            askBranch && pickedBranchName ? ` · סניף ${pickedBranchName}` : ""
+          }`}
           confirmLabel="אישור"
           loading={submitting}
           onConfirm={() => void confirm()}
@@ -585,6 +604,14 @@ function OrderSummaryPage() {
             onClick={() => {
               setPickDate(order.date);
               setPickRound(order.round);
+              // סניף שכבר נבחר (וגם עדיין פעיל) נשמר; סניף יחיד נבחר מראש; אחרת — בחירה מפורשת.
+              setPickBranch(
+                branches.some((b) => b.id === order.branch?.id)
+                  ? (order.branch?.id ?? null)
+                  : branches.length === 1
+                    ? (branches[0]?.id ?? null)
+                    : null,
+              );
               setStep("date");
             }}
           >

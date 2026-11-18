@@ -112,12 +112,13 @@ function VirtualOccurrenceDetailPage({ recurringId, date }: { recurringId: strin
           </div>
           <div className="mt-1.5 text-[12px] text-muted-foreground">
             {roundLabel(order.round)} · {order.lines.length} פריטים
+            {order.branch ? ` · סניף ${order.branch.name}` : null}
           </div>
           <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
-            {view.customerAddress ? (
+            {(order.branch?.address ?? view.customerAddress) ? (
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-3.5 shrink-0" />
-                {view.customerAddress}
+                {order.branch?.address ?? view.customerAddress}
               </span>
             ) : null}
             {view.customerPhone ? (
@@ -349,12 +350,13 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
           <div className="mt-1.5 text-[12px] text-muted-foreground">
             <span className="tabular-nums">{orderNumberLabel(order.number)}</span> · {roundLabel(order.round)} ·{" "}
             {currentLines.length} פריטים
+            {order.branch ? ` · סניף ${order.branch.name}` : null}
           </div>
           <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
-            {view.customerAddress ? (
+            {(order.branch?.address ?? view.customerAddress) ? (
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-3.5 shrink-0" />
-                {view.customerAddress}
+                {order.branch?.address ?? view.customerAddress}
               </span>
             ) : null}
             {view.customerPhone ? (
@@ -566,7 +568,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
             <AlertDialogDescription>
               <span className="block">
                 תופק בריווחית תעודה ל{orderNumberLabel(order.number)} של {view.customerName} (קוד{" "}
-                {view.customerCode ?? "—"}) לתאריך{" "}
+                {view.customerCode ?? "—"}){order.branch ? `, סניף ${order.branch.name},` : null} לתאריך{" "}
                 {formatLongDate(orderDate(order))}: {view.itemsCount} מוצרים, {formatPrice(view.total)} לפני מע״מ.
               </span>
               {issueProblem ? <span className="mt-1.5 block text-destructive">{issueProblem}</span> : null}

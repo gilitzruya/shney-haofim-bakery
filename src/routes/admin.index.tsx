@@ -224,6 +224,7 @@ function AdminHomePage() {
                     <span className="text-[11px] text-muted-foreground">
                       {orderNumberLabel(view.order.number)} ל{formatWeekday(orderDate(view.order))}{" "}
                       · {formatShortDateNumeric(orderDate(view.order))}
+                      {view.order.branch ? ` · סניף ${view.order.branch.name}` : null}
                     </span>
                   </span>
                   <span className="shrink-0 whitespace-nowrap text-[12px] text-muted-foreground tabular-nums">

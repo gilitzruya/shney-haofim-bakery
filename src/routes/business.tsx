@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppHeader } from "@/components/app/app-header";
 import { AppShell, PageTitleBar, Section } from "@/components/app/app-shell";
 import { Card } from "@/components/app/card";
-import { useMyCustomer } from "@/hooks/use-customers";
+import { activeBranches, useMyCustomer } from "@/hooks/use-customers";
 
 export const Route = createFileRoute("/business")({
   head: () => ({
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/business")({
 function BusinessPage() {
   const { customer } = useMyCustomer();
   const contact = customer?.contacts[0];
+  const branches = activeBranches(customer);
 
   return (
     <AppShell>
@@ -43,6 +44,12 @@ function BusinessPage() {
           <Field label="דוא״ל" value={contact?.email ?? undefined} ltr />
           <Field label="כתובת לאספקה" value={customer?.address ?? undefined} />
           <Field label="הערות אספקה קבועות" value={customer?.deliveryNotes ?? undefined} />
+          {branches.length > 0 ? (
+            <Field
+              label="סניפים"
+              value={branches.map((b) => (b.address ? `${b.name} — ${b.address}` : b.name)).join(" · ")}
+            />
+          ) : null}
         </div>
 
         <div className="mt-5 rounded-xl border border-border bg-card-muted px-3.5 py-3 text-[12.5px] text-muted-foreground">

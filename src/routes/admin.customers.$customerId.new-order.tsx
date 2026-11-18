@@ -19,11 +19,11 @@ import { OrderProductPicker } from "@/components/admin/order-product-picker";
 import { PageTitleBar, Section } from "@/components/app/app-shell";
 import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
-import { FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
+import { BranchPicker, FormField, TextInput, WeekdayChips } from "@/components/app/form-controls";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { findProduct, ROUNDS, WEEKDAY_LABELS } from "@/data/catalog";
 import type { RoundId } from "@/data/catalog";
-import { useCustomer, useCustomerPriceMap } from "@/hooks/use-customers";
+import { activeBranches, useCustomer, useCustomerPriceMap } from "@/hooks/use-customers";
 import { useAdminCreateOrder } from "@/hooks/use-orders";
 import { useCreateRecurring } from "@/hooks/use-recurring";
 import { tomorrowIso } from "@/lib/admin/dates";
@@ -67,12 +67,19 @@ function NewCustomerOrderPage() {
   const [recName, setRecName] = useState("");
   const [adding, setAdding] = useState(false);
   const [confirmCreate, setConfirmCreate] = useState(false);
+  const [branchId, setBranchId] = useState<string | null>(null);
 
   const allowedRounds = useMemo(
     () => ROUNDS.filter((r) => customer?.allowedRounds.includes(r.id)),
     [customer],
   );
   const activeRound = round ?? allowedRounds[0]?.id ?? null;
+
+  // לקוח עם סניפים — בחירת סניף חובה (החלטה 25, נאכף גם בשרת); סניף יחיד נבחר מראש.
+  const branches = activeBranches(customer);
+  const askBranch = branches.length > 0;
+  const activeBranch = branches.find((b) => b.id === branchId) ?? (branches.length === 1 ? branches[0] : undefined);
+  const activeBranchId = activeBranch?.id ?? null;
 
   const lines = useMemo(
     () =>
@@ -109,11 +116,12 @@ function NewCustomerOrderPage() {
   const blocked = Boolean(customer.blocked);
 
   const create = () => {
-    if (!activeRound || !auth) return;
+    if (!activeRound || !auth || (askBranch && !activeBranchId)) return;
     if (isRecurring) {
       createRecurring.mutate(
         {
           customerId: customer.id,
+          branchId: activeBranchId,
           name: recName.trim() || `הזמנה קבועה — ${customer.name}`,
           weekdays,
           round: activeRound,
@@ -146,14 +154,21 @@ function NewCustomerOrderPage() {
       })
       .filter((l): l is NonNullable<typeof l> => l !== null);
     createOrder.mutate(
-      { customerId: customer.id, date, round: activeRound, createdBy: auth.userId, lines: orderLines },
+      {
+        customerId: customer.id,
+        branchId: activeBranchId,
+        date,
+        round: activeRound,
+        createdBy: auth.userId,
+        lines: orderLines,
+      },
       {
         onSuccess: (orderId) => {
           setConfirmCreate(false);
           toast.success("ההזמנה נוצרה. הלקוח יראה אותה אצלו");
           void navigate({ to: "/admin/orders/$orderId", params: { orderId } });
         },
-        onError: () => toast.error("יצירת ההזמנה נכשלה"),
+        onError: (err) => toast.error(err instanceof Error ? err.message : "יצירת ההזמנה נכשלה"),
       },
     );
   };
@@ -230,6 +245,11 @@ function NewCustomerOrderPage() {
                   />
                 </div>
               )}
+              {askBranch ? (
+                <div className="mt-3">
+                  <BranchPicker branches={branches} value={activeBranchId} onChange={setBranchId} />
+                </div>
+              ) : null}
               <div className="mt-3 flex flex-col gap-2">
                 <div className="text-[12px] font-semibold text-muted-foreground">סבב אספקה</div>
                 {allowedRounds.length === 0 ? (
@@ -258,7 +278,7 @@ function NewCustomerOrderPage() {
               <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[12px] text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <MapPin className="size-3.5 shrink-0" />
-                  {customer.address}
+                  {activeBranch?.address ?? customer.address}
                 </span>
                 {contact?.phone ? (
                   <span className="flex items-center gap-1.5">
@@ -353,6 +373,7 @@ function NewCustomerOrderPage() {
               <span className="mt-1.5 block">
                 {lines.length} פריטים · סה״כ {formatPrice(total)}
               </span>
+              {activeBranch ? <span className="mt-1.5 block">סניף: {activeBranch.name}</span> : null}
               <span className="mt-1.5 block">ההזמנה תופיע גם אצל הלקוח.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -369,7 +390,12 @@ function NewCustomerOrderPage() {
             <Button
               size="lg"
               className="flex-1"
-              disabled={lines.length === 0 || !activeRound || (isRecurring && weekdays.length === 0)}
+              disabled={
+                lines.length === 0 ||
+                !activeRound ||
+                (isRecurring && weekdays.length === 0) ||
+                (askBranch && !activeBranchId)
+              }
               onClick={() => setConfirmCreate(true)}
             >
               {isRecurring ? "יצירת ההזמנה הקבועה" : "יצירת ההזמנה"}

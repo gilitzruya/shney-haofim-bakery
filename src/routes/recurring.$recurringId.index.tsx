@@ -10,7 +10,7 @@ import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { Modal } from "@/components/app/modal";
 import { findProduct } from "@/data/catalog";
-import { useMyPrices } from "@/hooks/use-customers";
+import { branchName, useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import { useCancelRecurring, usePauseRecurring, useRecurring, useResumeRecurring } from "@/hooks/use-recurring";
 import { priceFor } from "@/lib/admin/pricing";
 import { formatDate, formatPrice, formatQty, weekdaysLabel } from "@/lib/format";
@@ -33,6 +33,7 @@ function RecurringDetailsPage() {
   const { recurringId } = useParams({ from: "/recurring/$recurringId/" });
   const navigate = useNavigate();
   const { recurring: rec, isLoading } = useRecurring(recurringId);
+  const { customer } = useMyCustomer();
   const myPrices = useMyPrices();
   const pauseRecurring = usePauseRecurring();
   const resumeRecurring = useResumeRecurring();
@@ -73,6 +74,9 @@ function RecurringDetailsPage() {
             <Chip tone={rec.status === "active" ? "neutral" : "muted"}>{RECURRING_STATUS_LABEL[rec.status]}</Chip>
           </div>
           <div className="mt-1 text-[12.5px] text-muted-foreground">{weekdaysLabel(rec.weekdays)}</div>
+          {branchName(customer, rec.branchId) ? (
+            <div className="mt-1 text-[12px] text-muted-foreground">סניף {branchName(customer, rec.branchId)}</div>
+          ) : null}
           {rec.startDate ? (
             <div className="mt-1 text-[12px] text-muted-foreground">מתחילה מ־{formatDate(rec.startDate)}</div>
           ) : null}

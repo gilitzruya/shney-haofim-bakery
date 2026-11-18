@@ -8,6 +8,7 @@ import { Button } from "@/components/app/button";
 import { Card, EmptyState } from "@/components/app/card";
 import { Chip } from "@/components/app/status-chip";
 import { FilterChips } from "@/components/app/tabs";
+import { branchName, useMyCustomer } from "@/hooks/use-customers";
 import { useMyRecurring } from "@/hooks/use-recurring";
 import { formatDate, formatPrice, linesCount, linesTotal, weekdaysLabel } from "@/lib/format";
 import { nextRecurringDelivery } from "@/lib/recurring";
@@ -34,6 +35,7 @@ export const RECURRING_STATUS_LABEL = {
 
 function RecurringListPage() {
   const { recurring } = useMyRecurring();
+  const { customer } = useMyCustomer();
   const [filter, setFilter] = useState<FilterId>("all");
   const list = recurring.filter((r) => filter === "all" || r.status === filter);
 
@@ -76,6 +78,7 @@ function RecurringListPage() {
                     </div>
                     <div className="mt-1 text-[12px] text-muted-foreground">
                       {weekdaysLabel(rec.weekdays)} · {linesCount(rec.lines)} מוצרים
+                      {branchName(customer, rec.branchId) ? ` · סניף ${branchName(customer, rec.branchId)}` : null}
                     </div>
                     <div className="mt-1.5 flex items-center justify-between">
                       <span className="text-[11.5px] text-muted-foreground">

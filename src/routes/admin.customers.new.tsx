@@ -8,7 +8,13 @@ import { CustomerForm, toFormValues } from "@/components/admin/customer-form";
 import { CustomerInviteModal } from "@/components/admin/customer-invite-modal";
 import { SpecialPricesPanel } from "@/components/admin/special-prices-panel";
 import { Section } from "@/components/app/app-shell";
-import { useAddContact, useCreateCustomer, useGrantContactAccess, useSetCustomerPrice } from "@/hooks/use-customers";
+import {
+  useAddBranch,
+  useAddContact,
+  useCreateCustomer,
+  useGrantContactAccess,
+  useSetCustomerPrice,
+} from "@/hooks/use-customers";
 import { toE164 } from "@/lib/phone";
 
 export const Route = createFileRoute("/admin/customers/new")({
@@ -28,6 +34,7 @@ export const Route = createFileRoute("/admin/customers/new")({
 function NewCustomerPage() {
   const createCustomer = useCreateCustomer();
   const addContact = useAddContact();
+  const addBranch = useAddBranch();
   const grantAccess = useGrantContactAccess();
   const setPrice = useSetCustomerPrice();
   const navigate = useNavigate();
@@ -82,6 +89,13 @@ function NewCustomerPage() {
 
               for (const [productId, price] of Object.entries(priceOverrides)) {
                 await setPrice.mutateAsync({ customerId: id, productId, price });
+              }
+
+              for (const b of v.branches) {
+                await addBranch.mutateAsync({
+                  customerId: id,
+                  input: { name: b.name, address: b.address, deliveryNotes: b.deliveryNotes },
+                });
               }
 
               const toInvite: { name: string; phone: string }[] = [];

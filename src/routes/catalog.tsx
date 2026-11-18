@@ -339,7 +339,13 @@ function OrderCatalogPage() {
         customerId: auth.customerId,
         lines: candidate?.lines ?? [],
       });
-      await setDateRound.mutateAsync({ orderId: cartId, date: copyDate, round: copyRound });
+      // הסניף של ההזמנה המועתקת עובר איתה — ונבחר מראש בשלב המועד בסיכום, שם אפשר לשנות.
+      await setDateRound.mutateAsync({
+        orderId: cartId,
+        date: copyDate,
+        round: copyRound,
+        branchId: candidate?.branch?.id ?? null,
+      });
       dismiss();
       setCopyStep(null);
       navigate({ to: "/summary", search: { order: cartId } as never, replace: true });
