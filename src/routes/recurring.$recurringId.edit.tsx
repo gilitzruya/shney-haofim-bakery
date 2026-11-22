@@ -10,6 +10,7 @@ import { BranchPicker, FormField, TextArea, TextInput, WeekdayChips } from "@/co
 import { ROUNDS, type RoundId } from "@/data/catalog";
 import { activeBranches, useMyCustomer } from "@/hooks/use-customers";
 import { useRecurring, useUpdateRecurringDetails } from "@/hooks/use-recurring";
+import { errorMessage } from "@/lib/error-message";
 import { useRecurringDraft } from "@/store/recurring-draft";
 
 export const Route = createFileRoute("/recurring/$recurringId/edit")({
@@ -80,7 +81,7 @@ function EditRecurringPage() {
           toast.success("פרטי ההזמנה הקבועה נשמרו");
           navigate({ to: "/recurring/$recurringId", params: { recurringId: rec.id } });
         },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "שמירת הפרטים נכשלה"),
+        onError: (err) => toast.error(errorMessage(err, "שמירת הפרטים נכשלה")),
       },
     );
   };

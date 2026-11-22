@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAddCategory, useCatalog, useRemoveCategory, useReorderCategories } from "@/hooks/use-catalog";
 import type { Category } from "@/data/catalog";
+import { errorMessage } from "@/lib/error-message";
 
 export const Route = createFileRoute("/admin/products/")({
   head: () => ({
@@ -81,7 +82,7 @@ function AdminProductsPage() {
   const removeCategory = () => {
     if (!confirmRemoveId) return;
     removeCategoryMutation.mutate(confirmRemoveId, {
-      onError: (error) => toast.error(error instanceof Error ? error.message : "מחיקת הקטגוריה נכשלה"),
+      onError: (error) => toast.error(errorMessage(error, "מחיקת הקטגוריה נכשלה")),
     });
     setConfirmRemoveId(null);
   };

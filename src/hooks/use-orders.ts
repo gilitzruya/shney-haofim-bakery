@@ -430,13 +430,54 @@ export function useUpsertCartLine() {
   });
 }
 
-/** מוסיף כמה שורות בבת אחת לעגלה (למשל בזרימת "העתקת הזמנה קודמת"). */
+/** תוצאת העתקת שורות לעגלה: מזהה העגלה, ושמות המוצרים שלא הועתקו כי כבר לא זמינים. */
+export interface CopyToCartResult {
+  cartId: string;
+  skipped: string[];
+}
+
+/** ההודעה ללקוח על מוצרים שלא הועתקו — משותפת לשכפול מפרטי הזמנה ולהעתקה מהקטלוג. */
+export function skippedCopyMessage(skipped: string[]): string {
+  return `לא הועתקו מוצרים שכבר לא זמינים: ${skipped.join(", ")}`;
+}
+
+/** מפריד שורות שהמוצר שלהן נמחק מהקטלוג או סומן כלא זמין. הזמנה ישנה יכולה להכיל מוצר
+ * כזה, ו-rpc_confirm_order דוחה את כל ההזמנה בגללו — לכן העתקה לא מכניסה אותו לעגלה.
+ * הבדיקה מול השרת ולא מול אינדקס הקטלוג בזיכרון, שאולי עוד לא נטען. שם מוצר שהועתק בכל
+ * זאת (למשל מוצר כפול שנמחק, כשהמקורי נשאר) לא מדווח כחסר. */
+async function splitOrderableLines<T extends { productId: string; productName: string }>(
+  lines: T[],
+): Promise<{ orderable: T[]; skipped: string[] }> {
+  if (lines.length === 0) return { orderable: lines, skipped: [] };
+  const { data, error } = await supabase
+    .from("products")
+    .select("id")
+    .in("id", lines.map((l) => l.productId))
+    .is("deleted_at", null)
+    .eq("available", true);
+  if (error) throw error;
+  const orderableIds = new Set((data ?? []).map((p) => p.id));
+  const orderable = lines.filter((l) => orderableIds.has(l.productId));
+  const copiedNames = new Set(orderable.map((l) => l.productName));
+  const skipped = [
+    ...new Set(
+      lines
+        .filter((l) => !orderableIds.has(l.productId) && !copiedNames.has(l.productName))
+        .map((l) => l.productName),
+    ),
+  ];
+  return { orderable, skipped };
+}
+
+/** מוסיף כמה שורות בבת אחת לעגלה (למשל בזרימת "העתקת הזמנה קודמת"). מוצרים שכבר לא
+ * זמינים לא מועתקים, ושמותיהם מוחזרים ב-`skipped`. */
 export function useAddCartLines() {
   const invalidate = useInvalidateOrders();
   return useMutation({
-    mutationFn: async ({ customerId, lines }: { customerId: string; lines: CartLineInput[] }) => {
+    mutationFn: async ({ customerId, lines: source }: { customerId: string; lines: CartLineInput[] }): Promise<CopyToCartResult> => {
       const cartId = await getOrCreateCartOrderId(customerId);
-      if (lines.length === 0) return cartId;
+      const { orderable: lines, skipped } = await splitOrderableLines(source);
+      if (lines.length === 0) return { cartId, skipped };
       const { error } = await supabase.from("order_lines").upsert(
         lines.map((line) => ({
           order_id: cartId,
@@ -450,7 +491,7 @@ export function useAddCartLines() {
         { onConflict: "order_id,product_id" },
       );
       if (error) throw error;
-      return cartId;
+      return { cartId, skipped };
     },
     onSuccess: () => invalidate(),
   });
@@ -520,15 +561,17 @@ export function useConfirmOrder() {
   });
 }
 
-/** שכפול הזמנה קיימת כעגלה חדשה (ללא קשר להזמנה המקורית). */
+/** שכפול הזמנה קיימת כעגלה חדשה (ללא קשר להזמנה המקורית). מוצרים שכבר לא זמינים לא
+ * מועתקים, ושמותיהם מוחזרים ב-`skipped` כדי שהלקוח יידע. */
 export function useCopyOrderAsNew() {
   const invalidate = useInvalidateOrders();
   return useMutation({
-    mutationFn: async ({ customerId, source }: { customerId: string; source: Order }) => {
+    mutationFn: async ({ customerId, source }: { customerId: string; source: Order }): Promise<CopyToCartResult> => {
       const cartId = await getOrCreateCartOrderId(customerId);
-      if (source.lines.length === 0) return cartId;
+      const { orderable: lines, skipped } = await splitOrderableLines(source.lines);
+      if (lines.length === 0) return { cartId, skipped };
       const { error } = await supabase.from("order_lines").upsert(
-        source.lines.map((line) => ({
+        lines.map((line) => ({
           order_id: cartId,
           product_id: line.productId,
           product_name: line.productName,
@@ -540,7 +583,7 @@ export function useCopyOrderAsNew() {
         { onConflict: "order_id,product_id" },
       );
       if (error) throw error;
-      return cartId;
+      return { cartId, skipped };
     },
     onSuccess: () => invalidate(),
   });

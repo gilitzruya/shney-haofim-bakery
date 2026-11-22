@@ -16,6 +16,7 @@ import type { Product } from "@/data/catalog";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import {
+  skippedCopyMessage,
   useAddCartLines,
   useCartOrder,
   useDiscardCart,
@@ -26,6 +27,7 @@ import {
   type Order,
 } from "@/hooks/use-orders";
 import { isCutoffPassed, israelNow } from "@/lib/cutoff";
+import { errorMessage } from "@/lib/error-message";
 import { priceFor } from "@/lib/admin/pricing";
 import { formatPrice, parseDate } from "@/lib/format";
 import { linesFromQuantities as draftLinesFromQuantities, useRecurringDraft } from "@/store/recurring-draft";
@@ -335,10 +337,11 @@ function OrderCatalogPage() {
     try {
       await clearOpenCart();
       const candidate = pickCopyCandidate(orders, copyDate);
-      const cartId = await addLines.mutateAsync({
+      const { cartId, skipped } = await addLines.mutateAsync({
         customerId: auth.customerId,
         lines: candidate?.lines ?? [],
       });
+      if (skipped.length > 0) toast.warning(skippedCopyMessage(skipped));
       // הסניף של ההזמנה המועתקת עובר איתה — ונבחר מראש בשלב המועד בסיכום, שם אפשר לשנות.
       await setDateRound.mutateAsync({
         orderId: cartId,
@@ -349,6 +352,8 @@ function OrderCatalogPage() {
       dismiss();
       setCopyStep(null);
       navigate({ to: "/summary", search: { order: cartId } as never, replace: true });
+    } catch (err) {
+      toast.error(errorMessage(err, "העתקת ההזמנה נכשלה — נסו שוב"));
     } finally {
       setCopying(false);
     }

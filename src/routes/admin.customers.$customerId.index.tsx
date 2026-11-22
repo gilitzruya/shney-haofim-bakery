@@ -42,6 +42,7 @@ import {
   useUpdateCustomer,
 } from "@/hooks/use-customers";
 import { useCancelRecurring, useCustomerRecurring } from "@/hooks/use-recurring";
+import { errorMessage } from "@/lib/error-message";
 import { linesCount } from "@/lib/format";
 import { toE164 } from "@/lib/phone";
 
@@ -186,7 +187,7 @@ function CustomerDetailPage() {
       toast.success("פרטי הלקוח נשמרו");
       if (toInvite.length > 0) setInviteQueue(toInvite);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "שמירת הלקוח נכשלה");
+      toast.error(errorMessage(err, "שמירת הלקוח נכשלה"));
     } finally {
       setSaving(false);
     }
@@ -463,7 +464,7 @@ function CustomerDetailPage() {
             },
             onError: (err) => {
               setConfirmDelete(false);
-              toast.error(err instanceof Error ? err.message : "מחיקת הלקוח נכשלה");
+              toast.error(errorMessage(err, "מחיקת הלקוח נכשלה"));
             },
           })
         }

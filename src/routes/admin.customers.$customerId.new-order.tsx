@@ -26,6 +26,7 @@ import type { RoundId } from "@/data/catalog";
 import { activeBranches, useCustomer, useCustomerPriceMap } from "@/hooks/use-customers";
 import { useAdminCreateOrder } from "@/hooks/use-orders";
 import { useCreateRecurring } from "@/hooks/use-recurring";
+import { errorMessage } from "@/lib/error-message";
 import { tomorrowIso } from "@/lib/admin/dates";
 import { priceFor } from "@/lib/admin/pricing";
 import { clampQty, formatLongDate, formatPhone, formatPrice, formatQty } from "@/lib/format";
@@ -134,7 +135,7 @@ function NewCustomerOrderPage() {
             toast.success("ההזמנה הקבועה נוצרה עבור הלקוח");
             void navigate({ to: "/admin/customers/$customerId", params: { customerId } });
           },
-          onError: (err) => toast.error(err instanceof Error ? err.message : "יצירת ההזמנה הקבועה נכשלה"),
+          onError: (err) => toast.error(errorMessage(err, "יצירת ההזמנה הקבועה נכשלה")),
         },
       );
       return;
@@ -168,7 +169,7 @@ function NewCustomerOrderPage() {
           toast.success("ההזמנה נוצרה. הלקוח יראה אותה אצלו");
           void navigate({ to: "/admin/orders/$orderId", params: { orderId } });
         },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "יצירת ההזמנה נכשלה"),
+        onError: (err) => toast.error(errorMessage(err, "יצירת ההזמנה נכשלה")),
       },
     );
   };

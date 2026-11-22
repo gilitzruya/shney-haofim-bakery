@@ -15,6 +15,7 @@ import {
   useGrantContactAccess,
   useSetCustomerPrice,
 } from "@/hooks/use-customers";
+import { errorMessage } from "@/lib/error-message";
 import { toE164 } from "@/lib/phone";
 
 export const Route = createFileRoute("/admin/customers/new")({
@@ -119,7 +120,7 @@ function NewCustomerPage() {
               if (toInvite.length > 0) setInviteQueue(toInvite);
               else finishInvites(id);
             } catch (err) {
-              toast.error(err instanceof Error ? err.message : "שמירת הלקוח נכשלה");
+              toast.error(errorMessage(err, "שמירת הלקוח נכשלה"));
             } finally {
               setSaving(false);
             }

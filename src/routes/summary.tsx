@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/app-header";
@@ -13,6 +13,7 @@ import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-ca
 import { DateCalendar } from "@/components/app/date-calendar";
 
 import { findProduct, type RoundId } from "@/data/catalog";
+import { useCatalog } from "@/hooks/use-catalog";
 import { activeBranches, useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import {
   useCartOrder,
@@ -26,6 +27,7 @@ import {
 import { useCreateRecurring, useUpdateRecurringLines } from "@/hooks/use-recurring";
 import { priceFor } from "@/lib/admin/pricing";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
+import { errorMessage } from "@/lib/error-message";
 import { formatDate, formatPrice, formatQty, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useRecurringDraft } from "@/store/recurring-draft";
 
@@ -142,8 +144,7 @@ function RecurringSummaryPage() {
       clear();
       navigate({ to: "/recurring" });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "שמירת ההזמנה הקבועה נכשלה";
-      toast.error(message);
+      toast.error(errorMessage(err, "שמירת ההזמנה הקבועה נכשלה"));
     } finally {
       setSaving(false);
       setConfirming(false);
@@ -282,6 +283,12 @@ function OrderSummaryPage() {
   const setDateRound = useSetCartDateRound();
   const confirmOrder = useConfirmOrder();
   const { auth } = Route.useRouteContext();
+  // הקטלוג החי (בלי מוצרים מחוקים). עד שנטען לא מסמנים שום שורה כלא זמינה.
+  const { categories: liveCatalog, isLoading: catalogLoading } = useCatalog();
+  const liveProducts = useMemo(
+    () => new Map(liveCatalog.flatMap((c) => c.products).map((p) => [p.id, p])),
+    [liveCatalog],
+  );
 
   // העגלה נמצאת דרך useCartOrder (מסונן ל-delivery_date is null) — אבל ברגע שבוחרים
   // תאריך בשלב "date" (למטה), או כשמגיעים לכאן כבר עם תאריך קבוע מזרימת ההעתקה
@@ -343,6 +350,14 @@ function OrderSummaryPage() {
 
   const lines = order.lines;
   const total = lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
+  // שורה שהמוצר שלה נמחק מהקטלוג או סומן כלא זמין — השרת ידחה את כל ההזמנה בגללה
+  // (rpc_confirm_order), אז מסמנים אותה ולא ממשיכים לבחירת מועד עד שהיא מוסרת.
+  const isLineUnavailable = (productId: string) => {
+    if (catalogLoading || liveProducts.size === 0) return false;
+    const product = liveProducts.get(productId);
+    return !product || !product.available;
+  };
+  const hasUnavailable = lines.some((l) => isLineUnavailable(l.productId));
   const noteValue = note ?? order.note ?? "";
   const askRound = !!customer?.allowedRounds.includes("noon");
   // לקוח עם סניפים חייב לבחור סניף (החלטה 25, נאכף גם בשרת); בלי סניפים — לא מוצג כלום.
@@ -380,8 +395,7 @@ function OrderSummaryPage() {
       navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
     } catch (err) {
       setConfirming(false);
-      const message = err instanceof Error ? err.message : "אישור ההזמנה נכשל";
-      setBlocked(message);
+      setBlocked(errorMessage(err, "אישור ההזמנה נכשל"));
     } finally {
       setSubmitting(false);
     }
@@ -525,6 +539,11 @@ function OrderSummaryPage() {
       </AppHeader>
       <Section className="pb-28">
         <div className="mt-2 mb-2" />
+        {hasUnavailable ? (
+          <Card className="mb-2 text-[13px] font-semibold text-destructive">
+            יש בהזמנה מוצרים שכבר לא זמינים. יש להסיר אותם כדי להמשיך לאישור ההזמנה.
+          </Card>
+        ) : null}
         <div className="flex flex-col gap-2">
           {lines.length === 0 ? (
             <EmptyState title="לא נבחרו מוצרים" description="חזרו לקטלוג כדי להוסיף פריטים." />
@@ -550,6 +569,11 @@ function OrderSummaryPage() {
                     {formatQty(line.qty, line.unit)} × {formatPrice(line.unitPrice)} ={" "}
                     <span className="font-semibold text-foreground">{formatPrice(line.unitPrice * line.qty)}</span>
                   </div>
+                  {isLineUnavailable(line.productId) ? (
+                    <div className="mt-1 text-[12px] font-semibold text-destructive">
+                      המוצר כבר לא זמין — יש להסיר אותו מההזמנה
+                    </div>
+                  ) : null}
                 </div>
                 <LineQtyControls productName={line.productName} onRemove={() => setQty(line.productId, 0)}>
                   <QuantityStepper
@@ -600,7 +624,7 @@ function OrderSummaryPage() {
           <Button
             size="lg"
             className="flex-1"
-            disabled={lines.length === 0}
+            disabled={lines.length === 0 || hasUnavailable}
             onClick={() => {
               setPickDate(order.date);
               setPickRound(order.round);

@@ -14,7 +14,8 @@ import { ProductPlaceholder } from "@/components/app/product-card";
 import { StatusChip } from "@/components/app/status-chip";
 import { findProduct } from "@/data/catalog";
 import { useMyCustomer } from "@/hooks/use-customers";
-import { useCopyOrderAsNew, useDiscardCart, useOrder } from "@/hooks/use-orders";
+import { skippedCopyMessage, useCopyOrderAsNew, useDiscardCart, useOrder } from "@/hooks/use-orders";
+import { errorMessage } from "@/lib/error-message";
 import { formatLongDate, formatPrice, formatQty, orderNumberLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/orders/$orderId")({
@@ -72,7 +73,13 @@ function OrderDetailsPage() {
     copyAsNew.mutate(
       { customerId: auth.customerId, source: order },
       // ישר לסיכום (שם אפשר להסיר/לעדכן ולבחור מועד) — מזהה מפורש, כמו בזרימת ההעתקה בקטלוג.
-      { onSuccess: (cartId) => navigate({ to: "/summary", search: { order: cartId } }) },
+      {
+        onSuccess: ({ cartId, skipped }) => {
+          if (skipped.length > 0) toast.warning(skippedCopyMessage(skipped));
+          navigate({ to: "/summary", search: { order: cartId } });
+        },
+        onError: (err) => toast.error(errorMessage(err, "שכפול ההזמנה נכשל")),
+      },
     );
   };
 
