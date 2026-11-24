@@ -191,7 +191,8 @@ function AdminOrdersPage() {
       </Section>
 
       <div className="sticky bottom-0 z-20 bg-canvas/95 px-3.5 pb-3 pt-2 backdrop-blur md:px-5">
-        <div className="mx-auto flex w-full max-w-5xl items-center gap-2 md:justify-center">
+        {/* במובייל אין מקום לשני כפתורים בשורה: כפתור ההדפסה יורד לשורה משלו. מ-md הכול בשורה אחת. */}
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-2 md:flex-nowrap md:justify-center">
           <div className="flex items-center gap-4 rounded-[16px] border border-border bg-card px-3.5 py-2 text-center">
             <div>
               <div className="text-[13px] font-bold text-heading">
@@ -219,7 +220,7 @@ function AdminOrdersPage() {
           </Button>
           <Button
             variant="secondary"
-            className="flex-1 md:flex-initial md:w-auto"
+            className="basis-full md:basis-auto md:flex-initial md:w-auto"
             onClick={() => setConfirmPrint(true)}
             loading={printDocuments.isPending}
             disabled={!hydrated || printableCount === 0}
