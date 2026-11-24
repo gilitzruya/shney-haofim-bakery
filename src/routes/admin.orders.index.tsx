@@ -1,21 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, FileText, Search, X } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, FileText, Printer, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminOrderList } from "@/components/admin/order-list";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { IssueDeliveryNotesDialog } from "@/components/admin/issue-delivery-notes-dialog";
+import { PrintDeliveryNotesDialog } from "@/components/admin/print-delivery-notes-dialog";
 import { Button } from "@/components/app/button";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
 import { ROUNDS, roundLabel } from "@/data/catalog";
 import { useAdminOrdersForDateWithRecurring, useMaterializeRecurringOccurrence } from "@/hooks/use-recurring";
-import { useDocuments, useIssueDocuments } from "@/hooks/use-documents";
+import { useDocuments, useIssueDocuments, usePrintDocuments } from "@/hooks/use-documents";
 import type { AdminOrderView } from "@/hooks/use-orders";
 import { classifyForIssuing } from "@/lib/admin/accounting";
 import { shiftIso, tomorrowIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
+import { errorMessage } from "@/lib/error-message";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/orders/")({
@@ -37,6 +39,8 @@ function AdminOrdersPage() {
   const issueDocuments = useIssueDocuments();
   const [issuing, setIssuing] = useState(false);
   const [confirmIssue, setConfirmIssue] = useState(false);
+  const printDocuments = usePrintDocuments();
+  const [confirmPrint, setConfirmPrint] = useState(false);
   const [date, setDate] = useState(() => tomorrowIso());
   const [query, setQuery] = useState("");
 
@@ -64,6 +68,16 @@ function AdminOrdersPage() {
   /** הזמנות היום (אחרי החיפוש) שנשלחו ושעוד אין להן תעודת משלוח שהופקה בהצלחה (כישלון ← ניסיון
    * חוזר). ההפקה רק אחרי אישור בחלון, שבו אפשר להוריד סימון מהזמנות. */
   const pendingViews = classifyForIssuing(filtered, documents).eligible;
+  /** הזמנות עם תעודה שהופקה ולא השתנתה מאז — מה שאפשר להדפיס. בסדר המסך: סבב ואז רשימה. */
+  const screenOrder = groups.flatMap((g) => g.views);
+  const printableCount = classifyForIssuing(screenOrder, documents).alreadyIssued.length;
+
+  const printSelected = (documentIds: string[]) => {
+    setConfirmPrint(false);
+    printDocuments
+      .print(documentIds)
+      .catch((err: unknown) => toast.error(errorMessage(err, "הכנת קובץ ההדפסה נכשלה")));
+  };
 
   const issueTargets = async (selectedViews: AdminOrderView[]) => {
     setConfirmIssue(false);
@@ -203,6 +217,16 @@ function AdminOrdersPage() {
                 ? "כל התעודות הופקו"
                 : `הפקת תעודות משלוח (${pendingViews.length})`}
           </Button>
+          <Button
+            variant="secondary"
+            className="flex-1 md:flex-initial md:w-auto"
+            onClick={() => setConfirmPrint(true)}
+            loading={printDocuments.isPending}
+            disabled={!hydrated || printableCount === 0}
+          >
+            <Printer className="size-4" />
+            {hydrated && printableCount > 0 ? `הדפסת תעודות (${printableCount})` : "הדפסת תעודות"}
+          </Button>
         </div>
       </div>
 
@@ -213,6 +237,15 @@ function AdminOrdersPage() {
         views={filtered}
         documents={documents}
         onConfirm={(views) => void issueTargets(views)}
+      />
+
+      <PrintDeliveryNotesDialog
+        open={confirmPrint}
+        onOpenChange={setConfirmPrint}
+        date={date}
+        views={screenOrder}
+        documents={documents}
+        onConfirm={printSelected}
       />
     </AdminShell>
   );
