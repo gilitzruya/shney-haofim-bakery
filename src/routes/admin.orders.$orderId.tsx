@@ -70,7 +70,7 @@ function VirtualOccurrenceDetailPage({ recurringId, date }: { recurringId: strin
     return (
       <AdminShell>
         <Section className="pt-4 pb-10">
-          <PageTitleBar title="פירוט הזמנה" backTo="/admin/orders" />
+          <OrdersTitleBar title="פירוט הזמנה" date={date} />
           {isLoading ? null : (
             <EmptyState title="ההזמנה לא נמצאה" description="ייתכן שההזמנה הקבועה כבר לא חלה על התאריך הזה." />
           )}
@@ -96,7 +96,7 @@ function VirtualOccurrenceDetailPage({ recurringId, date }: { recurringId: strin
   return (
     <AdminShell>
       <Section className="pt-4 pb-28">
-        <PageTitleBar title={view.customerName} backTo="/admin/orders" />
+        <OrdersTitleBar title={view.customerName} date={date} />
 
         <div className="mb-3 flex items-start gap-1.5 rounded-[10px] bg-card-muted px-3 py-2.5 text-[12px] font-semibold text-muted-foreground">
           <Info className="mt-px size-3.5 shrink-0 text-primary" />
@@ -187,6 +187,17 @@ function VirtualOccurrenceDetailPage({ recurringId, date }: { recurringId: strin
   );
 }
 
+/** כותרת עם חץ חזרה לרשימת ההזמנות — לתאריך של ההזמנה, ולא ל"מחר" (ברירת המחדל של הרשימה). */
+function OrdersTitleBar({ title, date }: { title: string; date: string | null }) {
+  const navigate = useNavigate();
+  return (
+    <PageTitleBar
+      title={title}
+      onBack={() => void navigate({ to: "/admin/orders", search: date ? { date } : {} })}
+    />
+  );
+}
+
 function RealOrderDetailPage({ orderId }: { orderId: string }) {
   const { view } = useAdminOrderView(orderId);
   const { documents } = useDocuments();
@@ -210,7 +221,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
     return (
       <AdminShell>
         <Section className="pt-4 pb-10">
-          <PageTitleBar title="פירוט הזמנה" backTo="/admin/orders" />
+          <OrdersTitleBar title="פירוט הזמנה" date={null} />
           <EmptyState title="ההזמנה לא נמצאה" description="ייתכן שההזמנה נמחקה או שהקישור אינו תקין." />
         </Section>
       </AdminShell>
@@ -340,7 +351,7 @@ function RealOrderDetailPage({ orderId }: { orderId: string }) {
   return (
     <AdminShell>
       <Section className="pt-4 pb-28">
-        <PageTitleBar title={view.customerName} backTo="/admin/orders" />
+        <OrdersTitleBar title={view.customerName} date={view.order.date} />
 
         <Card>
           <div className="flex items-center justify-between gap-2">

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, FileText, Printer, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +21,10 @@ import { errorMessage } from "@/lib/error-message";
 import { formatDate, formatPrice, formatWeekday } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/orders/")({
+  // התאריך שבו מדפדפים נשמר בכתובת (?date=), כדי שחזרה מפירוט הזמנה תחזיר לאותו יום ולא ל"מחר".
+  // בלי date — מחר.
+  validateSearch: (search: Record<string, unknown>): { date?: string } =>
+    typeof search["date"] === "string" && /^d{4}-d{2}-d{2}$/.test(search["date"]) ? { date: search["date"] } : {},
   head: () => ({
     meta: [
       { title: "הזמנות מחר — ניהול המאפייה" },
@@ -41,7 +45,12 @@ function AdminOrdersPage() {
   const [confirmIssue, setConfirmIssue] = useState(false);
   const printDocuments = usePrintDocuments();
   const [confirmPrint, setConfirmPrint] = useState(false);
-  const [date, setDate] = useState(() => tomorrowIso());
+  const navigate = useNavigate();
+  const search = Route.useSearch();
+  const date = search.date ?? tomorrowIso();
+  // replace — דפדוף בין ימים לא ממלא את היסטוריית הדפדפן.
+  const setDate = (next: string) =>
+    void navigate({ to: "/admin/orders", search: next === tomorrowIso() ? {} : { date: next }, replace: true });
   const [query, setQuery] = useState("");
 
   const { views, isLoading } = useAdminOrdersForDateWithRecurring(date);

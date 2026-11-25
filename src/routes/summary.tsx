@@ -12,23 +12,26 @@ import { Modal } from "@/components/app/modal";
 import { ProductPlaceholder, QuantityStepper } from "@/components/app/product-card";
 import { DateCalendar } from "@/components/app/date-calendar";
 
-import { findProduct, type RoundId } from "@/data/catalog";
+import { findProduct, type Product, type RoundId } from "@/data/catalog";
 import { useCatalog } from "@/hooks/use-catalog";
 import { activeBranches, useMyCustomer, useMyPrices } from "@/hooks/use-customers";
 import {
   useCartOrder,
   useConfirmOrder,
   useDiscardCart,
+  useMyOrders,
   useOrder,
   useSetCartDateRound,
   useSetCartNote,
   useUpsertCartLine,
+  type Order,
 } from "@/hooks/use-orders";
 import { useCreateRecurring, useUpdateRecurringLines } from "@/hooks/use-recurring";
+import { isoFromToday } from "@/lib/admin/dates";
 import { priceFor } from "@/lib/admin/pricing";
 import { formatCutoff, israelNow, isCutoffPassed } from "@/lib/cutoff";
 import { errorMessage } from "@/lib/error-message";
-import { formatDate, formatPrice, formatQty, weekdaysLabel } from "@/lib/format";
+import { formatDate, formatPrice, formatQty, unitLabel, weekdaysLabel } from "@/lib/format";
 import { linesFromQuantities, useRecurringDraft } from "@/store/recurring-draft";
 
 export const Route = createFileRoute("/summary")({
@@ -272,6 +275,31 @@ function RecurringSummaryPage() {
 /* הזמנה חד-פעמית — DB-backed.                                             */
 /* ---------------------------------------------------------------------- */
 
+/** כמה ימים אחורה (לפי תאריך האספקה) נחשבים "הזמנתי לאחרונה". לפי ימים ולא לפי מספר הזמנות:
+ * לקוח שמזמין פעמיים ביום (סבב ראשון + שני) — 5 הזמנות הן רק יומיים וחצי. 14 יום = שני ימי שישי. */
+const RECENT_DAYS_FOR_SUGGESTIONS = 14;
+
+/**
+ * מוצרים מהזמנות הלקוח ב-14 הימים האחרונים (בלי טיוטות, בלי מבוטלות, בלי ההזמנה הנוכחית), מהחדשה
+ * לישנה, בלי כפילויות. לקוח ששכפל הזמנה והוריד ממנה מוצר בפעם הקודמת — המוצר לא היה בשכפול
+ * הבא; כך הוא מופיע מתחת להזמנה בכמות 0 ולא צריך לחפש אותו שוב בקטלוג. שורה בכמות 0 לא נשמרת
+ * ב-DB (order_lines.qty > 0), אז אין לזה השפעה על דוחות, תעודות או אישור ההזמנה.
+ */
+function recentlyOrderedProductIds(orders: Order[], currentOrderId: string): string[] {
+  const since = isoFromToday(-RECENT_DAYS_FOR_SUGGESTIONS);
+  const recent = orders
+    .filter(
+      (o) =>
+        o.id !== currentOrderId &&
+        o.status !== "draft" &&
+        o.status !== "cancelled" &&
+        o.date !== null &&
+        o.date >= since,
+    )
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  return [...new Set(recent.flatMap((o) => o.lines.map((l) => l.productId)))];
+}
+
 function OrderSummaryPage() {
   const navigate = useNavigate();
   const { order: explicitOrderId } = Route.useSearch();
@@ -283,6 +311,8 @@ function OrderSummaryPage() {
   const setDateRound = useSetCartDateRound();
   const confirmOrder = useConfirmOrder();
   const { auth } = Route.useRouteContext();
+  const { orders: myOrders } = useMyOrders();
+  const myPrices = useMyPrices();
   // הקטלוג החי (בלי מוצרים מחוקים). עד שנטען לא מסמנים שום שורה כלא זמינה.
   const { categories: liveCatalog, isLoading: catalogLoading } = useCatalog();
   const liveProducts = useMemo(
@@ -358,6 +388,12 @@ function OrderSummaryPage() {
     return !product || !product.available;
   };
   const hasUnavailable = lines.some((l) => isLineUnavailable(l.productId));
+  // רק מוצרים שעדיין בקטלוג וזמינים — מוצר שנמחק או סומן כלא זמין לא מוצע.
+  const inOrder = new Set(lines.map((l) => l.productId));
+  const suggestions = recentlyOrderedProductIds(myOrders, order.id).flatMap((id): Product[] => {
+    const product = liveProducts.get(id);
+    return !inOrder.has(id) && product?.available ? [{ ...product, price: priceFor(product, myPrices) }] : [];
+  });
   const noteValue = note ?? order.note ?? "";
   const askRound = !!customer?.allowedRounds.includes("noon");
   // לקוח עם סניפים חייב לבחור סניף (החלטה 25, נאכף גם בשרת); בלי סניפים — לא מוצג כלום.
@@ -372,6 +408,25 @@ function OrderSummaryPage() {
       {
         customerId: auth.customerId,
         line: { ...line, qty },
+        orderId: order.id,
+      },
+      { onError: () => toast.error("עדכון ההזמנה נכשל") },
+    );
+  };
+
+  const addSuggestion = (product: Product, qty: number) => {
+    if (!auth?.customerId || qty <= 0) return;
+    upsertLine.mutate(
+      {
+        customerId: auth.customerId,
+        line: {
+          productId: product.id,
+          productName: product.name,
+          sku: product.sku ?? null,
+          unit: product.unit,
+          qty,
+          unitPrice: product.price,
+        },
         orderId: order.id,
       },
       { onError: () => toast.error("עדכון ההזמנה נכשל") },
@@ -588,6 +643,47 @@ function OrderSummaryPage() {
             ))
           )}
         </div>
+
+        {suggestions.length > 0 ? (
+          <div className="mt-5">
+            <h3 className="text-[15px] font-bold text-foreground">מוצרים שהזמנת לאחרונה</h3>
+            <p className="mt-0.5 mb-2 text-[12px] text-muted-foreground">
+              לא כלולים בהזמנה הזו. לחיצה על + מוסיפה את המוצר להזמנה.
+            </p>
+            <div className="flex flex-col gap-2">
+              {suggestions.map((product) => (
+                <Card key={product.id} className="flex items-center gap-2.5">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      loading="lazy"
+                      className="aspect-square size-[56px] shrink-0 rounded-[10px] object-contain"
+                    />
+                  ) : (
+                    <ProductPlaceholder className="size-[56px]" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[15px] font-bold text-foreground">{product.name}</div>
+                    <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                      קוד פריט: <span className="font-semibold text-foreground">{product.sku ?? product.id}</span>
+                    </div>
+                    <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                      {formatPrice(product.price)} ל{unitLabel(product.unit)}
+                    </div>
+                  </div>
+                  <QuantityStepper
+                    product={{ unit: product.unit }}
+                    qty={0}
+                    compact
+                    onChange={(delta) => addSuggestion(product, delta)}
+                    onSetQty={(qty) => addSuggestion(product, qty)}
+                  />
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-4">
           <FormField label="הערה למאפייה (אופציונלי)">
