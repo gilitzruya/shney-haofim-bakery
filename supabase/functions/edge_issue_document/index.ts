@@ -21,6 +21,7 @@ interface OrderForDocument {
   number: number;
   status: string;
   delivery_date: string;
+  round: "morning" | "noon";
   note: string | null;
   updated_at: string;
   customer: { code: string; name: string } | null;
@@ -88,7 +89,7 @@ async function postgrest(path: string, authHeader: string, init: RequestInit = {
 
 async function loadOrder(authHeader: string, orderId: string): Promise<OrderForDocument> {
   const select =
-    "id,number,status,delivery_date,note,updated_at,customer:customers(code,name),branch:customer_branches(name,address),order_lines(sku,product_name,qty,unit_price)";
+    "id,number,status,delivery_date,round,note,updated_at,customer:customers(code,name),branch:customer_branches(name,address),order_lines(sku,product_name,qty,unit_price)";
   const rows = (await postgrest(
     `orders?id=eq.${encodeURIComponent(orderId)}&select=${select}`,
     authHeader,
@@ -106,13 +107,18 @@ function toRivhitDate(isoDate: string): string {
 
 const isDigits = (value: string) => /^\d+$/.test(value);
 
-/** שדה ההערות בתעודה: הסניף (החלטה 25) לפני הערת ההזמנה — כמו שבעל המאפייה רשם ידנית על
- * תעודה ללקוח עם כמה סניפים. התעודה עצמה נשארת על שם הלקוח (אותו קוד בריווחית). */
-function deliveryNoteComments(order: OrderForDocument): string {
-  const branch = order.branch
-    ? `סניף: ${order.branch.name}${order.branch.address ? `, ${order.branch.address}` : ""}`
-    : "";
-  return [branch, order.note?.trim() ?? ""].filter(Boolean).join(" | ").slice(0, 400);
+/** שדה ההערות בתעודה: "סבב שני" בראש (25.11 — בעל המאפייה רוצה לראות בתעודה שזו אספקה של
+ * הסבב השני; סבב ראשון הוא ברירת המחדל ולא נכתב), אחריו הסניף (החלטה 25) והערת ההזמנה — כמו
+ * שבעל המאפייה רשם ידנית על תעודה ללקוח עם כמה סניפים. התעודה עצמה נשארת על שם הלקוח.
+ * `includePrivate` = false בחברת הטסט הציבורית: רק הסבב (לא מזהה אף אחד), בלי סניף והערה. */
+function deliveryNoteComments(order: OrderForDocument, includePrivate: boolean): string {
+  const round = order.round === "noon" ? "סבב שני" : "";
+  const branch =
+    includePrivate && order.branch
+      ? `סניף: ${order.branch.name}${order.branch.address ? `, ${order.branch.address}` : ""}`
+      : "";
+  const note = includePrivate ? (order.note?.trim() ?? "") : "";
+  return [round, branch, note].filter(Boolean).join(" | ").slice(0, 400);
 }
 
 /** בונה את גוף `Document.New` — זורק שגיאה בעברית אם ההזמנה לא ניתנת להפקה. */
@@ -127,6 +133,7 @@ function buildDeliveryNote(order: OrderForDocument) {
   if (order.order_lines.length === 0) throw new Error("אין מוצרים בהזמנה");
   const missingSku = order.order_lines.find((l) => !l.sku || !isDigits(l.sku.trim()));
   if (missingSku) throw new Error(`למוצר "${missingSku.product_name}" אין מק"ט תקין`);
+  const comments = deliveryNoteComments(order, !IS_RIVHIT_TEST);
 
   return {
     api_token: RIVHIT_API_TOKEN,
@@ -137,8 +144,8 @@ function buildDeliveryNote(order: OrderForDocument) {
     // המחירים אצלנו תמיד לפני מע"מ (כלל ברזל 6) — ריווחית מוסיפה את המע"מ במסמך.
     price_include_vat: false,
     currency_id: 1,
-    // בטסט (חברת הדמו הציבורית) לא נשלחים הערה ולא סניף — ראו IS_RIVHIT_TEST.
-    ...(deliveryNoteComments(order) && !IS_RIVHIT_TEST ? { comments: deliveryNoteComments(order) } : {}),
+    // בטסט (חברת הדמו הציבורית) נשלח רק הסבב, בלי הערה וסניף — ראו IS_RIVHIT_TEST.
+    ...(comments ? { comments } : {}),
     // שדה "הזמנה" בתעודה = מספר ההזמנה שלנו (החלטה 24), כך שאפשר לקשר תעודה להזמנה באפליקציה.
     order: String(order.number),
     // שורה לכל מוצר באפליקציה, גם כשכמה מוצרים חולקים מק"ט אחד בריווחית (בגלה בצל/פרג = 1160)
