@@ -1,5 +1,10 @@
-import { departmentLabel, roundLabel, type DepartmentId } from "@/data/catalog";
-import { pickingQty, type PickingLine, type PickingRound } from "@/lib/admin/reports";
+import { departmentLabel, roundLabel, type DepartmentId, type RoundId } from "@/data/catalog";
+import {
+  pickingQty,
+  type PickingLine,
+  type PickingProduct,
+  type PickingRound,
+} from "@/lib/admin/reports";
 import { formatDate, formatWeekday } from "@/lib/format";
 
 /** שם לקוח קצר לדף צפוף — בלי סיומת "בע״מ", שלא עוזרת לזהות את הארגז. */
@@ -10,34 +15,62 @@ function shortName(name: string): string {
     .trim();
 }
 
+interface PickingPage {
+  key: string;
+  round: RoundId;
+  /** כותרת משנה לדף העוגות; null בדף הראשי של הסבב. */
+  subtitle: string | null;
+  products: PickingProduct[];
+}
+
 /**
  * גיליון "דף ליקוט להעמסה" להדפסה (PRD §4.11) — לרוחב, 4 טורים, כדי שסבב שלם ייכנס בדף אחד.
- * הפועל עובר מוצר אחרי מוצר ומחלק לכל לקוח את הכמות שלו; ☐ לסימון מה שהוכן. דף נפרד לכל סבב.
+ * הפועל עובר מוצר אחרי מוצר ומחלק לכל לקוח את הכמות שלו; ☐ לסימון מה שהוכן. דף נפרד לכל סבב,
+ * ובתוך הסבב מוצרי "עוגות ומאפים" בדף משלהם — מחלקת העוגות מכינה אותם בנפרד.
  * הכיוון לרוחב מוגדר ב-styles.css (`@page picking`) — רק לגיליון הזה, שאר ההדפסות נשארות לאורך.
  */
 export function PickingSheet({ date, rounds }: { date: string; rounds: PickingRound[] }) {
+  const pages: PickingPage[] = rounds.flatMap((round): PickingPage[] => {
+    const main = round.products.filter((p) => p.department !== "cakes");
+    const cakes = round.products.filter((p) => p.department === "cakes");
+    const all: PickingPage[] = [
+      { key: `${round.round}-main`, round: round.round, subtitle: null, products: main },
+      {
+        key: `${round.round}-cakes`,
+        round: round.round,
+        subtitle: departmentLabel("cakes"),
+        products: cakes,
+      },
+    ];
+    return all.filter((page) => page.products.length > 0);
+  });
+
   return (
     <div
       className="picking-sheet hidden print:block print:bg-white"
       dir="rtl"
       style={{ backgroundColor: "#fff" }}
     >
-      {rounds.map((round) => {
+      {pages.map((page) => {
         let department: DepartmentId | null = null;
         let category: string | null = null;
+        const customersCount = new Set(page.products.flatMap((p) => p.lines.map((l) => l.key)))
+          .size;
+        const linesCount = page.products.reduce((sum, p) => sum + p.lines.length, 0);
         return (
-          <section key={round.round} className="break-after-page text-black last:break-after-auto">
+          <section key={page.key} className="break-after-page text-black last:break-after-auto">
             <div className="mb-1 flex items-center justify-between border-b-2 border-black pb-0.5">
               <div className="flex items-baseline gap-3">
-                <span className="text-[16px] font-bold">דף ליקוט להעמסה</span>
+                <span className="text-[16px] font-bold">
+                  דף ליקוט להעמסה{page.subtitle ? ` — ${page.subtitle}` : ""}
+                </span>
                 <span className="text-[11.5px] font-bold">
-                  {formatWeekday(date)}, {formatDate(date)} · {roundLabel(round.round)}
+                  {formatWeekday(date)}, {formatDate(date)} · {roundLabel(page.round)}
                 </span>
               </div>
               <div className="flex items-center gap-3.5 text-[10px]">
                 <span>
-                  {round.products.length} מוצרים · {round.customersCount} לקוחות ·{" "}
-                  {round.linesCount} שורות
+                  {page.products.length} מוצרים · {customersCount} לקוחות · {linesCount} שורות
                 </span>
                 <span className="flex items-center gap-1">
                   <CheckBox /> = הוכן
@@ -46,7 +79,7 @@ export function PickingSheet({ date, rounds }: { date: string; rounds: PickingRo
             </div>
 
             <div className="columns-4 gap-[9px]" style={{ columnRule: "1px solid #ccc" }}>
-              {round.products.map((product) => {
+              {page.products.map((product) => {
                 // כותרת מחלקה כשהמחלקה מתחלפת (אותה קטגוריה יכולה להופיע בשתי מחלקות, למשל בגט),
                 // וכותרת קטגוריה כשהקטגוריה מתחלפת בתוך המחלקה.
                 const newDepartment = product.department !== department;

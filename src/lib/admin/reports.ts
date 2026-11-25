@@ -178,7 +178,6 @@ export interface PickingRound {
   round: RoundId;
   products: PickingProduct[];
   customersCount: number;
-  linesCount: number;
 }
 
 /**
@@ -264,7 +263,6 @@ export function buildPickingReport(views: AdminOrderView[]): PickingRound[] {
         round,
         products: list,
         customersCount: customersByRound.get(round)?.size ?? 0,
-        linesCount: list.reduce((sum, p) => sum + p.lines.length, 0),
       };
     });
 }

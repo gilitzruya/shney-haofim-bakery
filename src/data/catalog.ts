@@ -6,6 +6,7 @@ export const DEPARTMENTS = [
   { id: "production", label: "ייצור", reportTitle: "דוח ייצור" },
   { id: "cakes", label: "עוגות ומאפים", reportTitle: "דוח עוגות ומאפים" },
   { id: "baked_frozen", label: "אפוי-קפוא", reportTitle: "דוח אפוי-קפוא" },
+  { id: "engel", label: "אנגל", reportTitle: "דוח אנגל" },
   { id: "none", label: "מוכן (לא בדוחות)", reportTitle: "מוצרים מוכנים" },
 ] as const;
 
