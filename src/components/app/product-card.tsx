@@ -37,7 +37,8 @@ export function QuantityStepper({
   disabled = false,
   compact = false,
 }: {
-  product: Product;
+  /** רק היחידה נצרכת (צעד ומינימום לפי ק״ג/יחידה) — שורת הזמנה מספיקה, לא צריך מוצר מלא. */
+  product: Pick<Product, "unit">;
   qty: number;
   onChange: (delta: number) => void;
   onSetQty?: ((qty: number) => void) | undefined;

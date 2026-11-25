@@ -176,6 +176,7 @@
 
   .packing-sheet,
   .baking-sheet,
+  .picking-sheet,
   .order-sheet {
     break-after: avoid-page;
     page-break-after: avoid;
@@ -190,10 +191,31 @@
     margin: 10mm;
   }
 
+  /* דף הליקוט מודפס לרוחב ובשוליים צרים (4 טורים, סבב שלם בדף אחד) — עמוד בשם משלו, כדי
+     ששאר ההדפסות יישארו לאורך. על כל ה-body (כשהגיליון מוצג) ולא רק על הגיליון: מעבר מעמוד
+     בשם לעמוד הרגיל מוסיף בסוף דף ריק לאורך. */
+  body:has(.picking-sheet) {
+    page: picking;
+  }
+
+  /* כותרות הקטגוריה בדוחות הן פס כהה עם טקסט לבן. בלי זה, כשבהגדרות ההדפסה "גרפיקת רקע" כבויה
+     (ברירת המחדל בהרבה דפדפנים), הרקע נעלם והכותרת יוצאת לבן על לבן. */
+  .baking-sheet,
+  .picking-sheet {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  @page picking {
+    size: A4 landscape;
+    margin: 6mm 6mm 8mm;
+  }
+
   /* גיליונות ההדפסה מוצגים כבלוק רגיל — position: fixed גורם לדפדפן
      לשכפל את התוכן בכל עמוד מודפס. */
   .packing-sheet,
   .baking-sheet,
+  .picking-sheet,
   .order-sheet {
     position: static !important;
     inset: auto !important;

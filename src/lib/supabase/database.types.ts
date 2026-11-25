@@ -448,6 +448,7 @@ export type Database = {
           available: boolean
           category_id: string
           deleted_at: string | null
+          department: Database["public"]["Enums"]["product_department"]
           id: string
           image_path: string | null
           min_qty: number
@@ -465,6 +466,7 @@ export type Database = {
           available?: boolean
           category_id: string
           deleted_at?: string | null
+          department?: Database["public"]["Enums"]["product_department"]
           id?: string
           image_path?: string | null
           min_qty?: number
@@ -482,6 +484,7 @@ export type Database = {
           available?: boolean
           category_id?: string
           deleted_at?: string | null
+          department?: Database["public"]["Enums"]["product_department"]
           id?: string
           image_path?: string | null
           min_qty?: number
@@ -667,6 +670,7 @@ export type Database = {
       doc_type: "delivery_note" | "invoice"
       order_source: "manual" | "recurring" | "admin"
       order_status: "draft" | "approved" | "completed" | "cancelled"
+      product_department: "production" | "cakes" | "baked_frozen" | "none"
       recurring_status: "active" | "paused" | "cancelled"
       round_id: "morning" | "noon"
       unit_type: "unit" | "kg"
@@ -802,6 +806,7 @@ export const Constants = {
       doc_type: ["delivery_note", "invoice"],
       order_source: ["manual", "recurring", "admin"],
       order_status: ["draft", "approved", "completed", "cancelled"],
+      product_department: ["production", "cakes", "baked_frozen", "none"],
       recurring_status: ["active", "paused", "cancelled"],
       round_id: ["morning", "noon"],
       unit_type: ["unit", "kg"],

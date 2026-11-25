@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BakingSheet } from "@/components/admin/baking-sheet";
-import { PackingSheet } from "@/components/admin/packing-sheet";
+import { PickingSheet } from "@/components/admin/picking-sheet";
 import { BusinessDaySummaryCard } from "@/components/admin/business-day-summary-card";
 import { IssueDeliveryNotesDialog } from "@/components/admin/issue-delivery-notes-dialog";
 import { Section } from "@/components/app/app-shell";
@@ -30,7 +30,7 @@ import { useCutoffExceptions, useCutoffRules } from "@/hooks/use-cutoff";
 import { useOrdersRealtime } from "@/hooks/use-orders-realtime";
 import { intakeDayLabel, isNewOrder, nextBusinessDayIso } from "@/lib/admin/dates";
 import { summarizeDay } from "@/lib/admin/selectors";
-import { buildDistributionReport, buildProductionReport } from "@/lib/admin/reports";
+import { buildDepartmentReports, buildPickingReport } from "@/lib/admin/reports";
 import {
   formatDate,
   formatIsraelTime,
@@ -77,8 +77,8 @@ function AdminHomePage() {
   const [confirmIssue, setConfirmIssue] = useState(false);
 
   const summary = useMemo(() => summarizeDay(dayViews, date), [dayViews, date]);
-  const productionGroups = useMemo(() => buildProductionReport(dayViews), [dayViews]);
-  const distributionGroups = useMemo(() => buildDistributionReport(dayViews), [dayViews]);
+  const productionReports = useMemo(() => buildDepartmentReports(dayViews), [dayViews]);
+  const pickingRounds = useMemo(() => buildPickingReport(dayViews), [dayViews]);
 
   const [printTarget, setPrintTarget] = useState<PrintTarget>(null);
   const [printNonce, setPrintNonce] = useState(0);
@@ -159,8 +159,9 @@ function AdminHomePage() {
 
   return (
     <AdminShell>
-      {printTarget === "production" ? <BakingSheet date={date} groups={productionGroups} /> : null}
-      {printTarget === "distribution" ? <PackingSheet date={date} groups={distributionGroups} /> : null}
+      {printTarget === "production" ? <BakingSheet date={date} reports={productionReports} round="all" /> : null}
+      {/* "דוח חלוקה" מהדף הראשי = דף הליקוט, ברירת המחדל של מסך דוח החלוקה. */}
+      {printTarget === "distribution" ? <PickingSheet date={date} rounds={pickingRounds} /> : null}
 
       <Section className="pt-4 pb-10 md:pt-6 print:hidden">
         <BusinessDaySummaryCard summary={hydrated ? summary : { date, ordersCount: 0, productsCount: 0, total: 0 }} views={hydrated ? dayViews : []} />

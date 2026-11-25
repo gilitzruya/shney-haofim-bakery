@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 import { supabase } from "@/lib/api/client";
 import { applyRuntimeCatalog } from "@/data/catalog";
-import type { Category, Product, Unit } from "@/data/catalog";
+import type { Category, DepartmentId, Product, Unit } from "@/data/catalog";
 import { compressImageToBlob } from "@/lib/image-upload";
 
 const BUCKET = "product-images";
@@ -14,6 +14,7 @@ type ProductRow = {
   id: string;
   category_id: string;
   name: string;
+  department: DepartmentId;
   sku: string | null;
   unit: string;
   price: number;
@@ -37,6 +38,7 @@ function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
     name: row.name,
+    department: row.department,
     unit: row.unit as Unit,
     price: row.price,
     minQty: row.min_qty,
@@ -61,7 +63,7 @@ async function fetchCatalog(): Promise<Category[]> {
       supabase
         .from("products")
         .select(
-          "id, category_id, name, sku, unit, price, min_qty, step, available, unavailable_reason, weight_grams, note, image_path, position",
+          "id, category_id, name, department, sku, unit, price, min_qty, step, available, unavailable_reason, weight_grams, note, image_path, position",
         )
         .is("deleted_at", null)
         .order("position", { ascending: true }),
@@ -178,6 +180,7 @@ async function uploadProductImage(productId: string, file: File): Promise<string
 
 export interface ProductFormInput {
   name: string;
+  department: DepartmentId;
   sku: string;
   unit: Unit;
   price: number;
@@ -201,6 +204,7 @@ export function useAddProduct() {
         .insert({
           category_id: categoryId,
           name: input.name,
+          department: input.department,
           sku: input.sku,
           unit: input.unit,
           price: input.price,
@@ -251,6 +255,7 @@ export function useUpdateProduct() {
         .from("products")
         .update({
           ...(patch.name !== undefined ? { name: patch.name } : {}),
+          ...(patch.department !== undefined ? { department: patch.department } : {}),
           ...(patch.sku !== undefined ? { sku: patch.sku } : {}),
           ...(patch.unit !== undefined ? { unit: patch.unit } : {}),
           ...(patch.price !== undefined ? { price: patch.price } : {}),

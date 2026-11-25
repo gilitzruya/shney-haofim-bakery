@@ -4,22 +4,24 @@ import { useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PackingSheet } from "@/components/admin/packing-sheet";
+import { PickingSheet } from "@/components/admin/picking-sheet";
 import { ReportDateNav } from "@/components/admin/report-date-nav";
 import { Section } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/card";
-import { roundLabel } from "@/data/catalog";
+import { FilterChips } from "@/components/app/tabs";
+import { ROUNDS, roundLabel, type RoundId } from "@/data/catalog";
 import { useAdminOrdersForDateWithRecurring } from "@/hooks/use-recurring";
 import { tomorrowIso } from "@/lib/admin/dates";
-import { buildDistributionReport } from "@/lib/admin/reports";
+import { buildDistributionReport, buildPickingReport, pickingQty, type PickingRound } from "@/lib/admin/reports";
 import { formatDate, formatPhone, formatPrice, formatQty, formatWeekday } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/reports/distribution")({
   head: () => ({
     meta: [
       { title: "דוח חלוקה — ניהול המאפייה" },
-      { name: "description", content: "פירוט האריזה והחלוקה לפי סבב ולקוח." },
+      { name: "description", content: "דף ליקוט להעמסה לפי מוצר, ופירוט החלוקה לפי סבב ולקוח." },
       { property: "og:title", content: "דוח חלוקה — ניהול המאפייה" },
-      { property: "og:description", content: "פירוט האריזה והחלוקה לפי סבב ולקוח." },
+      { property: "og:description", content: "דף ליקוט להעמסה לפי מוצר, ופירוט החלוקה לפי סבב ולקוח." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -27,17 +29,37 @@ export const Route = createFileRoute("/admin/reports/distribution")({
   component: DistributionReportPage,
 });
 
+type ViewMode = "picking" | "customers";
+type RoundFilter = RoundId | "all";
+
+const VIEW_CHIPS: Array<{ id: ViewMode; label: string }> = [
+  { id: "picking", label: "ליקוט לפי מוצר" },
+  { id: "customers", label: "לפי לקוח" },
+];
+
 function DistributionReportPage() {
   const [date, setDate] = useState(() => tomorrowIso());
+  const [view, setView] = useState<ViewMode>("picking");
+  const [round, setRound] = useState<RoundFilter>("all");
 
   const { views, isLoading } = useAdminOrdersForDateWithRecurring(date);
   const hydrated = !isLoading;
-  const groups = useMemo(() => buildDistributionReport(views), [views]);
+  const filtered = useMemo(
+    () => views.filter((v) => round === "all" || v.order.round === round),
+    [views, round],
+  );
+  const groups = useMemo(() => buildDistributionReport(filtered), [filtered]);
+  const pickingRounds = useMemo(() => buildPickingReport(filtered), [filtered]);
   const stopsCount = groups.reduce((sum, g) => sum + g.stops.length, 0);
 
   return (
     <AdminShell>
-      <PackingSheet date={date} groups={groups} />
+      {/* בהדפסה רק הגיליון של התצוגה שנבחרה: דף הליקוט לרוחב, או המטריצה לפי לקוח. */}
+      {view === "picking" ? (
+        <PickingSheet date={date} rounds={pickingRounds} />
+      ) : (
+        <PackingSheet date={date} groups={groups} />
+      )}
       <Section className="pt-6 pb-10 print:hidden">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h1 className="text-[19px] font-bold text-heading">דוח חלוקה</h1>
@@ -53,6 +75,15 @@ function DistributionReportPage() {
 
         <ReportDateNav date={date} onChange={setDate} />
 
+        <div className="mt-3 flex flex-col gap-2 print:hidden">
+          <FilterChips<ViewMode> chips={VIEW_CHIPS} value={view} onChange={setView} />
+          <FilterChips<RoundFilter>
+            chips={[{ id: "all", label: "כל הסבבים" }, ...ROUNDS.map((r) => ({ id: r.id, label: r.label }))]}
+            value={round}
+            onChange={setRound}
+          />
+        </div>
+
         <div className="mt-3 flex items-center justify-between rounded-[14px] bg-card-muted px-3.5 py-2.5 text-[12px] text-muted-foreground">
           <span>
             {formatWeekday(date)}, {formatDate(date)}
@@ -63,6 +94,8 @@ function DistributionReportPage() {
         <div className="mt-3 flex flex-col gap-4">
           {!hydrated ? null : groups.length === 0 ? (
             <EmptyState title="אין חלוקה ליום זה" description="לא נמצאו הזמנות פעילות לתאריך שנבחר." />
+          ) : view === "picking" ? (
+            pickingRounds.map((r) => <PickingRoundSection key={r.round} round={r} />)
           ) : (
             groups.map((group) => (
               <section key={group.round} className="flex flex-col gap-2">
@@ -150,5 +183,63 @@ function DistributionReportPage() {
         </div>
       </Section>
     </AdminShell>
+  );
+}
+
+/** דף הליקוט במסך: כרטיס לכל מוצר, ובו הלקוחות והכמויות — אותו סדר כמו בהדפסה. */
+function PickingRoundSection({ round }: { round: PickingRound }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-[15px] font-bold text-heading">{roundLabel(round.round)}</h2>
+        <span className="text-[11.5px] text-muted-foreground">
+          {round.products.length} מוצרים · {round.customersCount} לקוחות
+        </span>
+      </div>
+
+      {round.products.map((product) => (
+        <article
+          key={product.productId}
+          className="overflow-hidden rounded-[16px] border border-border bg-card"
+        >
+          <div className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5">
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-[14px] font-bold text-heading">{product.productName}</span>
+              <span className="text-[11px] text-muted-foreground">
+                {product.sku ? `קוד ${product.sku} · ` : ""}
+                {product.categoryName}
+              </span>
+            </div>
+            <span className="shrink-0 text-[13.5px] font-bold text-heading">
+              {pickingQty(product.total, product.unit)}
+            </span>
+          </div>
+          <ul className="flex flex-col">
+            {product.lines.map((line) => (
+              <li
+                key={line.key}
+                className="flex items-center justify-between gap-3 border-b border-border px-3.5 py-2 last:border-b-0"
+              >
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-[13px] text-foreground">
+                    {line.customerCode ? (
+                      <span className="me-1.5 text-[11px] text-muted-foreground">{line.customerCode}</span>
+                    ) : null}
+                    {line.branchName ? <span className="font-semibold">{line.branchName} · </span> : null}
+                    {line.customerName}
+                  </span>
+                  {line.note ? (
+                    <span className="text-[11px] text-muted-foreground">הערה: {line.note}</span>
+                  ) : null}
+                </div>
+                <span className="shrink-0 text-[13.5px] font-bold text-heading">
+                  {pickingQty(line.qty, product.unit)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </section>
   );
 }

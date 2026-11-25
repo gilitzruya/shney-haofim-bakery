@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FormField, TextArea, TextInput } from "@/components/app/form-controls";
-import type { Product, Unit } from "@/data/catalog";
+import { DEPARTMENTS, departmentLabel, type DepartmentId, type Product, type Unit } from "@/data/catalog";
 import { formatPrice, unitLabel } from "@/lib/format";
 import {
   useAddProduct,
@@ -123,6 +123,9 @@ function AdminCategoryPage() {
     );
   }
 
+  // מוצר חדש מקבל כברירת מחדל את המחלקה של רוב המוצרים בקטגוריה (ניתן לשנות בטופס).
+  const defaultDepartment = majorityDepartment(category.products);
+
   const productToRemove = confirmRemoveId
     ? products.find((p) => p.id === confirmRemoveId)
     : undefined;
@@ -205,6 +208,7 @@ function AdminCategoryPage() {
 
         {adding ? (
           <NewProductForm
+            defaultDepartment={defaultDepartment}
             saving={addProductMutation.isPending}
             onCancel={() => setAdding(false)}
             onCreate={(input) => {
@@ -295,6 +299,7 @@ function ProductRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(product.name);
+  const [department, setDepartment] = useState<DepartmentId>(product.department);
   const [sku, setSku] = useState(product.sku ?? "");
   const [price, setPrice] = useState(product.price.toFixed(2));
   const [unit, setUnit] = useState<Unit>(product.unit);
@@ -307,6 +312,7 @@ function ProductRow({
 
   const startEdit = () => {
     setName(product.name);
+    setDepartment(product.department);
     setSku(product.sku ?? "");
     setPrice(product.price.toFixed(2));
     setUnit(product.unit);
@@ -335,6 +341,7 @@ function ProductRow({
     setError(null);
     onUpdate({
       name: name.trim(),
+      department,
       sku: sku.trim(),
       unit,
       price: Math.round(parsedPrice * 100) / 100,
@@ -380,6 +387,7 @@ function ProductRow({
           <div className="grid gap-1.5 md:grid-cols-2">
             <DetailRow label="שם המוצר" value={product.name} />
             <DetailRow label="קוד מוצר" value={product.sku || "—"} />
+            <DetailRow label="מחלקה" value={departmentLabel(product.department)} />
             <DetailRow label="יחידת הזמנה" value={unitLabel(product.unit)} />
             <DetailRow label="מחיר ליחידה" value={formatPrice(product.price)} />
             <DetailRow label="כמות מינימום" value={String(product.minQty ?? "—")} />
@@ -474,6 +482,7 @@ function ProductRow({
                 inputMode="decimal"
               />
             </FormField>
+            <DepartmentField value={department} onChange={setDepartment} />
             <FormField label="כמות מינימום להזמנה">
               <TextInput
                 value={minQty}
@@ -523,15 +532,18 @@ function ProductRow({
 }
 
 function NewProductForm({
+  defaultDepartment,
   saving,
   onCreate,
   onCancel,
 }: {
+  defaultDepartment: DepartmentId;
   saving: boolean;
   onCreate: (input: ProductFormInput) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
+  const [department, setDepartment] = useState<DepartmentId>(defaultDepartment);
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState<Unit>("unit");
@@ -560,6 +572,7 @@ function NewProductForm({
     const defaultMin = unit === "kg" ? 0.5 : 1;
     onCreate({
       name: name.trim(),
+      department,
       sku: sku.trim(),
       unit,
       price: Math.round(parsedPrice * 100) / 100,
@@ -665,6 +678,7 @@ function NewProductForm({
                 placeholder="0.00"
               />
             </FormField>
+            <DepartmentField value={department} onChange={setDepartment} />
           </div>
         </div>
 
@@ -723,5 +737,46 @@ function NewProductForm({
         </div>
       </div>
     </Card>
+  );
+}
+
+/** המחלקה של רוב המוצרים בקטגוריה; קטגוריה ריקה ← ייצור. */
+function majorityDepartment(products: Product[]): DepartmentId {
+  const counts = new Map<DepartmentId, number>();
+  for (const p of products) counts.set(p.department, (counts.get(p.department) ?? 0) + 1);
+  let best: DepartmentId = "production";
+  let bestCount = 0;
+  for (const [id, count] of counts) {
+    if (count > bestCount) {
+      best = id;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+/** בחירת מחלקה — אותו דפוס כפתורים כמו "יחידת הזמנה". קובעת באיזה דוח ייצור המוצר מופיע. */
+function DepartmentField({
+  value,
+  onChange,
+}: {
+  value: DepartmentId;
+  onChange: (id: DepartmentId) => void;
+}) {
+  return (
+    <FormField label="מחלקה *" hint="קובעת באיזה דוח ייצור המוצר מודפס">
+      <div className="grid grid-cols-2 gap-2">
+        {DEPARTMENTS.map((d) => (
+          <Button
+            key={d.id}
+            size="sm"
+            variant={value === d.id ? "primary" : "ghost"}
+            onClick={() => onChange(d.id)}
+          >
+            {d.label}
+          </Button>
+        ))}
+      </div>
+    </FormField>
   );
 }

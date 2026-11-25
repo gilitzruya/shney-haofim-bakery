@@ -16,7 +16,7 @@ export function AppShell({ children, className }: { children: ReactNode; classNa
         style={{ backgroundImage: `url(${heroImage})` }}
       />
       <div aria-hidden className="pointer-events-none fixed inset-0 bg-foreground/10 print:hidden" />
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[430px] flex-col md:max-w-[834px] lg:max-w-[1120px]">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[430px] flex-col md:max-w-[834px] lg:max-w-[1120px] print:max-w-none">
         <div className="flex flex-1 flex-col">{children}</div>
         <CreditFooter />
       </div>

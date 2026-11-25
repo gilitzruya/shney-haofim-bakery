@@ -1,8 +1,25 @@
 export type Unit = "unit" | "kg";
 
+/** מחלקה במאפייה (PRD החלטה 26) — לכל מחלקה דוח ייצור נפרד. הסדר כאן הוא סדר הדפים בדוח
+ * הייצור וסדר המוצרים בדף הליקוט. `none` = מוצר שמגיע מוכן: לא בדוח הייצור, כן בליקוט. */
+export const DEPARTMENTS = [
+  { id: "production", label: "ייצור", reportTitle: "דוח ייצור" },
+  { id: "cakes", label: "עוגות ומאפים", reportTitle: "דוח עוגות ומאפים" },
+  { id: "baked_frozen", label: "אפוי-קפוא", reportTitle: "דוח אפוי-קפוא" },
+  { id: "none", label: "מוכן (לא בדוחות)", reportTitle: "מוצרים מוכנים" },
+] as const;
+
+export type DepartmentId = (typeof DEPARTMENTS)[number]["id"];
+
+export function departmentLabel(id: DepartmentId): string {
+  return DEPARTMENTS.find((d) => d.id === id)?.label ?? "";
+}
+
 export interface Product {
   id: string;
   name: string;
+  /** מחלקה במאפייה — קובעת באיזה דוח ייצור המוצר מופיע. */
+  department: DepartmentId;
   unit: Unit;
   price: number;
   /** Minimum orderable quantity. */
