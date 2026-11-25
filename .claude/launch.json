@@ -6,6 +6,12 @@
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev"],
       "port": 8080
+    },
+    {
+      "name": "prod-preview",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["x", "vite", "preview", "--port", "4173", "--strictPort"],
+      "port": 4173
     }
   ]
 }

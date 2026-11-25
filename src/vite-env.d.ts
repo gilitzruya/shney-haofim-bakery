@@ -8,3 +8,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** מזהה ה-build הנוכחי (vite.config.ts): ה-commit ב-Vercel, או זמן הבנייה מקומית. */
+declare const __APP_VERSION__: string;

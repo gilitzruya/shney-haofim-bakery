@@ -1,11 +1,32 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 
+// מזהה הגרסה של ה-build: ה-commit ב-Vercel, ובבנייה מקומית — זמן הבנייה. נצרב לקוד (__APP_VERSION__)
+// ונכתב ל-/version.json, כדי שחלון פתוח יזהה שיצאה גרסה חדשה ויתרענן במעבר המסך הבא
+// (components/app/version-watcher.tsx). מחושב פעם אחת — זהה בבניית הלקוח ובבניית השרת.
+const APP_VERSION = process.env["VERCEL_GIT_COMMIT_SHA"] ?? `local-${Date.now()}`;
+
+function versionFile(): Plugin {
+  return {
+    name: "app-version-file",
+    apply: "build",
+    generateBundle() {
+      if (this.environment.name !== "client") return;
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: JSON.stringify({ version: APP_VERSION }),
+      });
+    },
+  };
+}
+
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   server: { host: "::", port: 8080 },
   resolve: {
     dedupe: [
@@ -31,5 +52,6 @@ export default defineConfig({
     }),
     nitro({ preset: "vercel" }),
     viteReact(),
+    versionFile(),
   ],
 });

@@ -14,6 +14,7 @@ import { RecurringDraftProvider } from "@/store/recurring-draft";
 import { Toaster } from "@/components/ui/sonner";
 import { CreditFooter } from "@/components/app/credit-footer";
 import { PwaInstallPrompt } from "@/components/app/pwa-install-prompt";
+import { VersionWatcher } from "@/components/app/version-watcher";
 import { getAuthContext } from "@/lib/auth/auth-context";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useCutoffExceptions, useCutoffRules } from "@/hooks/use-cutoff";
@@ -182,6 +183,7 @@ function RootComponent() {
         <Outlet />
         <Toaster position="bottom-center" dir="rtl" />
         <PwaInstallPrompt />
+        <VersionWatcher />
       </RecurringDraftProvider>
     </QueryClientProvider>
   );
